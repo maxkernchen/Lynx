@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strconv"
 	"net"
 	"bufio"
 	"strings"
@@ -17,9 +18,32 @@ type Peer struct {
 var trackerIP string // Will be set after parsing Metainfo
 var peers []Peer
 
+var metamap map[string]map[string]string
+var infodict map[string]string
 
-// Can use os.Stat when checking for file properties
-// This function will be called by an add function
+func metainfo(src string){
+	metamap = make(map[string]map[string]string)
+	infodict = make(map[string]string)
+
+	fileInfo, err := os.Stat(src)
+	if err != nil {
+	}
+	metamap["announce"] = map[string]string{"announceInner": "url of tracker annouce"}
+	temp := fileInfo.ModTime().String()
+	metamap["creation_date"] =  map[string]string{"creation_dateInner": temp}
+
+	infodict["length"] = strconv.FormatInt(fileInfo.Size(), 10) //covert to string
+	infodict["name"] = fileInfo.Name()
+	infodict["piece_length"] = "fileInfo.Size()/constant"
+	infodict["pieces"] = "sha1.Sum(chunckBuffer)"
+	metamap["info"] = infodict
+
+	fmt.Println(metamap["announce"])
+	fmt.Println(metamap["creation_date"])
+
+	fmt.Println(metamap["info"])
+}
+
 func fileCopy(src, dst string) error {
 	in, err := os.Open(src) // Opens input
 	if err != nil {
@@ -27,7 +51,7 @@ func fileCopy(src, dst string) error {
 	}
 	defer in.Close()
 
-	out, err := os.Create(dst) // Opens output (This will need to have Lynx directory appended to it.)
+	out, err := os.Create(dst) // Opens output
 	if err != nil {
 		return err
 	}
@@ -42,9 +66,8 @@ func fileCopy(src, dst string) error {
 	return cerr
 }
 
-
 func main() {
-	fmt.Println("Hello World!")
+	/*fmt.Println("Hello World!")
 	fmt.Println("Cool Beans!")
 	err := fileCopy(os.Args[1], os.Args[2])
 
@@ -53,6 +76,9 @@ func main() {
 	} else {
 		fmt.Println(os.Args[1] + " copied to " + os.Args[2])
 	}
+	*/
+
+	metainfo(os.Args[1]);
 }
 
 // ------------------------- CODE BELOW THIS LINE IS UNTESTED AND DANGEROUS ------------------------- \\
@@ -109,7 +135,4 @@ func getFile(fileID string) {
 	}
 
 }
-
-
-
 
