@@ -1,11 +1,25 @@
 package main
 
 import (
-"fmt"
-"io"
-"os"
+	"fmt"
+	"io"
+	"os"
+	"net"
+	"bufio"
+	"strings"
 )
 
+type Peer struct {
+	IP   string
+	Port string
+}
+
+var trackerIP string // Will be set after parsing Metainfo
+var peers []Peer
+
+
+// Can use os.Stat when checking for file properties
+// This function will be called by an add function
 func fileCopy(src, dst string) error {
 	in, err := os.Open(src) // Opens input
 	if err != nil {
@@ -13,7 +27,7 @@ func fileCopy(src, dst string) error {
 	}
 	defer in.Close()
 
-	out, err := os.Create(dst) // Opens output
+	out, err := os.Create(dst) // Opens output (This will need to have Lynx directory appended to it.)
 	if err != nil {
 		return err
 	}
@@ -28,14 +42,74 @@ func fileCopy(src, dst string) error {
 	return cerr
 }
 
+
 func main() {
 	fmt.Println("Hello World!")
 	fmt.Println("Cool Beans!")
 	err := fileCopy(os.Args[1], os.Args[2])
-	
+
 	if err != nil {
 		fmt.Println("You suck")
 	} else {
 		fmt.Println(os.Args[1] + " copied to " + os.Args[2])
 	}
 }
+
+// ------------------------- CODE BELOW THIS LINE IS UNTESTED AND DANGEROUS ------------------------- \\
+
+func askTrackerForPeers() {
+	// Connets to tracker
+	conn, err := net.Dial("tcp", trackerIP);
+	if err != nil {
+		return
+	}
+
+	fmt.Fprintf(conn, "Announce_Request: <Stuff>")
+
+	reply, err := bufio.NewReader(conn).ReadString('\n') // Waits for a String ending in newline
+
+	for err != nil {
+		peerArray := strings.Split(reply, ":::")
+		peers = append(peers, Peer{IP:peerArray[0], Port:peerArray[1]})
+		reply, err = bufio.NewReader(conn).ReadString('\n') // Waits for a String ending in newline
+	}
+
+}
+
+func getFile(fileID string) {
+
+	i := 0
+	for i < len(peers) {
+		conn, err := net.Dial("tcp", peers[i].IP);
+		if err != nil {
+			return
+		}
+
+		fmt.Fprintf(conn, "Do_You_Have_FileID:" + fileID)
+
+		reply, err := bufio.NewReader(conn).ReadString('\n') // Waits for a String ending in newline
+
+		if reply == "NO" || err != nil {
+			break // could set boolean instead
+		} else {
+			file, err := os.Create(fileID) // Should use name instead of id
+			if err != nil {
+				break // could set boolean instead
+			}
+			defer file.Close();
+
+			n, err := io.Copy(conn, file)
+			if err != nil {
+				break // could set boolean instead
+			}
+			fmt.Println(n, "this was sent")
+		}
+
+
+	}
+
+}
+
+
+
+
