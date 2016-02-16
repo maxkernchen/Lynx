@@ -75,10 +75,10 @@ func main() {
 		fmt.Println("You suck")
 	} else {
 		fmt.Println(os.Args[1] + " copied to " + os.Args[2])
-	}
-	*/
+	}*/
 
-	metainfo(os.Args[1]);
+
+	//metainfo(os.Args[1]);
 }
 
 // ------------------------- CODE BELOW THIS LINE IS UNTESTED AND DANGEROUS ------------------------- \\
