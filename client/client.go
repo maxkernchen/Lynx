@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"strconv"
 	"net"
 	"bufio"
 	"strings"
+	"strconv"
 )
 
 type Peer struct {
@@ -15,34 +15,67 @@ type Peer struct {
 	Port string
 }
 
+type File struct {
+	length int
+	path string
+	name string
+	piece_length int
+	pieces string
+}
+var files []File
 var trackerIP string // Will be set after parsing Metainfo
 var peers []Peer
 
-var metamap map[string]map[string]string
-var infodict map[string]string
+const END_OF_FILE = ":#!"
 
-func metainfo(src string){
-	metamap = make(map[string]map[string]string)
-	infodict = make(map[string]string)
 
-	fileInfo, err := os.Stat(src)
-	if err != nil {
+
+func metainfo(metainfo_path string){
+	metainfo_file, err := os.Open(metainfo_path)
+	if err != nil{
+
 	}
-	metamap["announce"] = map[string]string{"announceInner": "url of tracker annouce"}
-	temp := fileInfo.ModTime().String()
-	metamap["creation_date"] =  map[string]string{"creation_dateInner": temp}
+	defer metainfo_file.Close()
 
-	infodict["length"] = strconv.FormatInt(fileInfo.Size(), 10) //covert to string
-	infodict["name"] = fileInfo.Name()
-	infodict["piece_length"] = "fileInfo.Size()/constant"
-	infodict["pieces"] = "sha1.Sum(chunckBuffer)"
-	metamap["info"] = infodict
+	scanner := bufio.NewScanner(metainfo_file)
+	temp_file := File{}
 
-	fmt.Println(metamap["announce"])
-	fmt.Println(metamap["creation_date"])
+	for scanner.Scan() {
+		temp_line := scanner.Text()
+		split_arry := strings.Split(temp_line, ":::")
 
-	fmt.Println(metamap["info"])
+		if(strings.Contains(temp_line,"announce")){
+			trackerIP = split_arry[1]
+		}else if(strings.Contains(temp_line, "length")){
+			temp_int,err := strconv.Atoi(split_arry[1])
+			temp_file.length = temp_int
+			if err != nil{
+			}
+		}else if(strings.Contains(temp_line, "path")){
+			temp_file.path = split_arry[1]
+		}else if(strings.Contains(temp_line,"name")){
+			temp_file.name = split_arry[1]
+		}else if(strings.Contains(temp_line,"piece_length")){
+			temp_int,err := strconv.Atoi(split_arry[1])
+			temp_file.piece_length = temp_int
+			if err != nil{
+			}
+		}else if(strings.Contains(temp_line,"pieces")){
+			temp_file.pieces = split_arry[1]
+		}else if(strings.Contains(temp_line,END_OF_FILE)){
+			files = append(files, temp_file)
+			temp_file = File{}
+		}
+
+	}
+	fmt.Printf("%v", files)
+
+
+
+
+
 }
+
 
 func fileCopy(src, dst string) error {
 	in, err := os.Open(src) // Opens input
@@ -66,6 +99,8 @@ func fileCopy(src, dst string) error {
 	return cerr
 }
 
+
+
 func main() {
 	/*fmt.Println("Hello World!")
 	fmt.Println("Cool Beans!")
@@ -78,7 +113,8 @@ func main() {
 	}*/
 
 
-	//metainfo(os.Args[1]);
+	metainfo(os.Args[1]);
+
 }
 
 // ------------------------- CODE BELOW THIS LINE IS UNTESTED AND DANGEROUS ------------------------- \\
