@@ -8,6 +8,7 @@ import (
 	"bufio"
 	"strings"
 	"strconv"
+	"path/filepath"
 )
 
 type Peer struct {
@@ -30,12 +31,11 @@ const END_OF_FILE = ":#!"
 
 
 
-func metainfo(metainfo_path string){
+func metainfo(metainfo_path string)error{
 	metainfo_file, err := os.Open(metainfo_path)
 	if err != nil{
-
+		return err
 	}
-	defer metainfo_file.Close()
 
 	scanner := bufio.NewScanner(metainfo_file)
 	temp_file := File{}
@@ -44,38 +44,75 @@ func metainfo(metainfo_path string){
 		temp_line := scanner.Text()
 		split_arry := strings.Split(temp_line, ":::")
 
-		if(strings.Contains(temp_line,"announce")){
+		if(strings.Contains(temp_line,"announce")) {
 			trackerIP = split_arry[1]
+		}else if(strings.Contains(temp_line,"piece_length")){
+			temp_int,err := strconv.Atoi(split_arry[1])
+			temp_file.piece_length = temp_int
+			if err != nil{
+				return err
+			}
 		}else if(strings.Contains(temp_line, "length")){
 			temp_int,err := strconv.Atoi(split_arry[1])
 			temp_file.length = temp_int
 			if err != nil{
+				return err
 			}
 		}else if(strings.Contains(temp_line, "path")){
 			temp_file.path = split_arry[1]
 		}else if(strings.Contains(temp_line,"name")){
 			temp_file.name = split_arry[1]
-		}else if(strings.Contains(temp_line,"piece_length")){
-			temp_int,err := strconv.Atoi(split_arry[1])
-			temp_file.piece_length = temp_int
-			if err != nil{
-			}
 		}else if(strings.Contains(temp_line,"pieces")){
 			temp_file.pieces = split_arry[1]
 		}else if(strings.Contains(temp_line,END_OF_FILE)){
-			files = append(files, temp_file)
+			files = append(files, temp_file)  //if there is a duplicate whole thing goes empty
 			temp_file = File{}
 		}
 
 	}
 	fmt.Printf("%v", files)
 
+	return metainfo_file.Close()
+}
+
+func add_to_metainfo(path_add, path_metainfo string) error{
+	//adding_file, err := os.Open(path_add)
+	metainfo_file, err := os.OpenFile(path_metainfo, os.O_APPEND|os.O_WRONLY, 0644)
+																		//appends to metainfo
+																		// needs permissions?
+	if err != nil{
+		return err
+	}
+
+	add_info,err := os.Stat(path_add)
+	if err != nil{
+		return err
+	}
+	temp_size := add_info.Size() 			//write length
+	temp_str := strconv.FormatInt(temp_size,10)
+	metainfo_file.WriteString("length:::" + temp_str + "\n")
+
+	temp_file_path, err := filepath.Abs(path_add)
+	if err != nil{
+		return err
+	}
+
+	metainfo_file.WriteString("path:::" + temp_file_path + "\n")
+	metainfo_file.WriteString("name:::" + add_info.Name() + "\n")
+	metainfo_file.WriteString("pieces_length:::-1 \n")
+	metainfo_file.WriteString("pieces:::chuncking not currently implemented \n")
+	metainfo_file.WriteString(END_OF_FILE +"\n")
 
 
+
+
+
+
+
+	return metainfo_file.Close()
 
 
 }
-
 
 func fileCopy(src, dst string) error {
 	in, err := os.Open(src) // Opens input
@@ -113,8 +150,7 @@ func main() {
 	}*/
 
 
-	metainfo(os.Args[1]);
-
+	metainfo(os.Args[2])
 }
 
 // ------------------------- CODE BELOW THIS LINE IS UNTESTED AND DANGEROUS ------------------------- \\

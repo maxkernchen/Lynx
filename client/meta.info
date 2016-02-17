@@ -5,6 +5,16 @@ name:::test.txt
 piece_length:::-1
 pieces:::chuncking not currently implemented
 :#!
-
-
+length:::50653
+path:::C:\Users\Max\IdeaProjects\capstone1\client\test11.txt
+name:::test11.txt
+piece_length:::-1
+pieces:::chuncking not currently implemented
+:#!
+length:::27
+path:::C:\Users\Max\IdeaProjects\capstone1\client\file1.txt
+name:::file1.txt
+pieces_length:::-1
+pieces:::chuncking not currently implemented
+:#!
 
