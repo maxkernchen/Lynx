@@ -1,11 +1,12 @@
 /**
-	The client side of the Lynx application. Currently handles file copying, metainfo parsing,
-	metainfo entry addition and deletion, and experimentally handles peer and file retrieval
-
-	 @author: Michael Bruce
-	 @author: Max Kernchen
-
-	 @verison: 2/17/2016
+ *
+ *	The client side of the Lynx application. Currently handles file copying, metainfo parsing,
+ *	metainfo entry addition and deletion, and experimentally handles peer and file retrieval
+ *
+ *	 @author: Michael Bruce
+ *	 @author: Max Kernchen
+ *
+ *	 @verison: 2/17/2016
  */
 
 package main
@@ -21,17 +22,15 @@ import (
 	"path/filepath"
 	"errors"
 )
-/**
-	a struct to handle Peers
- */
+
+/**	A struct which represents a Peer of the client */
 type Peer struct {
 	IP   string
 	Port string
 }
 
-/**
-	File struct based upon BitTorrent protocol dictionaries
- */
+/** A struct based which represents a File in our Lynx directory. It is based
+upon BitTorrent protocol dictionaries */
 type File struct {
 	length       int
 	path         string
@@ -39,56 +38,63 @@ type File struct {
 	pieces       string
 	piece_length int
 }
-/* list of all Files */
-var files []File
-var trackerIP string // Will be set after parsing Metainfo
-/* list of all peers*/
-var peers []Peer
-/* special symbol to denote the end of one entry in the metainfo file */
-const END_OF_ENTRY = ":#!"
 
+/** An array of the files found from parsing the metainfo file */
+var files []File
+/** The IP Address of our tracker */
+var trackerIP string
+/** An array of all the client's peers */
+var peers []Peer
+
+/** A special symbol we use to denote the end of 1 entry in the metainfo file */
+const END_OF_ENTRY = ":#!"
+/** The array index of our metainfo values */
 const META_VALUE_INDEX = 1
+
 /**
-	deletes an element in the list of Files based upon its name
+ * Function that deletes an entry from our files array.
+ * @param string nameToDelete - This is the name of the file we want to delete
  */
 func deleteEntry(nameToDelete string) {
 
 	i := 0
 	for i < len(files){
 		if(nameToDelete == files[i].name){
-			if len(files) > 2{
+			if len(files) > 2 {
 				files = append(files[:i], files[i+1:]...)
-			}else if(i == 0){
+			} else if i == 0 {
 				files = append(files[i:])
-			}else if(i == 1){
+			} else if i == 1 {
 				files = append(files[:i])
 			}
 		}
 		i++
 	}
+
 }
+
 /**
-	Deletes the current meta.info and replaces it with a new version that accurately reflects
-	the array of Files after they have been modified
+ * Deletes the current meta.info and replaces it with a new version that
+ * accurately reflects the array of Files after they have been modified
  */
 func updateMetainfo() error {
 
 	err := os.Remove("meta.info")
-	if err != nil{
-		fmt.Print(err)
+	if err != nil {
+		fmt.Println(err)
 		return err
 	}
 
 	newMetainfo, err := os.Create("meta.info")
 	if err != nil {
+		fmt.Println(err)
 		return err
 	}
 
+	newMetainfo.WriteString("annouce:::" + trackerIP + "\n") // Write tracker IP
 	i := 0
-	newMetainfo.WriteString("annouce:::" + trackerIP + "\n") // write the ip
 	for i < len(files) {
-
-		newMetainfo.WriteString("length:::" + strconv.Itoa(files[i].length) +"\n") //convert to str
+		newMetainfo.WriteString("length:::" + strconv.Itoa(files[i].length) + "\n") //convert to str
 		newMetainfo.WriteString("path:::" + files[i].path + "\n")
 		newMetainfo.WriteString("name:::" + files[i].name + "\n")
 		newMetainfo.WriteString("pieces_length:::" + strconv.Itoa(files[i].piece_length) + "\n")
@@ -101,30 +107,32 @@ func updateMetainfo() error {
 	return newMetainfo.Close()
 
 }
-/**
-	Parses the information the in meta.info file and places each entry into a File struct and
-	appends that struct to the list of structs
 
-	@param:metainfo_path - the path to the metainfo file
+/**
+ * Parses the information in meta.info file and places each entry into a File
+ * struct and appends that struct to the array of structs
+ * @param string metaPath - The path to the metainfo file
  */
-func parseMetainfo(metainfo_path string) error {
-	metainfo_file, err := os.Open(metainfo_path)
+func parseMetainfo(metaPath string) error {
+
+	metainfo_file, err := os.Open(metaPath)
 	if err != nil {
 		return err
-	} else if metainfo_path != "meta.info" {
+	} else if metaPath != "meta.info" {
 		return errors.New("Invalid File Type")
 	}
 
-	scanner := bufio.NewScanner(metainfo_file)
+	scanner   := bufio.NewScanner(metainfo_file)
 	temp_file := File{}
-	// scan each line
+
+	// Scan each line
 	for scanner.Scan() {
 
-		line  := strings.TrimSpace(scanner.Text()) //trim helps with errors in \n
+		line  := strings.TrimSpace(scanner.Text()) // Trim helps with errors in \n
 		split := strings.Split(line, ":::")
 
-		if split[0] == "announce" { //if the line is announce
-			trackerIP = split[META_VALUE_INDEX] // convert str to int
+		if split[0] == "announce" { // If the line is announce
+			trackerIP = split[META_VALUE_INDEX]
 		} else if split[0] == "pieces_length" {
 			temp_int, err := strconv.Atoi(split[META_VALUE_INDEX])
 			temp_file.piece_length = temp_int
@@ -144,34 +152,32 @@ func parseMetainfo(metainfo_path string) error {
 		} else if (strings.Contains(line, "pieces")) {
 			temp_file.pieces = split[META_VALUE_INDEX]
 		} else if (strings.Contains(line, END_OF_ENTRY)) {
-			files = append(files, temp_file)  //append the current file to the list of structs
-			temp_file = File{} // empty the current file
+			files = append(files, temp_file)  // Append the current file to the list of structs
+			temp_file = File{} // Empty the current file
 		}
 
 	}
 
 	return metainfo_file.Close()
 }
+
 /**
-	Adds a file to the meta.info by parsing that file's information
-
-	@param: path_add - the path to file to be added
-	@para: path_metainfo - the path to the metainfo file
+ * Adds a file to the meta.info by parsing that file's information
+ * @param string addPath - the path of the file to be added
+ * @param string metaPath - the path of the metainfo file
  */
-func addToMetainfo(path_add, path_metainfo string) error {
-	metainfo_file, err := os.OpenFile(path_metainfo, os.O_APPEND | os.O_WRONLY, 0644)
-																		//appends to metainfo
-																		// needs permissions
+func addToMetainfo(addPath, metaPath string) error {
+	metainfo_file, err := os.OpenFile(metaPath, os.O_APPEND | os.O_WRONLY, 0644) // Opens for appending
 	if err != nil{
 		return err
 	}
 
-	add_info,err := os.Stat(path_add)
+	add_info,err := os.Stat(addPath)
 	if err != nil{
 		return err
 	}
 
-	parseMetainfo(path_metainfo)
+	parseMetainfo(metaPath)
 	i := 0
 	for i < len(files) {
 		if files[i].name == add_info.Name() {
@@ -180,15 +186,16 @@ func addToMetainfo(path_add, path_metainfo string) error {
 		i++
 	}
 
-	temp_size := add_info.Size() 			//write length
-	temp_str := strconv.FormatInt(temp_size,10) // convert int64 to string
+	temp_size := add_info.Size()	// Write length
+	temp_str  := strconv.FormatInt(temp_size,10) 	// Convert int64 to string
 	metainfo_file.WriteString("length:::" + temp_str + "\n")
 
-	temp_file_path, err := filepath.Abs(path_add) // find the path of the current file
+	temp_file_path, err := filepath.Abs(addPath) 	// Find the path of the current file
 	if err != nil{
 		return err
 	}
-	// write to metainfo file using ::: to separate keys and values
+
+	// Write to metainfo file using ::: to separate keys and values
 	metainfo_file.WriteString("path:::" + temp_file_path + "\n")
 	metainfo_file.WriteString("name:::" + add_info.Name() + "\n")
 	metainfo_file.WriteString("pieces_length:::-1\n")
@@ -197,11 +204,11 @@ func addToMetainfo(path_add, path_metainfo string) error {
 
 	return metainfo_file.Close()
 }
-/**
-	Copies a file from src to dst
 
-	@param:src - the file that will be copied
-	@param:dst - the destination of the copying
+/**
+ * Copies a file from src to dst
+ * @param string src - the file that will be copied
+ * @param string dst - the destination of the file to be copied
  */
 func fileCopy(src, dst string) error {
 	in, err := os.Open(src) // Opens input
@@ -226,8 +233,11 @@ func fileCopy(src, dst string) error {
 }
 
 
-
+/**
+ * Function used to drive and test our other client functions
+ */
 func main() {
+
 	/*fmt.Println("Hello World!")
 	fmt.Println("Cool Beans!")
 	err := fileCopy(os.Args[1], os.Args[2])
@@ -244,9 +254,11 @@ func main() {
 	for i < len(files) {
 		fmt.Println(files[i])
 		if files[i].name == "test.txt" {
+			
 		}
 		i++
 	}
+
 	//addToMetainfo("test2.txt", "meta.info")
 	//deleteEntry("test.txt")
 	//updateMetainfo()
@@ -254,8 +266,9 @@ func main() {
 }
 
 // ------------------------- CODE BELOW THIS LINE IS UNTESTED AND DANGEROUS ------------------------- \\
+
 /**
-	Find the peers from the tracker and places them into the peer list
+ * Asks the tracker for a list of peers and then places them into peers array
  */
 func askTrackerForPeers() {
 	// Connets to tracker
@@ -275,10 +288,10 @@ func askTrackerForPeers() {
 	}
 
 }
-/**
-	Gets a file from the peer(s)
 
-	@param: fileName - the name of the file to find in the peers
+/**
+ * Gets a file from the peer(s)
+ * @param string fileName - The name of the file to find in the peers
  */
 func getFile(fileName string) {
 
@@ -309,8 +322,8 @@ func getFile(fileName string) {
 			fmt.Println(n, "this was sent")
 			gotFile = true
 		}
+
 		i++
 	}
 
 }
-

@@ -7,11 +7,15 @@ import (
 	"html/template"
 )
 
+/** A struct that we combine with our Go template to produce desired HTML */
 type UserInput struct {
 	Name string
 	FavNum string
 }
 
+/**
+ * Launches our web server using the port specified by commandline argument 1.
+ */
 func main() {
 
 	if len(os.Args) != 4 {
@@ -27,8 +31,14 @@ func main() {
 	http.ListenAndServe(":"+port, nil)
 }
 
+/**
+ * Function that handles requests on the index page: "/".
+ * @param http.ResponseWriter rw - This is what we use to write our html back to
+ * the web page.
+ * @param *http.Request req - This is the http request sent to the server.
+ */
 func IndexHandler(rw http.ResponseWriter, req *http.Request) {
-	usrIn := UserInput{Name: os.Args[2], FavNum: os.Args[3]}
+	usrIn := UserInput{Name: os.Args[2], FavNum: os.Args[3]} // This will change
 
 	t := template.New("cool template")
 	t, _ = t.Parse("<h1>Hello {{.Name}}!</h1> <p>Your Favorite Number is {{.FavNum}}.</p>")

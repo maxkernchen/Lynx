@@ -3,8 +3,9 @@ package main
 import (
 	"testing"
 )
+
 /**
-	Unit test for a file copy
+ * Unit tests for our filecopy function.
  */
 func TestFileCopy(t *testing.T) {
 	result := fileCopy("test.txt", "test2.txt")
@@ -32,8 +33,9 @@ func TestFileCopy(t *testing.T) {
 		t.Error("Test failed, expected failure due to permissions on nopermission.txt. Got ", result)
 	}
 }
+
 /**
-	Unit test for adding a new entry to the metainfo file
+ * Unit tests for addToMetainfo function
  */
 func TestAddToMetainfo(t *testing.T) {
 	parseMetainfo("meta.info")
@@ -48,6 +50,7 @@ func TestAddToMetainfo(t *testing.T) {
 		}
 		i++
 	}
+
 	// add test.txt to the metainfo
 	result := addToMetainfo("test.txt", "meta.info")
 
@@ -57,8 +60,8 @@ func TestAddToMetainfo(t *testing.T) {
 
 	parseMetainfo("meta.info")
 
-	i = 0
 	// check that test.txt is in the File struct list
+	i = 0
 	for i < len(files) {
 		if files[i].name == "test.txt" {
 			hasTest = true
@@ -76,8 +79,9 @@ func TestAddToMetainfo(t *testing.T) {
 		t.Error("Test failed, expected failure due to duplicates. Got ", result)
 	}
 }
+
 /**
-	tests that checks if the meta.info file is correctly parsed
+ * Unit tests for parseMetainfo function
  */
 func TestParseMetainfo(t *testing.T) {
 	result := parseMetainfo("fake")
@@ -92,15 +96,15 @@ func TestParseMetainfo(t *testing.T) {
 		t.Error("Test failed, expected failure due incorrect file. Got ", result)
 	}
 
-
 	result = parseMetainfo("meta.info")
 
 	if result != nil {
 		t.Error("Test failed, expected no errors. Got ", result)
 	}
 }
+
 /**
-	checks if updateMetaInfo() works correctly
+ * Unit tests for updateMetainfo function
  */
 func TestUpdateMetainfo(t *testing.T) {
 	parseMetainfo("meta.info")
@@ -111,8 +115,9 @@ func TestUpdateMetainfo(t *testing.T) {
 		t.Error("Test failed, expected no errors. Got ", result)
 	}
 }
+
 /**
-	Tests that an entry has been successfully deleted
+ * Unit tests for deleteEntry function
  */
 func TestDeleteEntry(t *testing.T) {
 
