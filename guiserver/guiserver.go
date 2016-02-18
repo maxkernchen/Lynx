@@ -1,15 +1,25 @@
+/**
+ *
+ *	The web server resposible for rendering our GUI.
+ *
+ *	 @author: Michael Bruce
+ *	 @author: Max Kernchen
+ *
+ *	 @verison: 2/17/2016
+ */
+
 package main
 
 import (
 	"fmt"
+	"html/template"
 	"net/http"
 	"os"
-	"html/template"
 )
 
 /** A struct that we combine with our Go template to produce desired HTML */
 type UserInput struct {
-	Name string
+	Name   string
 	FavNum string
 }
 
@@ -25,7 +35,6 @@ func main() {
 
 	port := os.Args[1]
 	fmt.Println("Starting server on http://localhost:" + port)
-
 
 	http.HandleFunc("/", IndexHandler)
 	http.ListenAndServe(":"+port, nil)
