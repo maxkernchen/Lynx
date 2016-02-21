@@ -248,7 +248,7 @@ func main() {
 	addToMetainfo("test.txt", "meta.info")
 	addToMetainfo("test2.txt", "meta.info")
 	addToMetainfo("file1.txt", "meta.info")
-	parseMetainfo("metainfo")
+	parseMetainfo("meta.info")
 
 	i := 0
 	for i < len(files) {
@@ -262,6 +262,26 @@ func main() {
 }
 
 // ------------------------- CODE BELOW THIS LINE IS UNTESTED AND DANGEROUS ------------------------- \\
+
+/**
+ * Exported function that checks to see if we have the passed in file.
+ * @param string fileName - The name of the file to check for
+ */
+func HaveFile(fileName string) bool {
+	have := false
+
+	parseMetainfo("meta.info")
+
+	i := 0
+	for i < len(files) && !have {
+		if files[i].name == fileName {
+			have = true
+		}
+		i++
+	}
+
+	return have
+}
 
 /**
  * Asks the tracker for a list of peers and then places them into peers array
@@ -289,14 +309,14 @@ func askTrackerForPeers() {
  * Gets a file from the peer(s)
  * @param string fileName - The name of the file to find in the peers
  */
-func getFile(fileName string) {
+func getFile(fileName string) error {
 
 	i := 0
 	gotFile := false
 	for i < len(peers) && !gotFile {
 		conn, err := net.Dial("tcp", peers[i].IP)
 		if err != nil {
-			return
+			return err
 		}
 
 		fmt.Fprintf(conn, "Do_You_Have_FileName:"+fileName)
@@ -307,13 +327,13 @@ func getFile(fileName string) {
 		if reply != "NO" && err == nil {
 			file, err := os.Create(fileName)
 			if err != nil {
-				break // could set boolean instead
+				return err
 			}
 			defer file.Close()
 
 			n, err := io.Copy(conn, file)
 			if err != nil {
-				break // could set boolean instead
+				return err
 			}
 			fmt.Println(n, "this was sent")
 			gotFile = true
@@ -322,4 +342,5 @@ func getFile(fileName string) {
 		i++
 	}
 
+	return nil
 }
