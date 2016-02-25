@@ -283,6 +283,12 @@ func HaveFile(fileName string) bool {
 	return have
 }
 
+func GetTrackerIP() string {
+	parseMetainfo("meta.info")
+
+	return trackerIP
+}
+
 /**
  * Asks the tracker for a list of peers and then places them into peers array
  */
