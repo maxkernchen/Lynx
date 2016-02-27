@@ -12,6 +12,7 @@ package main
 
 import (
 	"bufio"
+	"capstone/client"
 	"fmt"
 	"io"
 	"net"
@@ -23,7 +24,7 @@ import (
  * Function used to drive and test our server's functions
  */
 func main() {
-
+	listen()
 }
 
 // ------------------------- CODE BELOW THIS LINE IS UNTESTED AND DANGEROUS ------------------------- \\
@@ -34,6 +35,8 @@ func main() {
  */
 func listen() {
 
+	fmt.Println("Starting Server on Port 8080")
+
 	welcomeSocket, wErr := net.Listen("tcp", ":8080") // Will later need to set port dynamically
 
 	if wErr != nil {
@@ -43,7 +46,7 @@ func listen() {
 	var cErr error
 
 	for cErr == nil {
-		conn, err := welcomeSocket.Accept()
+		conn, cErr := welcomeSocket.Accept()
 		if cErr != nil {
 			// handle error
 		}
@@ -76,22 +79,30 @@ func handleFileRequest(clientConn net.Conn) error {
 		return err
 	}
 
+	// NEED TO CHECK PROPER FORMAT BEFORE ACCESSING INDEX 1
 	fileReq := strings.Split(request, ":")[1] // Gets the name of requested file
+	fileReq = strings.TrimSpace(fileReq)
+
+	fmt.Println("Asked for " + fileReq)
 
 	haveFile := client.HaveFile(fileReq)
+	//writer   := bufio.NewWriter(clientConn)
+	fmt.Println(haveFile)
 
 	// Depending on if we have the file - we write back to our client accordingly
 	if haveFile {
-		bufio.NewWriter(clientConn).WriteString("YES\n")
+		//bufio.NewWriter(clientConn).WriteString("YES\n")
+		fmt.Fprintf(clientConn, "YES\n")
 		err = sendFile(fileReq, clientConn)
 		if err != nil {
 			return err
 		}
 	} else {
-		bufio.NewWriter(clientConn).WriteString("NO\n")
+		//bufio.NewWriter(clientConn).WriteString("NO\n")
+		fmt.Fprintf(clientConn, "NO\n")
 	}
-
-	return err
+	fmt.Println("No Errors")
+	return clientConn.Close()
 }
 
 /**
@@ -100,16 +111,19 @@ func handleFileRequest(clientConn net.Conn) error {
  * @param net.Conn clientConn - The socket over which we will send the file
  */
 func sendFile(fileName string, clientConn net.Conn) error {
+	fileName = "../client/" + fileName // Need to change this - move files to a different directory
+	fmt.Println(fileName)
 
 	fileToSend, err := os.Open(fileName)
 	if err != nil {
 		return err
 	}
 
-	n, err := io.Copy(fileToSend, clientConn)
+	n, err := io.Copy(clientConn, fileToSend)
 	if err != nil {
 		return err
 	}
+
 	fmt.Println(n, "this was sent")
 
 	return fileToSend.Close()

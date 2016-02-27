@@ -9,7 +9,7 @@
  *	 @verison: 2/17/2016
  */
 
-package main
+package client
 
 import (
 	"bufio"
@@ -81,15 +81,15 @@ func deleteEntry(nameToDelete string) {
  * accurately reflects the array of Files after they have been modified
  */
 func updateMetainfo() error {
-	parseMetainfo("meta.info")
+	parseMetainfo("../resources/meta.info")
 
-	err := os.Remove("meta.info")
+	err := os.Remove("../resources/meta.info")
 	if err != nil {
 		fmt.Println(err)
 		return err
 	}
 
-	newMetainfo, err := os.Create("meta.info")
+	newMetainfo, err := os.Create("../resources/meta.info")
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -123,7 +123,7 @@ func parseMetainfo(metaPath string) error {
 	metaFile, err := os.Open(metaPath)
 	if err != nil {
 		return err
-	} else if metaPath != "meta.info" {
+	} else if metaPath != "../resources/meta.info" {
 		return errors.New("Invalid File Type")
 	}
 
@@ -245,10 +245,10 @@ func main() {
 	}*/
 
 	//parseMetainfo(os.Args[1])
-	addToMetainfo("test.txt", "meta.info")
-	addToMetainfo("test2.txt", "meta.info")
-	addToMetainfo("file1.txt", "meta.info")
-	parseMetainfo("meta.info")
+	addToMetainfo("test.txt", "../resources/meta.info")
+	addToMetainfo("test2.txt", "../resources/meta.info")
+	addToMetainfo("file1.txt", "../resources/meta.info")
+	parseMetainfo("../resources/meta.info")
 
 	i := 0
 	for i < len(files) {
@@ -270,7 +270,7 @@ func main() {
 func HaveFile(fileName string) bool {
 	have := false
 
-	parseMetainfo("meta.info")
+	parseMetainfo("../resources/meta.info")
 
 	i := 0
 	for i < len(files) && !have {
@@ -283,8 +283,11 @@ func HaveFile(fileName string) bool {
 	return have
 }
 
+/**
+ * Simply returns the trackerIP global variable after parsing the meta.info file
+ */
 func GetTrackerIP() string {
-	parseMetainfo("meta.info")
+	parseMetainfo("../resources/meta.info")
 
 	return trackerIP
 }
@@ -316,28 +319,30 @@ func askTrackerForPeers() {
  * @param string fileName - The name of the file to find in the peers
  */
 func getFile(fileName string) error {
+	peers = append(peers, Peer{IP: "127.0.0.1", Port: "8080"}) // For testing ONLY - Hardcodes myself as a peer
 
 	i := 0
 	gotFile := false
 	for i < len(peers) && !gotFile {
-		conn, err := net.Dial("tcp", peers[i].IP)
+		conn, err := net.Dial("tcp", peers[i].IP+":"+peers[i].Port)
 		if err != nil {
 			return err
 		}
 
-		fmt.Fprintf(conn, "Do_You_Have_FileName:"+fileName)
+		fmt.Fprintf(conn, "Do_You_Have_FileName:"+fileName+"\n")
 
 		reply, err := bufio.NewReader(conn).ReadString('\n') // Waits for a String ending in newline
+		reply = strings.TrimSpace(reply)
 
 		// Has file and no errors
 		if reply != "NO" && err == nil {
-			file, err := os.Create(fileName)
+			file, err := os.Create(fileName + "Network") // + "Network" is for TESTING that this was a file sent over the network
 			if err != nil {
 				return err
 			}
 			defer file.Close()
 
-			n, err := io.Copy(conn, file)
+			n, err := io.Copy(file, conn)
 			if err != nil {
 				return err
 			}

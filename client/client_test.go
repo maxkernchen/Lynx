@@ -8,7 +8,7 @@
  *	 @verison: 2/17/2016
  */
 
-package main
+package client
 
 import (
 	"fmt"
@@ -68,7 +68,7 @@ func TestFileCopy(t *testing.T) {
 func TestAddToMetainfo(t *testing.T) {
 	fmt.Println("\n----------------TestAddToMetainfo----------------")
 
-	parseMetainfo("meta.info")
+	parseMetainfo("../resources/meta.info")
 	hasTest := false
 
 	i := 0
@@ -82,7 +82,7 @@ func TestAddToMetainfo(t *testing.T) {
 	}
 
 	// add test.txt to the metainfo
-	result := addToMetainfo("test.txt", "meta.info")
+	result := addToMetainfo("test.txt", "../resources/meta.info")
 
 	if result != nil && !hasTest {
 		t.Error("Test failed, expected no errors. Got ", result)
@@ -91,7 +91,7 @@ func TestAddToMetainfo(t *testing.T) {
 		successful++
 	}
 
-	parseMetainfo("meta.info")
+	parseMetainfo("../resources/meta.info")
 
 	// check that test.txt is in the File struct list
 	i = 0
@@ -109,7 +109,7 @@ func TestAddToMetainfo(t *testing.T) {
 		successful++
 	}
 
-	result = addToMetainfo("test.txt", "meta.info")
+	result = addToMetainfo("test.txt", "../resources/meta.info")
 
 	if result == nil {
 		t.Error("Test failed, expected failure due to duplicates. Got ", result)
@@ -143,7 +143,7 @@ func TestParseMetainfo(t *testing.T) {
 		successful++
 	}
 
-	result = parseMetainfo("meta.info")
+	result = parseMetainfo("../resources/meta.info")
 
 	if result != nil {
 		t.Error("Test failed, expected no errors. Got ", result)
@@ -159,7 +159,7 @@ func TestParseMetainfo(t *testing.T) {
 func TestUpdateMetainfo(t *testing.T) {
 	fmt.Println("\n----------------TestUpdateMetainfo----------------")
 
-	parseMetainfo("meta.info")
+	parseMetainfo("../resources/meta.info")
 
 	result := updateMetainfo()
 
@@ -179,7 +179,7 @@ func TestDeleteEntry(t *testing.T) {
 	fmt.Println("\n----------------TestDeleteEntry----------------")
 	failed := false
 
-	parseMetainfo("meta.info")
+	parseMetainfo("../resources/meta.info")
 	deleteEntry("test.txt")
 
 	i := 0
@@ -216,4 +216,17 @@ func TestDeleteEntry(t *testing.T) {
 		failed = false
 	}
 
+}
+
+/**
+ * Unit tests for deleteEntry function
+ */
+func TestGetFile(t *testing.T) {
+	err := getFile("test.txt")
+
+	if err != nil {
+		t.Error(err.Error())
+	} else {
+		fmt.Println("Successfully Got File 'test.txt'")
+	}
 }
