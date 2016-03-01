@@ -1,6 +1,7 @@
 /**
  *
- *	The server side of the Lynx application. Currently handles ~
+ *	The server side of the Lynx application. Currently handles ~ sending files, handling file requests,
+ *  listening for client connections.
  *
  *	 @author: Michael Bruce
  *	 @author: Max Kernchen
@@ -70,11 +71,11 @@ func pushMeta() {
 
 /**
  * Handles a file request sent by another peer
- * @param net.Conn clientConn - The socket which the client is asking on
+ * @param net.Conn conn - The socket which the client is asking on
  */
-func handleFileRequest(clientConn net.Conn) error {
+func handleFileRequest(conn net.Conn) error {
 
-	request, err := bufio.NewReader(clientConn).ReadString('\n') // Waits for a String ending in newline
+	request, err := bufio.NewReader(conn).ReadString('\n') // Waits for a String ending in newline
 	if err != nil {
 		return err
 	}
@@ -86,31 +87,31 @@ func handleFileRequest(clientConn net.Conn) error {
 	fmt.Println("Asked for " + fileReq)
 
 	haveFile := client.HaveFile(fileReq)
-	//writer   := bufio.NewWriter(clientConn)
+	//writer   := bufio.NewWriter(conn)
 	fmt.Println(haveFile)
 
 	// Depending on if we have the file - we write back to our client accordingly
 	if haveFile {
-		//bufio.NewWriter(clientConn).WriteString("YES\n")
-		fmt.Fprintf(clientConn, "YES\n")
-		err = sendFile(fileReq, clientConn)
+		//bufio.NewWriter(conn).WriteString("YES\n")
+		fmt.Fprintf(conn, "YES\n")
+		err = sendFile(fileReq, conn)
 		if err != nil {
 			return err
 		}
 	} else {
-		//bufio.NewWriter(clientConn).WriteString("NO\n")
-		fmt.Fprintf(clientConn, "NO\n")
+		//bufio.NewWriter(conn).WriteString("NO\n")
+		fmt.Fprintf(conn, "NO\n")
 	}
 	fmt.Println("No Errors")
-	return clientConn.Close()
+	return conn.Close()
 }
 
 /**
  * Sends a file to a peer
  * @param string fileName - The name of the file to send to the peer
- * @param net.Conn clientConn - The socket over which we will send the file
+ * @param net.Conn conn - The socket over which we will send the file
  */
-func sendFile(fileName string, clientConn net.Conn) error {
+func sendFile(fileName string, conn net.Conn) error {
 	fileName = "../client/" + fileName // Need to change this - move files to a different directory
 	fmt.Println(fileName)
 
@@ -119,12 +120,12 @@ func sendFile(fileName string, clientConn net.Conn) error {
 		return err
 	}
 
-	n, err := io.Copy(clientConn, fileToSend)
+	n, err := io.Copy(conn, fileToSend)
 	if err != nil {
 		return err
 	}
 
-	fmt.Println(n, "this was sent")
+	fmt.Println(n, "bytes were sent")
 
 	return fileToSend.Close()
 

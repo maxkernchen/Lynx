@@ -261,8 +261,6 @@ func main() {
 
 }
 
-// ------------------------- CODE BELOW THIS LINE IS UNTESTED AND DANGEROUS ------------------------- \\
-
 /**
  * Exported function that checks to see if we have the passed in file.
  * @param string fileName - The name of the file to check for
@@ -293,10 +291,60 @@ func GetTrackerIP() string {
 }
 
 /**
+ * Gets a file from the peer(s)
+ * @param string fileName - The name of the file to find in the peers
+ */
+func getFile(fileName string) error {
+	// Will parseMetainfo file and then ask tracker for list of peers when tracker is implemented
+
+	peers = append(peers, Peer{IP: "127.0.0.1", Port: "8080"}) // For testing ONLY - Hardcodes myself as a peer
+
+	i := 0
+	gotFile := false
+
+	for i < len(peers) && !gotFile {
+		conn, err := net.Dial("tcp", peers[i].IP+":"+peers[i].Port)
+		if err != nil {
+			return err
+		}
+
+		fmt.Fprintf(conn, "Do_You_Have_FileName:"+fileName+"\n")
+
+		reply, err := bufio.NewReader(conn).ReadString('\n') // Waits for a String ending in newline
+		reply = strings.TrimSpace(reply)
+
+		// Has file and no errors
+		if reply != "NO" && err == nil {
+			file, err := os.Create(fileName + "_Network") // + "_Network" is for TESTING that this was a file sent over the network
+			if err != nil {
+				return err
+			}
+			defer file.Close()
+
+			_, err = io.Copy(file, conn)
+			if err != nil {
+				return err
+			}
+			gotFile = true
+		}
+
+		i++
+	}
+
+	if gotFile {
+		return nil
+	} else {
+		return errors.New("Did not receive File")
+	}
+}
+
+// ------------------------- CODE BELOW THIS LINE IS UNTESTED AND DANGEROUS ------------------------- \\
+
+/**
  * Asks the tracker for a list of peers and then places them into peers array
  */
 func askTrackerForPeers() {
-	// Connets to tracker
+	// Connects to tracker
 	conn, err := net.Dial("tcp", trackerIP)
 	if err != nil {
 		return
@@ -312,46 +360,4 @@ func askTrackerForPeers() {
 		reply, err = bufio.NewReader(conn).ReadString('\n') // Waits for a String ending in newline
 	}
 
-}
-
-/**
- * Gets a file from the peer(s)
- * @param string fileName - The name of the file to find in the peers
- */
-func getFile(fileName string) error {
-	peers = append(peers, Peer{IP: "127.0.0.1", Port: "8080"}) // For testing ONLY - Hardcodes myself as a peer
-
-	i := 0
-	gotFile := false
-	for i < len(peers) && !gotFile {
-		conn, err := net.Dial("tcp", peers[i].IP+":"+peers[i].Port)
-		if err != nil {
-			return err
-		}
-
-		fmt.Fprintf(conn, "Do_You_Have_FileName:"+fileName+"\n")
-
-		reply, err := bufio.NewReader(conn).ReadString('\n') // Waits for a String ending in newline
-		reply = strings.TrimSpace(reply)
-
-		// Has file and no errors
-		if reply != "NO" && err == nil {
-			file, err := os.Create(fileName + "Network") // + "Network" is for TESTING that this was a file sent over the network
-			if err != nil {
-				return err
-			}
-			defer file.Close()
-
-			n, err := io.Copy(file, conn)
-			if err != nil {
-				return err
-			}
-			fmt.Println(n, "this was sent")
-			gotFile = true
-		}
-
-		i++
-	}
-
-	return nil
 }

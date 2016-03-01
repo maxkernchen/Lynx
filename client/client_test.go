@@ -1,6 +1,6 @@
 /**
  *
- *	The unit tests for our client
+ *	 The unit tests for our client
  *
  *	 @author: Michael Bruce
  *	 @author: Max Kernchen
@@ -12,14 +12,19 @@ package client
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 )
 
 /** Count of the # of successful tests. */
 var successful = 0
 
+/** Total # of the tests. */
+const total = 18
+
 /**
  * Unit tests for our filecopy function.
+ * @param *testing.T t - The wrapper for the test
  */
 func TestFileCopy(t *testing.T) {
 	fmt.Println("\n----------------TestFileCopy----------------")
@@ -64,6 +69,7 @@ func TestFileCopy(t *testing.T) {
 
 /**
  * Unit tests for addToMetainfo function
+ * @param *testing.T t - The wrapper for the test
  */
 func TestAddToMetainfo(t *testing.T) {
 	fmt.Println("\n----------------TestAddToMetainfo----------------")
@@ -121,6 +127,7 @@ func TestAddToMetainfo(t *testing.T) {
 
 /**
  * Unit tests for parseMetainfo function
+ * @param *testing.T t - The wrapper for the test
  */
 func TestParseMetainfo(t *testing.T) {
 	fmt.Println("\n----------------TestParseMetainfo----------------")
@@ -155,6 +162,7 @@ func TestParseMetainfo(t *testing.T) {
 
 /**
  * Unit tests for updateMetainfo function
+ * @param *testing.T t - The wrapper for the test
  */
 func TestUpdateMetainfo(t *testing.T) {
 	fmt.Println("\n----------------TestUpdateMetainfo----------------")
@@ -174,6 +182,7 @@ func TestUpdateMetainfo(t *testing.T) {
 
 /**
  * Unit tests for deleteEntry function
+ * @param *testing.T t - The wrapper for the test
  */
 func TestDeleteEntry(t *testing.T) {
 	fmt.Println("\n----------------TestDeleteEntry----------------")
@@ -219,14 +228,74 @@ func TestDeleteEntry(t *testing.T) {
 }
 
 /**
- * Unit tests for deleteEntry function
+ * Unit tests for getFile function
+ * @param *testing.T t - The wrapper for the test
  */
 func TestGetFile(t *testing.T) {
+	fmt.Println("\n----------------TestGetFile----------------")
+
 	err := getFile("test.txt")
 
 	if err != nil {
 		t.Error(err.Error())
 	} else {
 		fmt.Println("Successfully Got File 'test.txt'")
+		successful++
 	}
+
+	err = getFile("non-existent.txt")
+
+	if err != nil {
+		fmt.Println("Successfully Produced Non-Existent File Error")
+		successful++
+	} else {
+		t.Error(err.Error())
+	}
+
+}
+
+/**
+ * Unit tests for HaveFile function
+ * @param *testing.T t - The wrapper for the test
+ */
+func TestHaveFile(t *testing.T) {
+	fmt.Println("\n----------------TestHaveFile----------------")
+
+	result := HaveFile("test.txt")
+
+	if result {
+		fmt.Println("Successfully Found 'test.txt'")
+		successful++
+	} else {
+		t.Error("Could Not Find 'test.txt'")
+	}
+
+	result = HaveFile("non-existent.txt")
+
+	if !result {
+		fmt.Println("Successfully Produced False For Non-Existent File")
+		successful++
+	} else {
+		t.Error("Incorrectly Found A Non-Existent File")
+	}
+
+}
+
+/**
+ * Unit tests for GetTrackerIP function
+ * @param *testing.T t - The wrapper for the test
+ */
+func TestGetTrackerIP(t *testing.T) {
+	fmt.Println("\n----------------TestGetTrackerIP----------------")
+
+	ip := GetTrackerIP() // Should be 127.0.0.1 during testing
+
+	if strings.Compare(ip, "127.0.0.1") == 0 {
+		fmt.Println("Successfully Got TrackerIP")
+		successful++
+	} else {
+		t.Error("Found Incorrect Tracker IP: " + ip)
+	}
+
+	fmt.Println("\nSuccess on ", successful, "/", total, " tests.")
 }
