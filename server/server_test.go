@@ -28,7 +28,7 @@ var successful = 0
 const total = 5
 
 /**
- * Unit tests for listen function
+ * Unit tests for listen, handle, and send functions
  * @param *testing.T t - The wrapper for the test
  */
 func TestListenHandleSend(t *testing.T) {
