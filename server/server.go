@@ -14,6 +14,7 @@ package main
 import (
 	"bufio"
 	"capstone/client"
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -80,8 +81,13 @@ func handleFileRequest(conn net.Conn) error {
 		return err
 	}
 
-	// NEED TO CHECK PROPER FORMAT BEFORE ACCESSING INDEX 1
-	fileReq := strings.Split(request, ":")[1] // Gets the name of requested file
+	tmpArr := strings.Split(request, ":")
+	if len(tmpArr) != 2 {
+		conn.Close()
+		return errors.New("Invalid Request Syntax")
+	}
+
+	fileReq := tmpArr[1] // Gets the name of requested file
 	fileReq = strings.TrimSpace(fileReq)
 
 	fmt.Println("Asked for " + fileReq)
@@ -112,7 +118,7 @@ func handleFileRequest(conn net.Conn) error {
  * @param net.Conn conn - The socket over which we will send the file
  */
 func sendFile(fileName string, conn net.Conn) error {
-	fileName = "../client/" + fileName // Need to change this - move files to a different directory
+	fileName = "../client/" + fileName // Should change this - move files to a different directory
 	fmt.Println(fileName)
 
 	fileToSend, err := os.Open(fileName)
