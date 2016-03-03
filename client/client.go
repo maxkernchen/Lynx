@@ -1,7 +1,7 @@
 /**
  *
  *	The client side of the Lynx application. Currently handles file copying, metainfo parsing,
- *	metainfo entry addition and deletion, and experimentally handles peer and file retrieval
+ *	metainfo entry addition and deletion, and getting files from peers.
  *
  *	 @author: Michael Bruce
  *	 @author: Max Kernchen
@@ -63,13 +63,7 @@ func deleteEntry(nameToDelete string) {
 	i := 0
 	for i < len(files) {
 		if nameToDelete == files[i].name {
-			//if len(files) > 2 {
 			files = append(files[:i], files[i+1:]...)
-			/*} else if i == 0 {
-				files = append(files[i:])
-			} else if i == 1 {
-				files = append(files[:i])
-			}*/
 		}
 		i++
 	}
@@ -79,6 +73,8 @@ func deleteEntry(nameToDelete string) {
 /**
  * Deletes the current meta.info and replaces it with a new version that
  * accurately reflects the array of Files after they have been modified
+ * @return error - An error can be produced when issues arise from trying to create
+ * or remove the meta file - otherwise error will be nil.
  */
 func updateMetainfo() error {
 	parseMetainfo("../resources/meta.info")
@@ -116,6 +112,8 @@ func updateMetainfo() error {
  * Parses the information in meta.info file and places each entry into a File
  * struct and appends that struct to the array of structs
  * @param string metaPath - The path to the metainfo file
+ * @return error - An error can be produced when issues arise from trying to access
+ * the meta file or from an invalid meta file type - otherwise error will be nil.
  */
 func parseMetainfo(metaPath string) error {
 	files = nil // Resets files array
@@ -162,6 +160,9 @@ func parseMetainfo(metaPath string) error {
  * Adds a file to the meta.info by parsing that file's information
  * @param string addPath - the path of the file to be added
  * @param string metaPath - the path of the metainfo file
+ * @return error - An error can be produced when issues arise from trying to access
+ * the meta file or if the file to be added already exists in the meta file - otherwise
+ * error will be nil.
  */
 func addToMetainfo(addPath, metaPath string) error {
 	metaFile, err := os.OpenFile(metaPath, os.O_APPEND|os.O_WRONLY, 0644) // Opens for appending
@@ -207,6 +208,8 @@ func addToMetainfo(addPath, metaPath string) error {
  * Copies a file from src to dst
  * @param string src - the file that will be copied
  * @param string dst - the destination of the file to be copied
+ * @return error - An error can be produced when issues arise from trying to access,
+ * create, and write from either the src or dst files - otherwise error will be nil.
  */
 func fileCopy(src, dst string) error {
 	in, err := os.Open(src) // Opens input
@@ -262,8 +265,11 @@ func main() {
 }
 
 /**
- * Exported function that checks to see if we have the passed in file.
+ * Checks to see if we have the passed in file. This function works based on
+ * a filepath relative to where the executable using it is run.
  * @param string fileName - The name of the file to check for
+ * @return bool - A boolean indicating whether or not we have a file in our
+ * files array.
  */
 func HaveFile(fileName string) bool {
 	have := false
@@ -283,6 +289,7 @@ func HaveFile(fileName string) bool {
 
 /**
  * Simply returns the trackerIP global variable after parsing the meta.info file
+ * @return string - A string representing the tracker's IP address.
  */
 func GetTrackerIP() string {
 	parseMetainfo("../resources/meta.info")
@@ -293,6 +300,9 @@ func GetTrackerIP() string {
 /**
  * Gets a file from the peer(s)
  * @param string fileName - The name of the file to find in the peers
+ * @return error - An error can be produced if there are connection issues,
+ * problems creating or writing to the file, or from not being able to get there
+ * desired file - otherwise error will be nil.
  */
 func getFile(fileName string) error {
 	// Will parseMetainfo file and then ask tracker for list of peers when tracker is implemented

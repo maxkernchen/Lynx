@@ -37,7 +37,7 @@ func main() {
 	fmt.Println("Starting server on http://localhost:" + port)
 
 	http.HandleFunc("/", IndexHandler)
-	http.ListenAndServe(":" + port, nil)
+	http.ListenAndServe(":"+port, nil)
 }
 
 /**

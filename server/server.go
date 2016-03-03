@@ -29,8 +29,6 @@ func main() {
 	listen()
 }
 
-// ------------------------- CODE BELOW THIS LINE IS UNTESTED AND DANGEROUS ------------------------- \\
-
 /**
  * Creates a welcomeSocket that listens for TCP connections - once someone connects a goroutine is spawned
  * to handle the request
@@ -58,21 +56,11 @@ func listen() {
 }
 
 /**
- * Sends the meta.info file to the tracker. Gets the tracker IP from the client.
- */
-func pushMeta() {
-	trackerIP := client.GetTrackerIP()
-	conn, err := net.Dial("tcp", trackerIP)
-	if err != nil {
-		return
-	}
-
-	sendFile("meta.info", conn)
-}
-
-/**
- * Handles a file request sent by another peer
+ * Handles a file request sent by another peer - this involves checking to see if we have the
+ * file and, if so, sending the file.
  * @param net.Conn conn - The socket which the client is asking on
+ * @return error - An error can be produced when trying to send a file or if there is incorrect
+ * syntax in the request - otherwise error will be nil.
  */
 func handleFileRequest(conn net.Conn) error {
 
@@ -98,24 +86,24 @@ func handleFileRequest(conn net.Conn) error {
 
 	// Depending on if we have the file - we write back to our client accordingly
 	if haveFile {
-		//bufio.NewWriter(conn).WriteString("YES\n")
-		fmt.Fprintf(conn, "YES\n")
-		err = sendFile(fileReq, conn)
+		fmt.Fprintf(conn, "YES\n")    // Reply
+		err = sendFile(fileReq, conn) // Sending The File
 		if err != nil {
 			return err
 		}
 	} else {
-		//bufio.NewWriter(conn).WriteString("NO\n")
-		fmt.Fprintf(conn, "NO\n")
+		fmt.Fprintf(conn, "NO\n") // Reply
 	}
 	fmt.Println("No Errors")
 	return conn.Close()
 }
 
 /**
- * Sends a file to a peer
+ * Sends a file across the network to a peer.
  * @param string fileName - The name of the file to send to the peer
  * @param net.Conn conn - The socket over which we will send the file
+ * @return error - An error can be produced when trying open a file or write over
+ * the network - otherwise error will be nil.
  */
 func sendFile(fileName string, conn net.Conn) error {
 	fileName = "../client/" + fileName // Should change this - move files to a different directory
@@ -135,4 +123,19 @@ func sendFile(fileName string, conn net.Conn) error {
 
 	return fileToSend.Close()
 
+}
+
+// ------------------------- CODE BELOW THIS LINE IS UNTESTED AND DANGEROUS ------------------------- \\
+
+/**
+ * Sends the meta.info file to the tracker. Gets the tracker IP from the client.
+ */
+func pushMeta() {
+	trackerIP := client.GetTrackerIP()
+	conn, err := net.Dial("tcp", trackerIP)
+	if err != nil {
+		return
+	}
+
+	sendFile("meta.info", conn)
 }
