@@ -360,10 +360,11 @@ func askTrackerForPeers() {
 		return
 	}
 
-	fmt.Fprintf(conn, "Announce_Request: <Stuff>")
+	fmt.Fprintf(conn, "Swarm_Request:127.0.0.1:8080") // Need to write function in server which let's us get its port/ip
 
 	reply, err := bufio.NewReader(conn).ReadString('\n') // Waits for a String ending in newline
 
+	// Tracker will close connection when finished - which will produce error and break us out of this loop
 	for err != nil {
 		peerArray := strings.Split(reply, ":::")
 		peers = append(peers, Peer{IP: peerArray[0], Port: peerArray[1]})

@@ -1,7 +1,6 @@
 /**
  *
- *	The client side of the Lynx application. Currently handles file copying, metainfo parsing,
- *	metainfo entry addition and deletion, and getting files from peers.
+ *	 The tracker for the Lynx application. Currently handles
  *
  *	 @author: Michael Bruce
  *	 @author: Max Kernchen
@@ -18,8 +17,6 @@ import (
 	"io"
 	"net"
 	"os"
-	"path/filepath"
-	"strconv"
 	"strings"
 )
 
@@ -29,41 +26,22 @@ type Peer struct {
 	Port string
 }
 
-/** A struct based which represents a File in our Lynx directory. It is based
-upon BitTorrent protocol dictionaries */
-type File struct {
-	length      int
-	path        string
-	name        string
-	chunks      string
-	chunkLength int
-}
-
-/** An array of the files found from parsing the metainfo file */
-var files []File
-
 /** The IP Address of our tracker */
 var trackerIP string
 
 /** An array of all the client's peers */
 var peers []Peer
 
-/** A special symbol we use to denote the end of 1 entry in the metainfo file */
-const END_OF_ENTRY = ":#!"
-
-/** The array index of our metainfo values */
-const META_VALUE_INDEX = 1
-
 /**
- * Function that deletes an entry from our files array.
- * @param string nameToDelete - This is the name of the file we want to delete
+ * Function that deletes an entry from our peers array.
+ * @param Peer peerToDelete - This is the peer struct we want to delete
  */
-func deleteEntry(nameToDelete string) {
+func deleteEntry(peerToDelete Peer) {
 
 	i := 0
-	for i < len(files) {
-		if nameToDelete == files[i].name {
-			files = append(files[:i], files[i+1:]...)
+	for i < len(peers) {
+		if peerToDelete.IP == peers[i].IP && peerToDelete.Port == peers[i].Port {
+			peers = append(peers[:i], peers[i+1:]...)
 		}
 		i++
 	}
@@ -71,62 +49,59 @@ func deleteEntry(nameToDelete string) {
 }
 
 /**
- * Deletes the current meta.info and replaces it with a new version that
- * accurately reflects the array of Files after they have been modified
+ * Deletes the current swarm.info and replaces it with a new version that
+ * accurately reflects the array of Peers after they have been modified
  * @return error - An error can be produced when issues arise from trying to create
- * or remove the meta file - otherwise error will be nil.
+ * or remove the swarm file - otherwise error will be nil.
  */
-func updateMetainfo() error {
-	parseMetainfo("../resources/meta.info")
+func updateSwarminfo() error {
+	parseSwarminfo("../resources/swarm.info")
 
-	err := os.Remove("../resources/meta.info")
+	err := os.Remove("../resources/swarm.info")
 	if err != nil {
 		fmt.Println(err)
 		return err
 	}
 
-	newMetainfo, err := os.Create("../resources/meta.info")
+	newSwarmInfo, err := os.Create("../resources/swarm.info")
 	if err != nil {
 		fmt.Println(err)
 		return err
 	}
 
-	newMetainfo.WriteString("announce:::" + trackerIP + "\n") // Write tracker IP
 	i := 0
-	for i < len(files) {
-		newMetainfo.WriteString("length:::" + strconv.Itoa(files[i].length) + "\n") //convert to str
-		newMetainfo.WriteString("path:::" + files[i].path + "\n")
-		newMetainfo.WriteString("name:::" + files[i].name + "\n")
-		newMetainfo.WriteString("chunkLength:::" + strconv.Itoa(files[i].chunkLength) + "\n")
-		newMetainfo.WriteString("chunks:::" + files[i].chunks + "\n")
-		newMetainfo.WriteString(END_OF_ENTRY + "\n")
+	for i < len(peers) {
 
+		newSwarmInfo.WriteString(peers[i].IP + ":::" + peers[i].Port + "\n")
+
+		/*newSwarmInfo.WriteString("IP:::" + peers[i].IP + "\n")
+		newSwarmInfo.WriteString("Port:::" + peers[i].Port + "\n")
+		newSwarmInfo.WriteString(END_OF_ENTRY + "\n")*/
 		i++
 	}
 
-	return newMetainfo.Close()
-
+	return newSwarmInfo.Close()
 }
 
 /**
- * Parses the information in meta.info file and places each entry into a File
- * struct and appends that struct to the array of structs
- * @param string metaPath - The path to the metainfo file
+ * Parses the information in swarm.info file and places each entry into a Peer
+ * struct and appends that struct to the array of peers
+ * @param string swarmPath - The path to the swarminfo file
  * @return error - An error can be produced when issues arise from trying to access
- * the meta file or from an invalid meta file type - otherwise error will be nil.
+ * the swarm file or from an invalid swarm file type - otherwise error will be nil.
  */
-func parseMetainfo(metaPath string) error {
-	files = nil // Resets files array
+func parseSwarminfo(swarmPath string) error {
+	peers = nil // Resets peers array
 
-	metaFile, err := os.Open(metaPath)
+	swarmFile, err := os.Open(swarmPath)
 	if err != nil {
 		return err
-	} else if metaPath != "../resources/meta.info" {
+	} else if swarmPath != "../resources/swarm.info" {
 		return errors.New("Invalid File Type")
 	}
 
-	scanner := bufio.NewScanner(metaFile)
-	tempFile := File{}
+	scanner := bufio.NewScanner(swarmFile)
+	tempPeer := Peer{}
 
 	// Scan each line
 	for scanner.Scan() {
@@ -134,102 +109,53 @@ func parseMetainfo(metaPath string) error {
 		line := strings.TrimSpace(scanner.Text()) // Trim helps with errors in \n
 		split := strings.Split(line, ":::")
 
-		if split[0] == "announce" {
-			trackerIP = split[META_VALUE_INDEX]
-		} else if split[0] == "chunkLength" {
-			tempFile.chunkLength, _ = strconv.Atoi(split[META_VALUE_INDEX])
-		} else if split[0] == "length" {
-			tempFile.length, _ = strconv.Atoi(split[META_VALUE_INDEX])
-		} else if strings.Contains(line, "path") {
-			tempFile.path = split[META_VALUE_INDEX]
-		} else if strings.Contains(line, "name") {
-			tempFile.name = split[META_VALUE_INDEX]
-		} else if strings.Contains(line, "chunks") {
-			tempFile.chunks = split[META_VALUE_INDEX]
+		tempPeer.IP = split[0]
+		tempPeer.Port = split[1]
+
+		//split := strings.Split(line, ":::")
+
+		/*if split[0] == "IP" {
+			tempPeer.IP = split[SWARM_VALUE_INDEX]
+		} else if split[0] == "Port" {
+			tempPeer.Port = split[SWARM_VALUE_INDEX]
 		} else if strings.Contains(line, END_OF_ENTRY) {
-			files = append(files, tempFile) // Append the current file to the file array
-			tempFile = File{}               // Empty the current file
-		}
+			peers = append(peers, tempPeer) // Append the current file to the file array
+			tempPeer = Peer{}               // Empty the current file
+		}*/
 
 	}
 
-	return metaFile.Close()
+	return swarmFile.Close()
 }
 
 /**
- * Adds a file to the meta.info by parsing that file's information
+ * Adds a peer to the swarm.info file
  * @param string addPath - the path of the file to be added
- * @param string metaPath - the path of the metainfo file
+ * @param string swarmPath - the path of the metainfo file
  * @return error - An error can be produced when issues arise from trying to access
  * the meta file or if the file to be added already exists in the meta file - otherwise
  * error will be nil.
  */
-func addToMetainfo(addPath, metaPath string) error {
-	metaFile, err := os.OpenFile(metaPath, os.O_APPEND|os.O_WRONLY, 0644) // Opens for appending
+func addToSwarminfo(addPeer Peer, swarmPath string) error {
+	swarmFile, err := os.OpenFile(swarmPath, os.O_APPEND|os.O_WRONLY, 0644) // Opens for appending
 	if err != nil {
 		return err
 	}
 
-	addStat, err := os.Stat(addPath)
-	if err != nil {
-		return err
-	}
-
-	parseMetainfo(metaPath)
+	parseSwarminfo(swarmPath)
 
 	i := 0
-	for i < len(files) {
-		if files[i].name == addStat.Name() {
-			return errors.New("Can't Add Duplicates To Metainfo")
+	for i < len(peers) {
+		if peers[i].IP == addPeer.IP && peers[i].Port == addPeer.Port {
+			return errors.New("Can't Add Duplicates To Swarminfo")
 		}
 		i++
 	}
 
-	//tempSize := addStat.Size()                 // Write length
-	lengthStr := strconv.FormatInt(addStat.Size(), 10) // Convert int64 to string
-	metaFile.WriteString("length:::" + lengthStr + "\n")
+	// Write to swarminfo file using ::: to IP and Port
+	swarmFile.WriteString(addPeer.IP + ":::" + addPeer.Port + "\n")
 
-	tempPath, err := filepath.Abs(addPath) // Find the path of the current file
-	if err != nil {
-		return err
-	}
-
-	// Write to metainfo file using ::: to separate keys and values
-	metaFile.WriteString("path:::" + tempPath + "\n")
-	metaFile.WriteString("name:::" + addStat.Name() + "\n")
-	metaFile.WriteString("chunkLength:::-1\n")
-	metaFile.WriteString("chunks:::chunking not currently implemented\n")
-	metaFile.WriteString(END_OF_ENTRY + "\n")
-
-	return metaFile.Close()
-}
-
-/**
- * Copies a file from src to dst
- * @param string src - the file that will be copied
- * @param string dst - the destination of the file to be copied
- * @return error - An error can be produced when issues arise from trying to access,
- * create, and write from either the src or dst files - otherwise error will be nil.
- */
-func fileCopy(src, dst string) error {
-	in, err := os.Open(src) // Opens input
-	if err != nil {
-		return err
-	}
-	defer in.Close()
-
-	out, err := os.Create(dst) // Opens output
-	if err != nil {
-		return err
-	}
-	//defer out.Close()
-
-	_, err = io.Copy(out, in) // Copies the file contents
-	if err != nil {
-		return err
-	}
-
-	return out.Close() // Checks for close error
+	return swarmFile.Close()
 }
 
 /**
@@ -248,126 +174,106 @@ func main() {
 	}*/
 
 	//parseMetainfo(os.Args[1])
-	addToMetainfo("test.txt", "../resources/meta.info")
-	addToMetainfo("test2.txt", "../resources/meta.info")
-	addToMetainfo("file1.txt", "../resources/meta.info")
-	parseMetainfo("../resources/meta.info")
+	p1 := Peer{IP: "124.123.563.186", Port: "4500"}
+	p2 := Peer{IP: "812.333.444.555", Port: "6000"}
+	addToSwarminfo(p1, "../resources/meta.info")
+	addToSwarminfo(p2, "../resources/meta.info")
+	addToSwarminfo(p1, "../resources/meta.info")
+	parseSwarminfo("../resources/meta.info")
 
 	i := 0
-	for i < len(files) {
-		fmt.Println(files[i])
-		if files[i].name == "test.txt" {
-
-		}
+	for i < len(peers) {
+		fmt.Println(peers[i])
 		i++
 	}
 
 }
 
 /**
- * Checks to see if we have the passed in file. This function works based on
- * a filepath relative to where the executable using it is run.
- * @param string fileName - The name of the file to check for
- * @return bool - A boolean indicating whether or not we have a file in our
- * files array.
+ * Creates a welcomeSocket that listens for TCP connections - once someone connects a goroutine is spawned
+ * to handle the request
  */
-func HaveFile(fileName string) bool {
-	have := false
+func listen() {
 
-	parseMetainfo("../resources/meta.info")
+	fmt.Println("Starting Tracker on Port 9000")
 
-	i := 0
-	for i < len(files) && !have {
-		if files[i].name == fileName {
-			have = true
-		}
-		i++
+	welcomeSocket, wErr := net.Listen("tcp", ":9000") // Will later need to set port dynamically
+
+	if wErr != nil {
+		// handle error
 	}
 
-	return have
+	var cErr error
+
+	for cErr == nil {
+		conn, cErr := welcomeSocket.Accept()
+		if cErr != nil {
+			// handle error
+		}
+		go handleSwarmRequest(conn)
+	}
+
 }
 
 /**
- * Simply returns the trackerIP global variable after parsing the meta.info file
- * @return string - A string representing the tracker's IP address.
+ * Handles a swarm request sent by a client in the swarm - also adds the requesting client
+ * to the swarm.info file
+ * @param net.Conn conn - The socket which the client is asking on
+ * @return error - An error can be produced when trying to send a file or if there is incorrect
+ * syntax in the request - otherwise error will be nil.
  */
-func GetTrackerIP() string {
-	parseMetainfo("../resources/meta.info")
-
-	return trackerIP
-}
-
-/**
- * Gets a file from the peer(s)
- * @param string fileName - The name of the file to find in the peers
- * @return error - An error can be produced if there are connection issues,
- * problems creating or writing to the file, or from not being able to get there
- * desired file - otherwise error will be nil.
- */
-func getFile(fileName string) error {
-	// Will parseMetainfo file and then ask tracker for list of peers when tracker is implemented
-
-	peers = append(peers, Peer{IP: "127.0.0.1", Port: "8080"}) // For testing ONLY - Hardcodes myself as a peer
-
-	i := 0
-	gotFile := false
-
-	for i < len(peers) && !gotFile {
-		conn, err := net.Dial("tcp", peers[i].IP+":"+peers[i].Port)
-		if err != nil {
-			return err
-		}
-
-		fmt.Fprintf(conn, "Do_You_Have_FileName:"+fileName+"\n")
-
-		reply, err := bufio.NewReader(conn).ReadString('\n') // Waits for a String ending in newline
-		reply = strings.TrimSpace(reply)
-
-		// Has file and no errors
-		if reply != "NO" && err == nil {
-			file, err := os.Create(fileName + "_Network") // + "_Network" is for TESTING that this was a file sent over the network
-			if err != nil {
-				return err
-			}
-			defer file.Close()
-
-			_, err = io.Copy(file, conn)
-			if err != nil {
-				return err
-			}
-			gotFile = true
-		}
-
-		i++
-	}
-
-	if gotFile {
-		return nil
-	} else {
-		return errors.New("Did not receive File")
-	}
-}
-
-// ------------------------- CODE BELOW THIS LINE IS UNTESTED AND DANGEROUS ------------------------- \\
-
-/**
- * Asks the tracker for a list of peers and then places them into peers array
- */
-func askTrackerForPeers() {
-	// Connects to tracker
-	conn, err := net.Dial("tcp", trackerIP)
+func handleSwarmRequest(conn net.Conn) error {
+	request, err := bufio.NewReader(conn).ReadString('\n') // Waits for a String ending in newline
 	if err != nil {
-		return
+		return err
 	}
 
-	fmt.Fprintf(conn, "Announce_Request: <Stuff>")
-
-	reply, err := bufio.NewReader(conn).ReadString('\n') // Waits for a String ending in newline
-
-	for err != nil {
-		peerArray := strings.Split(reply, ":::")
-		peers = append(peers, Peer{IP: peerArray[0], Port: peerArray[1]})
-		reply, err = bufio.NewReader(conn).ReadString('\n') // Waits for a String ending in newline
+	// Client syntax for request is "Swarm_Request:<IP>:<Port>\n"
+	tmpArr := strings.Split(request, ":")
+	if len(tmpArr) != 3 {
+		conn.Close()
+		return errors.New("Invalid Request Syntax")
 	}
 
+	ip := tmpArr[1]
+	ip = strings.TrimSpace(ip)
+	port := tmpArr[2]
+	port = strings.TrimSpace(port)
+
+	fmt.Println("IP is " + ip)
+	fmt.Println("Port is " + port)
+
+	err = sendFile("../resources/swarm.info", conn) // Sending The Swarminfo information
+	if err != nil {
+		conn.Close()
+		return err
+	}
+
+	fmt.Println("No Errors")
+	return conn.Close()
+}
+
+/**
+ * Sends a file across the network to a peer.
+ * @param string fileName - The name of the file to send to the peer
+ * @param net.Conn conn - The socket over which we will send the file
+ * @return error - An error can be produced when trying open a file or write over
+ * the network - otherwise error will be nil.
+ */
+func sendFile(fileName string, conn net.Conn) error {
+	fmt.Println(fileName)
+
+	fileToSend, err := os.Open(fileName)
+	if err != nil {
+		return err
+	}
+
+	n, err := io.Copy(conn, fileToSend)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(n, "bytes were sent")
+
+	return fileToSend.Close()
 }
