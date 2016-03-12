@@ -8,7 +8,7 @@
  *	 @verison: 2/17/2016
  */
 
-package client
+package main
 
 import (
 	"bufio"
@@ -111,6 +111,7 @@ func parseSwarminfo(swarmPath string) error {
 
 		tempPeer.IP = split[0]
 		tempPeer.Port = split[1]
+		peers = append(peers, tempPeer) // Append the current file to the file array
 
 		//split := strings.Split(line, ":::")
 
@@ -131,9 +132,9 @@ func parseSwarminfo(swarmPath string) error {
 /**
  * Adds a peer to the swarm.info file
  * @param string addPath - the path of the file to be added
- * @param string swarmPath - the path of the metainfo file
+ * @param string swarmPath - the path of the swarminfo file
  * @return error - An error can be produced when issues arise from trying to access
- * the meta file or if the file to be added already exists in the meta file - otherwise
+ * the swarm file or if the file to be added already exists in the swarm file - otherwise
  * error will be nil.
  */
 func addToSwarminfo(addPeer Peer, swarmPath string) error {
@@ -173,20 +174,21 @@ func main() {
 		fmt.Println(os.Args[1] + " copied to " + os.Args[2])
 	}*/
 
-	//parseMetainfo(os.Args[1])
+	//parseswarminfo(os.Args[1])
 	p1 := Peer{IP: "124.123.563.186", Port: "4500"}
 	p2 := Peer{IP: "812.333.444.555", Port: "6000"}
-	addToSwarminfo(p1, "../resources/meta.info")
-	addToSwarminfo(p2, "../resources/meta.info")
-	addToSwarminfo(p1, "../resources/meta.info")
-	parseSwarminfo("../resources/meta.info")
+	addToSwarminfo(p1, "../resources/swarm.info")
+	addToSwarminfo(p2, "../resources/swarm.info")
+	addToSwarminfo(p1, "../resources/swarm.info")
+	parseSwarminfo("../resources/swarm.info")
 
 	i := 0
 	for i < len(peers) {
-		fmt.Println(peers[i])
+		fmt.Println(peers[i].IP)
 		i++
 	}
 
+	listen()
 }
 
 /**
@@ -235,13 +237,16 @@ func handleSwarmRequest(conn net.Conn) error {
 		return errors.New("Invalid Request Syntax")
 	}
 
-	ip := tmpArr[1]
-	ip = strings.TrimSpace(ip)
-	port := tmpArr[2]
-	port = strings.TrimSpace(port)
+	tmpPeer := Peer{IP: strings.TrimSpace(tmpArr[1]), Port: strings.TrimSpace(tmpArr[2])}
+	fmt.Println("New Peer: ", tmpPeer)
 
-	fmt.Println("IP is " + ip)
-	fmt.Println("Port is " + port)
+	//ip := tmpArr[1]
+	//ip = strings.TrimSpace(ip)
+	//port := tmpArr[2]
+	//port = strings.TrimSpace(port)
+
+	//fmt.Println("IP is " + ip)
+	//fmt.Println("Port is " + port)
 
 	err = sendFile("../resources/swarm.info", conn) // Sending The Swarminfo information
 	if err != nil {
@@ -249,6 +254,7 @@ func handleSwarmRequest(conn net.Conn) error {
 		return err
 	}
 
+	addToSwarminfo(tmpPeer, "../resources/swarm.info") // So we only add peer to swarmlist on success
 	fmt.Println("No Errors")
 	return conn.Close()
 }
