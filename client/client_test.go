@@ -20,7 +20,7 @@ import (
 var successful = 0
 
 /** Total # of the tests. */
-const total = 18
+const total = 19
 
 /**
  * Unit tests for our filecopy function.
@@ -285,16 +285,33 @@ func TestHaveFile(t *testing.T) {
  * Unit tests for GetTrackerIP function
  * @param *testing.T t - The wrapper for the test
  */
-func TestGetTrackerIP(t *testing.T) {
-	fmt.Println("\n----------------TestGetTrackerIP----------------")
+func TestGetTracker(t *testing.T) {
+	fmt.Println("\n----------------TestGetTracker----------------")
 
-	ip := GetTrackerIP() // Should be 127.0.0.1 during testing
+	ip := GetTracker() // Should be 127.0.0.1 during testing
 
-	if strings.Compare(ip, "127.0.0.1") == 0 {
-		fmt.Println("Successfully Got TrackerIP")
+	if strings.Compare(ip, "127.0.0.1:9000") == 0 {
+		fmt.Println("Successfully Got Tracker")
 		successful++
 	} else {
 		t.Error("Found Incorrect Tracker IP: " + ip)
+	}
+}
+
+/**
+ * Unit tests for GetTrackerIP function
+ * @param *testing.T t - The wrapper for the test
+ */
+func TestAskTrackerForPeers(t *testing.T) {
+	fmt.Println("\n----------------TestAskTracker----------------")
+
+	askTrackerForPeers()
+
+	if len(peers) <= 0 {
+		t.Error("Did Not Get Correct List Of Peers")
+	} else {
+		fmt.Println("Successfully Got Peers")
+		successful++
 	}
 
 	fmt.Println("\nSuccess on ", successful, "/", total, " tests.")

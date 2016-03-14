@@ -26,9 +26,6 @@ type Peer struct {
 	Port string
 }
 
-/** The IP Address of our tracker */
-var trackerIP string
-
 /** An array of all the client's peers */
 var peers []Peer
 
@@ -37,7 +34,6 @@ var peers []Peer
  * @param Peer peerToDelete - This is the peer struct we want to delete
  */
 func deleteEntry(peerToDelete Peer) {
-
 	i := 0
 	for i < len(peers) {
 		if peerToDelete.IP == peers[i].IP && peerToDelete.Port == peers[i].Port {
@@ -45,7 +41,6 @@ func deleteEntry(peerToDelete Peer) {
 		}
 		i++
 	}
-
 }
 
 /**
@@ -71,12 +66,7 @@ func updateSwarminfo() error {
 
 	i := 0
 	for i < len(peers) {
-
 		newSwarmInfo.WriteString(peers[i].IP + ":::" + peers[i].Port + "\n")
-
-		/*newSwarmInfo.WriteString("IP:::" + peers[i].IP + "\n")
-		newSwarmInfo.WriteString("Port:::" + peers[i].Port + "\n")
-		newSwarmInfo.WriteString(END_OF_ENTRY + "\n")*/
 		i++
 	}
 
@@ -105,25 +95,12 @@ func parseSwarminfo(swarmPath string) error {
 
 	// Scan each line
 	for scanner.Scan() {
-
 		line := strings.TrimSpace(scanner.Text()) // Trim helps with errors in \n
 		split := strings.Split(line, ":::")
 
 		tempPeer.IP = split[0]
 		tempPeer.Port = split[1]
 		peers = append(peers, tempPeer) // Append the current file to the file array
-
-		//split := strings.Split(line, ":::")
-
-		/*if split[0] == "IP" {
-			tempPeer.IP = split[SWARM_VALUE_INDEX]
-		} else if split[0] == "Port" {
-			tempPeer.Port = split[SWARM_VALUE_INDEX]
-		} else if strings.Contains(line, END_OF_ENTRY) {
-			peers = append(peers, tempPeer) // Append the current file to the file array
-			tempPeer = Peer{}               // Empty the current file
-		}*/
-
 	}
 
 	return swarmFile.Close()
@@ -163,18 +140,6 @@ func addToSwarminfo(addPeer Peer, swarmPath string) error {
  * Function used to drive and test our other client functions
  */
 func main() {
-
-	/*fmt.Println("Hello World!")
-	fmt.Println("Cool Beans!")
-	err := fileCopy(os.Args[1], os.Args[2])
-
-	if err != nil {
-		fmt.Println("You suck")
-	} else {
-		fmt.Println(os.Args[1] + " copied to " + os.Args[2])
-	}*/
-
-	//parseswarminfo(os.Args[1])
 	p1 := Peer{IP: "124.123.563.186", Port: "4500"}
 	p2 := Peer{IP: "812.333.444.555", Port: "6000"}
 	addToSwarminfo(p1, "../resources/swarm.info")
@@ -212,50 +177,76 @@ func listen() {
 		if cErr != nil {
 			// handle error
 		}
-		go handleSwarmRequest(conn)
+		go handleRequest(conn)
 	}
 
 }
 
 /**
- * Handles a swarm request sent by a client in the swarm - also adds the requesting client
- * to the swarm.info file
+ * Handles a request / push sent by a client, can either be a swarm or meta request or a push
+ * of an updated meta.info file - also adds the requesting client to the swarm.info file
  * @param net.Conn conn - The socket which the client is asking on
  * @return error - An error can be produced when trying to send a file or if there is incorrect
  * syntax in the request - otherwise error will be nil.
  */
-func handleSwarmRequest(conn net.Conn) error {
+func handleRequest(conn net.Conn) error {
 	request, err := bufio.NewReader(conn).ReadString('\n') // Waits for a String ending in newline
 	if err != nil {
 		return err
 	}
 
-	// Client syntax for request is "Swarm_Request:<IP>:<Port>\n"
-	tmpArr := strings.Split(request, ":")
-	if len(tmpArr) != 3 {
-		conn.Close()
-		return errors.New("Invalid Request Syntax")
+	request = strings.TrimSpace(request)
+	fmt.Println(request)
+	// Makes sure we are dealing with a request and not a push
+	if request != "Meta_Push" {
+		// Client syntax for request is "Swarm_Request:<IP>:<Port>\n"
+		tmpArr := strings.Split(request, ":")
+		if len(tmpArr) != 3 {
+			conn.Close()
+			return errors.New("Invalid Request Syntax")
+		}
+
+		fileToSend := ""
+		// Checks to see if we are dealing w/ a Swarm or Meta Request
+		if tmpArr[0] == "Swarm_Request" {
+			fileToSend = "../resources/swarm.info"
+		} else if tmpArr[0] == "Meta_Request" {
+			fileToSend = "../resources/meta.info"
+		} else {
+			conn.Close()
+			return errors.New("Invalid Request Syntax")
+		}
+
+		tmpPeer := Peer{IP: strings.TrimSpace(tmpArr[1]), Port: strings.TrimSpace(tmpArr[2])}
+		fmt.Println("New Peer: ", tmpPeer)
+
+		err = sendFile(fileToSend, conn) // Sending The file
+		if err != nil {
+			conn.Close()
+			return err
+		}
+
+		addToSwarminfo(tmpPeer, "../resources/swarm.info") // So we only add peer to swarmlist on success
+		fmt.Println("No Errors")
+	} else {
+		err := os.Remove("../resources/meta.info")
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
+
+		newMetainfo, err := os.Create("../resources/meta.info")
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
+
+		_, err = io.Copy(newMetainfo, conn)
+		if err != nil {
+			return err
+		}
 	}
 
-	tmpPeer := Peer{IP: strings.TrimSpace(tmpArr[1]), Port: strings.TrimSpace(tmpArr[2])}
-	fmt.Println("New Peer: ", tmpPeer)
-
-	//ip := tmpArr[1]
-	//ip = strings.TrimSpace(ip)
-	//port := tmpArr[2]
-	//port = strings.TrimSpace(port)
-
-	//fmt.Println("IP is " + ip)
-	//fmt.Println("Port is " + port)
-
-	err = sendFile("../resources/swarm.info", conn) // Sending The Swarminfo information
-	if err != nil {
-		conn.Close()
-		return err
-	}
-
-	addToSwarminfo(tmpPeer, "../resources/swarm.info") // So we only add peer to swarmlist on success
-	fmt.Println("No Errors")
 	return conn.Close()
 }
 

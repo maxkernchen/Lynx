@@ -26,15 +26,15 @@ import (
  * Function used to drive and test our server's functions
  */
 func main() {
-	listen()
+	listen(handleFileRequest)
 }
 
 /**
  * Creates a welcomeSocket that listens for TCP connections - once someone connects a goroutine is spawned
  * to handle the request
+ * @param func(net.Conn) error handler - This is the function we use to handle the requests we receive
  */
-func listen() {
-
+func listen(handler func(net.Conn) error) {
 	fmt.Println("Starting Server on Port 8080")
 
 	welcomeSocket, wErr := net.Listen("tcp", ":8080") // Will later need to set port dynamically
@@ -50,7 +50,7 @@ func listen() {
 		if cErr != nil {
 			// handle error
 		}
-		go handleFileRequest(conn)
+		go handler(conn)
 	}
 
 }
@@ -131,7 +131,7 @@ func sendFile(fileName string, conn net.Conn) error {
  * Sends the meta.info file to the tracker. Gets the tracker IP from the client.
  */
 func pushMeta() {
-	trackerIP := client.GetTrackerIP()
+	trackerIP := client.GetTracker()
 	conn, err := net.Dial("tcp", trackerIP)
 	if err != nil {
 		return

@@ -1,4 +1,4 @@
-announce:::127.0.0.1
+announce:::127.0.0.1:9000
 length:::14
 path:::/Users/mjb1337/gospace/src/capstone/client/test.txt
 name:::test.txt

@@ -17,6 +17,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"net/textproto"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -42,8 +43,8 @@ type File struct {
 /** An array of the files found from parsing the metainfo file */
 var files []File
 
-/** The IP Address of our tracker */
-var trackerIP string
+/** The IP Address / Port of our tracker */
+var tracker string
 
 /** An array of all the client's peers */
 var peers []Peer
@@ -91,7 +92,7 @@ func updateMetainfo() error {
 		return err
 	}
 
-	newMetainfo.WriteString("announce:::" + trackerIP + "\n") // Write tracker IP
+	newMetainfo.WriteString("announce:::" + tracker + "\n") // Write tracker IP
 	i := 0
 	for i < len(files) {
 		newMetainfo.WriteString("length:::" + strconv.Itoa(files[i].length) + "\n") //convert to str
@@ -135,7 +136,7 @@ func parseMetainfo(metaPath string) error {
 		split := strings.Split(line, ":::")
 
 		if split[0] == "announce" {
-			trackerIP = split[META_VALUE_INDEX]
+			tracker = split[META_VALUE_INDEX]
 		} else if split[0] == "chunkLength" {
 			tempFile.chunkLength, _ = strconv.Atoi(split[META_VALUE_INDEX])
 		} else if split[0] == "length" {
@@ -288,13 +289,13 @@ func HaveFile(fileName string) bool {
 }
 
 /**
- * Simply returns the trackerIP global variable after parsing the meta.info file
+ * Simply returns the tracker global variable after parsing the meta.info file
  * @return string - A string representing the tracker's IP address.
  */
-func GetTrackerIP() string {
+func GetTracker() string {
 	parseMetainfo("../resources/meta.info")
 
-	return trackerIP
+	return tracker
 }
 
 /**
@@ -306,38 +307,38 @@ func GetTrackerIP() string {
  */
 func getFile(fileName string) error {
 	// Will parseMetainfo file and then ask tracker for list of peers when tracker is implemented
-
-	peers = append(peers, Peer{IP: "127.0.0.1", Port: "8080"}) // For testing ONLY - Hardcodes myself as a peer
+	parseMetainfo("../resources/meta.info")
+	askTrackerForPeers()
+	//peers = append(peers, Peer{IP: "127.0.0.1", Port: "8080"}) // For testing ONLY - Hardcodes myself as a peer
 
 	i := 0
 	gotFile := false
+	fmt.Println(peers)
 
 	for i < len(peers) && !gotFile {
 		conn, err := net.Dial("tcp", peers[i].IP+":"+peers[i].Port)
-		if err != nil {
-			return err
-		}
+		if err == nil {
+			fmt.Fprintf(conn, "Do_You_Have_FileName:"+fileName+"\n")
 
-		fmt.Fprintf(conn, "Do_You_Have_FileName:"+fileName+"\n")
+			reply, err := bufio.NewReader(conn).ReadString('\n') // Waits for a String ending in newline
+			reply = strings.TrimSpace(reply)
 
-		reply, err := bufio.NewReader(conn).ReadString('\n') // Waits for a String ending in newline
-		reply = strings.TrimSpace(reply)
+			// Has file and no errors
+			if reply != "NO" && err == nil {
+				file, err := os.Create(fileName + "_Network") // + "_Network" is for TESTING that this was a file sent over the network
+				if err != nil {
+					return err
+				}
+				defer file.Close()
 
-		// Has file and no errors
-		if reply != "NO" && err == nil {
-			file, err := os.Create(fileName + "_Network") // + "_Network" is for TESTING that this was a file sent over the network
-			if err != nil {
-				return err
+				_, err = io.Copy(file, conn)
+				if err != nil {
+					return err
+				}
+				gotFile = true
 			}
-			defer file.Close()
-
-			_, err = io.Copy(file, conn)
-			if err != nil {
-				return err
-			}
-			gotFile = true
 		}
-
+		fmt.Println(i)
 		i++
 	}
 
@@ -355,20 +356,43 @@ func getFile(fileName string) error {
  */
 func askTrackerForPeers() {
 	// Connects to tracker
-	conn, err := net.Dial("tcp", trackerIP)
+	conn, err := net.Dial("tcp", tracker)
 	if err != nil {
 		return
 	}
 
-	fmt.Fprintf(conn, "Swarm_Request:127.0.0.1:8080") // Need to write function in server which let's us get its port/ip
+	fmt.Fprintf(conn, "Swarm_Request:127.0.0.1:8080\n") // Need to write function in server which let's us get its port/ip
+	reader := bufio.NewReader(conn)
+	tp := textproto.NewReader(reader)
 
-	reply, err := bufio.NewReader(conn).ReadString('\n') // Waits for a String ending in newline
+	//reply, err := bufio.NewReader(conn).ReadString('\n') // Waits for a String ending in newline
+	reply, err := tp.ReadLine()
+	//fmt.Println(reply)
 
 	// Tracker will close connection when finished - which will produce error and break us out of this loop
-	for err != nil {
+	for err == nil {
 		peerArray := strings.Split(reply, ":::")
-		peers = append(peers, Peer{IP: peerArray[0], Port: peerArray[1]})
-		reply, err = bufio.NewReader(conn).ReadString('\n') // Waits for a String ending in newline
+		tmpPeer := Peer{IP: peerArray[0], Port: peerArray[1]}
+		if !contains(peers, tmpPeer) {
+			peers = append(peers, tmpPeer)
+		}
+		reply, err = tp.ReadLine()
+		//reply, err = bufio.NewReader(conn).ReadString('\n') // Waits for a String ending in newline
 	}
 
+	//fmt.Println(peers)
+}
+
+/**
+ * Simple helper method that checks peers array for specific peer.
+ * @param s []peers - The peers array
+ * @param e Peer - The peer we are checking for
+ */
+func contains(s []Peer, e Peer) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
 }
