@@ -26,6 +26,7 @@ import (
  * Function used to drive and test our server's functions
  */
 func main() {
+	pushMeta()
 	listen(handleFileRequest)
 }
 
@@ -122,20 +123,30 @@ func sendFile(fileName string, conn net.Conn) error {
 	fmt.Println(n, "bytes were sent")
 
 	return fileToSend.Close()
-
 }
-
-// ------------------------- CODE BELOW THIS LINE IS UNTESTED AND DANGEROUS ------------------------- \\
 
 /**
  * Sends the meta.info file to the tracker. Gets the tracker IP from the client.
+ * @return error - An error can be produced when trying to connect to the tracker
+ * over the network - otherwise error will be nil.
  */
-func pushMeta() {
+func pushMeta() error {
 	trackerIP := client.GetTracker()
 	conn, err := net.Dial("tcp", trackerIP)
 	if err != nil {
-		return
+		fmt.Println(err)
+		return err
 	}
 
-	sendFile("meta.info", conn)
+	fmt.Fprintf(conn, "Meta_Push\n") // Lets tracker know we are pushing
+
+	//sendFile("../resources/meta.info", conn)
+	err = sendFile("../server/meta.info_test", conn)
+
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	return conn.Close()
 }

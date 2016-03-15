@@ -349,8 +349,6 @@ func getFile(fileName string) error {
 	}
 }
 
-// ------------------------- CODE BELOW THIS LINE IS UNTESTED AND DANGEROUS ------------------------- \\
-
 /**
  * Asks the tracker for a list of peers and then places them into peers array
  */
@@ -365,7 +363,6 @@ func askTrackerForPeers() {
 	reader := bufio.NewReader(conn)
 	tp := textproto.NewReader(reader)
 
-	//reply, err := bufio.NewReader(conn).ReadString('\n') // Waits for a String ending in newline
 	reply, err := tp.ReadLine()
 	//fmt.Println(reply)
 
@@ -377,7 +374,6 @@ func askTrackerForPeers() {
 			peers = append(peers, tmpPeer)
 		}
 		reply, err = tp.ReadLine()
-		//reply, err = bufio.NewReader(conn).ReadString('\n') // Waits for a String ending in newline
 	}
 
 	//fmt.Println(peers)

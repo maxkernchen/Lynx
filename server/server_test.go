@@ -25,10 +25,10 @@ import (
 var successful = 0
 
 /** Total # of the tests. */
-const total = 5
+const total = 6
 
 /**
- * Unit tests for listen, handle, and send functions
+ * Unit tests for listen, handle, and send functions as well as push meta
  * @param *testing.T t - The wrapper for the test
  */
 func TestListenHandleSend(t *testing.T) {
@@ -99,5 +99,15 @@ func TestListenHandleSend(t *testing.T) {
 		successful++
 	}
 
+	fmt.Println("\n----------------TestPushMeta----------------")
+
+	if err != nil {
+		t.Error(err.Error())
+	} else {
+		fmt.Println("Successfully Pushed Meta")
+		successful++
+	}
+
 	fmt.Println("\nSuccess on ", successful, "/", total, " tests.")
+
 }

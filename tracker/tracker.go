@@ -228,7 +228,7 @@ func handleRequest(conn net.Conn) error {
 
 		addToSwarminfo(tmpPeer, "../resources/swarm.info") // So we only add peer to swarmlist on success
 		fmt.Println("No Errors")
-	} else {
+	} else { // We are receiving a meta.info file
 		err := os.Remove("../resources/meta.info")
 		if err != nil {
 			fmt.Println(err)
@@ -241,10 +241,24 @@ func handleRequest(conn net.Conn) error {
 			return err
 		}
 
-		_, err = io.Copy(newMetainfo, conn)
+		/*reader := bufio.NewReader(conn)
+		tp := textproto.NewReader(reader)
+
+		reply, err := tp.ReadLine()
+		fmt.Println(reply)
+
+		for err == nil {
+			reply, err = tp.ReadLine()
+			fmt.Println(reply)
+		}*/
+
+		n, err := io.Copy(newMetainfo, conn)
 		if err != nil {
+			fmt.Println(err)
 			return err
 		}
+
+		fmt.Println(n, " bytes copied")
 	}
 
 	return conn.Close()
