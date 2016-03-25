@@ -44,8 +44,11 @@ func main() {
 	port := os.Args[1]
 	fmt.Println("Starting server on http://localhost:" + port)
 
-	fs := HTMLFiles{http.Dir("css/")}
-	http.Handle("/css/", http.StripPrefix("/css/", http.FileServer(fs)))
+	fs := HTMLFiles{http.Dir("js/")}
+	http.Handle("/js/", http.StripPrefix("/js/", http.FileServer(fs)))
+
+	css := HTMLFiles{http.Dir("css/")}
+	http.Handle("/css/", http.StripPrefix("/css/", http.FileServer(css)))
 
 	http.HandleFunc("/", IndexHandler)
 	http.HandleFunc("/joinlynx", JoinHandler)
@@ -94,8 +97,9 @@ func IndexHandler(rw http.ResponseWriter, req *http.Request) {
 func CreateHandler(rw http.ResponseWriter, req *http.Request) {
 	req.ParseForm()
 	form = req.Form
-	var formstr []string = form["Lynx_name"]
-	fmt.Println(formstr[0]) //returns an array of strings
+	fmt.Println(form)
+	//var formstr []string = form["Lynx_name"]
+	//fmt.Println(formstr[0]) //returns an array of strings
 	rw.Write(INDEX_HTML)
 
 }
@@ -108,8 +112,7 @@ func CreateHandler(rw http.ResponseWriter, req *http.Request) {
 func JoinHandler(rw http.ResponseWriter, req *http.Request) {
 	req.ParseForm()
 	form = req.Form
-	var formstr []string = form["Metainfo_path"]
-	fmt.Println(formstr[0]) //returns an array of strings
+	fmt.Println(form)
 	rw.Write(INDEX_HTML)
 
 }/**
@@ -121,8 +124,7 @@ func JoinHandler(rw http.ResponseWriter, req *http.Request) {
 func RemoveHandler(rw http.ResponseWriter, req *http.Request) {
 	req.ParseForm()
 	form = req.Form
-	var formstr []string = form["Remove_lynx"]
-	fmt.Println(formstr[0]) //returns an array of strings
+	fmt.Println(form) //returns an array of strings
 	rw.Write(INDEX_HTML)
 }
 /** Function INIT runs before main and allows us to load the index html before any operations
