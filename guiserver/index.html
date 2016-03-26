@@ -1,62 +1,98 @@
-<!-- index HTML page for Lynx web GUI
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>LYNX File Sharing</title>
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="js/jquery-ui.css">
+    <script src="js/jquery-1.12.2.min.js"></script>
+    <script src="js/jquery-ui.js"></script>
 
-@author Michael Bruce
-@author Max Kernchen
+    <script type="text/javascript">
 
--->
+ $(document).ready(function(){
+  var dlg =  $("#dialog").dialog({
+   autoOpen: false,
+     modal: true, title: 'Create A New Lynk', draggable: true, width: 230
+  });
+    dlg.parent().appendTo($("#create"));
+  $("#createlynk").click(function(){
+   $("#dialog").dialog('open');
+  });
+ });
 
-<head> <!-- Insert our css for buttons and other styling -->
-<link href="css/style.css" rel="stylesheet" type="text/css" media="all" />
-</head>
-<!-- Our create Lynx form which will called a js function to open a prompt -->
-<form action="/createlynx" method ="post">
-    <input id="create" type="hidden" name="Lynx_name">
-    <button onclick="createFunc()" style="position:absolute;bottom:0;left:100;" type="submit"
-            class=" btn-l btn-12 ">
-            Create Lynk </button>
+ $(document).ready(function(){
+  var dlg =  $("#joindialog").dialog({
+   autoOpen: false,
+     modal: true, title: 'Join A Current Lynk', draggable: true, width: 230
+  });
+    dlg.parent().appendTo($("#join"));
+  $("#joinlynk").click(function(){
+   $("#joindialog").dialog('open');
+  });
+ });
 
-</form>
-<!-- Join and Remove also call there own js functions for each prompt -->
-<form action = "/joinlynx" method ="post">
-    <input id="join" type="hidden" name="Metainfo_path">
-    <button onclick="joinFunc()" style="position:absolute;left:550;bottom:0" type="submit"
-            class=" btn-l btn-3 ">
-        Join Lynk</button>
-</form>
+  $(document).ready(function(){
+  var dlg =  $("#removedialog").dialog({
+   autoOpen: false,
+     modal: true, title: 'Remove A Lynk', draggable: true, width: 230
+  });
+    dlg.parent().appendTo($("#remove"));
+  $("#removelynk").click(function(){
+   $("#removedialog").dialog('open');
+  });
+ });
 
-<form action = "/removelynx" method ="post">
-    <input id="remove" type="hidden" name="Remove_lynx">
-    <button onclick="removeFunc()" style="position:absolute;left:1000;bottom:0" type="submit"
-            class=" btn-l btn-7 ">
-        Remove Lynk</button>
-</form>
-
-<!-- java script functions to open propmts and then set the prompt's value to the hidden form
-field -->
-<script>
-function createFunc() {
-    var name = prompt("Please enter the name of the new lynk", "name");
-
-    if (name != null) {
-        document.getElementById("create").setAttribute("value", name);
-    }
-}
-function joinFunc() {
-    var path = prompt("Please enter the metainfo path", "path");
-
-    if (path != null) {
-        document.getElementById("join").setAttribute("value", path);
-    }
-}
-function removeFunc() {
-    var toRemove = prompt("Please enter the lynk to remove", "remove");
-
-    if (toRemove != null) {
-        document.getElementById("remove").setAttribute("value", toRemove);
-    }
-}
 
 </script>
+</head>
+    <form id="create" method="POST" action="/createlynx">
+        <input type="button" class="btn btn-success btn-lg" style="position:absolute;
+        bottom:3%;left:9%;"
+               id="createlynk" value="Create Lynk">
+        <div id="dialog">
+            Directory Path
+            <input type="text" name="DirectoryPath"><br>
+            Name
+            <input type="text" name="Name">
+            <br>
+            <input type ="checkbox" name="extraoptions"> Extra Options
+            <br>
+            <input type="submit" name="createnewlynk" value="Create">
+        </div>
+        </form>
 
+
+    <form id="join" method="POST" action="/joinlynx">
+        <input type="button" class="btn btn-info btn-lg" style="position:absolute;
+            bottom:3%;left:40%;"
+               id="joinlynk" value="Join Lynk">
+        <div id="joindialog">
+            Metainfo Path
+            <input type="text" name="MetaPath"><br>
+            Download Location
+            <input type="text" name="downloadlocation">
+            <br>
+            <input type="submit" name="joincurrentlynk" value="Join">
+        </div>
+    </form>
+
+<form id="remove" method="POST" action="/removelynx">
+    <input type="button" class="btn btn-danger btn-lg" style="position:absolute;
+            bottom:3%;left:70%;"
+           id="removelynk" value="Remove Lynk">
+    <div id="removedialog">
+        Lynks
+        <select name="Lynks">
+            <option value="Not">Not</option>
+            <option value="Currently">Currently</option>
+            <option value="Implemented">Implemented</option>
+        </select>
+        <br>
+        <input type ="checkbox" name="extraoptions"> Extra Options
+        <br>
+        <input type="submit" name="removeselectedlynk" value="Remove">
+    </div>
+</form>
 
 
