@@ -13,12 +13,13 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"capstone/client"
+	"compress/gzip"
 	"errors"
 	"fmt"
-	"io"
+	"io/ioutil"
 	"net"
-	"os"
 	"strings"
 )
 
@@ -110,19 +111,34 @@ func sendFile(fileName string, conn net.Conn) error {
 	fileName = "../client/" + fileName // Should change this - move files to a different directory
 	fmt.Println(fileName)
 
-	fileToSend, err := os.Open(fileName)
+	/*fileToSend, err := os.Open(fileName)
+	if err != nil {
+		return err
+	}*/
+
+	// Can use read when implementing chunking
+	fBytes, err := ioutil.ReadFile(fileName)
+	//length := len(fBytes)
+	//fmt.Fprintf(conn, "%d\n", length) // Reply
+
+	var b bytes.Buffer
+	gz := gzip.NewWriter(&b)
+	gz.Write(fBytes)
+	gz.Close()
+
+	n, err := conn.Write(b.Bytes())
 	if err != nil {
 		return err
 	}
-
-	n, err := io.Copy(conn, fileToSend)
+	/*n, err := io.Copy(conn, fileToSend)
 	if err != nil {
 		return err
-	}
+	}*/
 
-	fmt.Println(n, "bytes were sent")
+	fmt.Println(n, "Bytes were sent")
 
-	return fileToSend.Close()
+	return nil
+	//return fileToSend.Close()
 }
 
 /**

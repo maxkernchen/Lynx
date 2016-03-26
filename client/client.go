@@ -13,6 +13,8 @@ package client
 
 import (
 	"bufio"
+	"bytes"
+	"compress/gzip"
 	"errors"
 	"fmt"
 	"io"
@@ -331,10 +333,26 @@ func getFile(fileName string) error {
 				}
 				defer file.Close()
 
-				_, err = io.Copy(file, conn)
+				/*reply, err = bufio.NewReader(conn).ReadString('\n') // Waits for a String ending in newline
+				reply = strings.TrimSpace(reply)
+				length, _ := strconv.Atoi(reply)*/
+
+				bufIn := make([]byte, 512) // Will later set this to chunk length instead of 512
+				n, err := conn.Read(bufIn)
+
+				//tempBuf := bytes.NewBuffer(bufIn)
+				r, err := gzip.NewReader(bytes.NewBuffer(bufIn))
+				bufOut := make([]byte, 512) // Will later set this to chunk length instead of 512
+				r.Read(bufOut)
+				//io.Copy(os.Stdout, r)
+				r.Close()
+
+				fmt.Println(n, "bytes received")
+				file.Write(bufOut)
+				/*_, err = io.Copy(file, conn)
 				if err != nil {
 					return err
-				}
+				}*/
 				gotFile = true
 			}
 		}
