@@ -13,10 +13,12 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"capstone/mycrypt"
 	"compress/gzip"
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net"
 	"os"
 	"strings"
@@ -213,7 +215,7 @@ func handleRequest(conn net.Conn) error {
 		if tmpArr[0] == "Swarm_Request" {
 			fileToSend = "../resources/swarm.info"
 		} else if tmpArr[0] == "Meta_Request" {
-			fileToSend = "../resources/meta.info" // Should encrypt when sending meta.info
+			fileToSend = "../resources/meta.info" // Should encrypt & compress when sending meta.info
 		} else {
 			conn.Close()
 			return errors.New("Invalid Request Syntax")
@@ -263,8 +265,16 @@ func handleRequest(conn net.Conn) error {
 		bufIn := make([]byte, 512) // Will later set this to chunk length instead of 512
 		n, err := conn.Read(bufIn)
 
+		// Decrypt
+		key := []byte("abcdefghijklmnopqrstuvwxyz123456")
+		var plainFile []byte
+		if plainFile, err = mycrypt.Decrypt(key, bufIn); err != nil {
+			log.Fatal(err)
+		}
+
+		// Decompress
 		//tempBuf := bytes.NewBuffer(bufIn)
-		r, err := gzip.NewReader(bytes.NewBuffer(bufIn))
+		r, err := gzip.NewReader(bytes.NewBuffer(plainFile))
 		bufOut := make([]byte, 512) // Will later set this to chunk length instead of 512
 		r.Read(bufOut)
 		//io.Copy(os.Stdout, r)

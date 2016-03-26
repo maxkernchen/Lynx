@@ -13,9 +13,11 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"capstone/mycrypt"
 	"compress/gzip"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net"
 	"os"
 	"strings"
@@ -84,7 +86,14 @@ func TestListenHandleSend(t *testing.T) {
 	//_, err = io.Copy(file, conn)
 	bufIn := make([]byte, 512) // Will later set this to chunk length instead of 512
 	_, err = conn.Read(bufIn)
-	r, err := gzip.NewReader(bytes.NewBuffer(bufIn))
+	// Decrypt
+	key := []byte("abcdefghijklmnopqrstuvwxyz123456")
+	var plainFile []byte
+	if plainFile, err = mycrypt.Decrypt(key, bufIn); err != nil {
+		log.Fatal(err)
+	}
+	// Decompress
+	r, err := gzip.NewReader(bytes.NewBuffer(plainFile))
 	bufOut := make([]byte, 512) // Will later set this to chunk length instead of 512
 	r.Read(bufOut)
 	file.Write(bufOut)

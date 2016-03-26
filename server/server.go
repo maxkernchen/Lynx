@@ -15,6 +15,7 @@ import (
 	"bufio"
 	"bytes"
 	"capstone/client"
+	"capstone/mycrypt"
 	"compress/gzip"
 	"errors"
 	"fmt"
@@ -121,12 +122,24 @@ func sendFile(fileName string, conn net.Conn) error {
 	//length := len(fBytes)
 	//fmt.Fprintf(conn, "%d\n", length) // Reply
 
+	// Begin Compression
 	var b bytes.Buffer
 	gz := gzip.NewWriter(&b)
 	gz.Write(fBytes)
 	gz.Close()
+	// End Compression
 
-	n, err := conn.Write(b.Bytes())
+	// Begin Encryption
+	var cipherFile []byte
+	// The key length can be 32, 24, 16  bytes (OR in bits: 128, 192 or 256)
+	key := []byte("abcdefghijklmnopqrstuvwxyz123456")
+	if cipherFile, err = mycrypt.Encrypt(key, b.Bytes()); err != nil {
+		return err
+	}
+	// End Encryption
+
+	n, err := conn.Write(cipherFile)
+	//n, err := conn.Write(b.Bytes())
 	if err != nil {
 		return err
 	}

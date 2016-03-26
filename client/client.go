@@ -14,10 +14,12 @@ package client
 import (
 	"bufio"
 	"bytes"
+	"capstone/mycrypt"
 	"compress/gzip"
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net"
 	"net/textproto"
 	"os"
@@ -340,8 +342,16 @@ func getFile(fileName string) error {
 				bufIn := make([]byte, 512) // Will later set this to chunk length instead of 512
 				n, err := conn.Read(bufIn)
 
+				// Decrypt
+				key := []byte("abcdefghijklmnopqrstuvwxyz123456")
+				var plainFile []byte
+				if plainFile, err = mycrypt.Decrypt(key, bufIn); err != nil {
+					log.Fatal(err)
+				}
+
+				// Decompress
 				//tempBuf := bytes.NewBuffer(bufIn)
-				r, err := gzip.NewReader(bytes.NewBuffer(bufIn))
+				r, err := gzip.NewReader(bytes.NewBuffer(plainFile))
 				bufOut := make([]byte, 512) // Will later set this to chunk length instead of 512
 				r.Read(bufOut)
 				//io.Copy(os.Stdout, r)
