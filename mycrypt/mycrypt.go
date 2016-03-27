@@ -17,16 +17,21 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 )
 
+/**
+ * Simple function used to drive & test the other functions in this file.
+ */
 func main() {
 
 	var ciphertext, plaintext []byte
-	var err error
+	fmt.Printf("%s\n", plaintext)
+	fmt.Printf("%s\n", ciphertext)
+
+	//var err error
 
 	// The key length can be 32, 24, 16  bytes (OR in bits: 128, 192 or 256)
-	key := []byte("longer means more possible keys ")
+	/*key := []byte("longer means more possible keys ")
 	plaintext = []byte("This is the unecrypted data. Referring to it as plain text.")
 
 	if ciphertext, err = Encrypt(key, plaintext); err != nil {
@@ -37,9 +42,18 @@ func main() {
 	if plaintext, err = Decrypt(key, ciphertext); err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("%s\n", plaintext)
+	fmt.Printf("%s\n", plaintext)*/
 }
 
+/**
+ * This function takes a key and a plain text byte slice and encrypts that slice using AES.
+ * @param []byte key - The key to be used for the encryption (AES requires only a single key
+ * for encryption / decryption)
+ * @param []byte text - The data that we would like encrypted.
+ * @returns []byte ciphertext - An encryted version of the data passed in.
+ * @returns error err - An error can be produced if a cipher cannot be created from the passed
+ * in key or if there is an issue reading from the passed in text. Otherwise it will be nil.
+ */
 func Encrypt(key, text []byte) (ciphertext []byte, err error) {
 
 	var block cipher.Block
@@ -62,6 +76,15 @@ func Encrypt(key, text []byte) (ciphertext []byte, err error) {
 	return
 }
 
+/**
+ * This function takes a key and an encrypted byte slice and decrypts that slice using AES.
+ * @param []byte key - The key to be used for the encryption (AES requires only a single key
+ * for encryption / decryption)
+ * @param []byte ciphertext - The data that we would like decrypted.
+ * @returns []byte plaintext - A decryted version of the data passed in.
+ * @returns error err - An error can be produced if a cipher cannot be created from the passed
+ * in key or if there is an issue reading from the passed in text. Otherwise it will be nil.
+ */
 func Decrypt(key, ciphertext []byte) (plaintext []byte, err error) {
 
 	var block cipher.Block
