@@ -54,6 +54,7 @@ func main() {
 	http.HandleFunc("/joinlynx", JoinHandler)
 	http.HandleFunc("/createlynx", CreateHandler)
 	http.HandleFunc("/removelynx", RemoveHandler)
+	http.HandleFunc("/settings", SettingsHandler)
 
 	http.ListenAndServe(":"+port, nil)
 
@@ -130,6 +131,13 @@ func RemoveHandler(rw http.ResponseWriter, req *http.Request) {
 /** Function INIT runs before main and allows us to load the index html before any operations
     are done on it
  */
+func SettingsHandler(rw http.ResponseWriter, req *http.Request) {
+	req.ParseForm()
+	form = req.Form
+	fmt.Println(form) //returns an array of strings
+	rw.Write(INDEX_HTML)
+}
+
 func init(){
 	INDEX_HTML, _ = ioutil.ReadFile("index.html")
 }
