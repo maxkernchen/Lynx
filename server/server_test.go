@@ -8,7 +8,7 @@
  *	 @verison: 2/17/2016
  */
 
-package main
+package server
 
 import (
 	"bufio"

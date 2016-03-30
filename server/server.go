@@ -9,7 +9,7 @@
  *	 @verison: 2/17/2016
  */
 
-package main
+package server
 
 import (
 	"bufio"
@@ -29,7 +29,7 @@ import (
  */
 func main() {
 	pushMeta()
-	listen(handleFileRequest)
+	Listen(HandleFileRequest)
 }
 
 /**
@@ -37,7 +37,7 @@ func main() {
  * to handle the request
  * @param func(net.Conn) error handler - This is the function we use to handle the requests we receive
  */
-func listen(handler func(net.Conn) error) {
+func Listen(handler func(net.Conn) error) {
 	fmt.Println("Starting Server on Port 8080")
 
 	welcomeSocket, wErr := net.Listen("tcp", ":8080") // Will later need to set port dynamically
@@ -65,7 +65,7 @@ func listen(handler func(net.Conn) error) {
  * @return error - An error can be produced when trying to send a file or if there is incorrect
  * syntax in the request - otherwise error will be nil.
  */
-func handleFileRequest(conn net.Conn) error {
+func HandleFileRequest(conn net.Conn) error {
 
 	request, err := bufio.NewReader(conn).ReadString('\n') // Waits for a String ending in newline
 	if err != nil {
