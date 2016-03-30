@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>LYNX File Sharing</title>
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="js/jquery-ui.css">
+    <script src="js/jquery-1.12.2.min.js"></script>
+    <script src="js/jquery-ui.js"></script>
+
+
+</head>
+
+<br>
+<br>
+<br>
+<br>
+<br>
+
+<form id="uploads" method="POST" action="/uploads">
+
+    <input type="submit" class="btn btn-default" style="position:absolute;
+    bottom:94%;left:6%;" name="touploads" value="Uploads">
+</form>
+
+<form id="downloads" method="POST" action="/downloads">
+
+    <input type="submit" class="btn btn-default" style="position:absolute;
+    bottom:94%;left:12%;" name="todownloads" value="Downloads">
+</form>
+
+
+<form id="home" method="POST" action="/home">
+
+    <input type="submit" class="btn btn-default" style="position:absolute;
+    bottom:94%;left:1%;" name="tohome" value="Home">
+</form>
+<div class="container">
+    <table class="table table-hover">
+        <thead>
+        <tr >
+            <th>File Name</th>
+            <th>Lynk</th>
+            <th>Est. Time Remaining</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr id="download1" >
+            <td>pictures.jpeg</td>
+            <td>CoolDirectory</td>
+            <td>32 seconds</td>
+        </tr>
+        <tr id = "download2">
+            <td>homework.docx</td>
+            <td>JoinedDirectory</td>
+            <td>1 minute 2 seconds</td>
+        </tr>
+
+        </tbody>
+    </table>
+</div>
