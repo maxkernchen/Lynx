@@ -1,6 +1,17 @@
 <!doctype html>
+<!--
+    The download page which displays the current data items being downloaded
+
+   @author Michael Bruce
+   @author Max Kernchen
+
+   @version 3/30/16
+
+   -->
+<!doctype html>
 <html lang="en">
 <head>
+    <!-- various cs and js dependencies mostly bootstrap and jquery ui -->
     <meta charset="utf-8">
     <title>LYNX File Sharing</title>
     <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
@@ -16,12 +27,14 @@
 <br>
 <br>
 <br>
-
+<!-- buttons in forms for moving back to the uploads page -->
 <form id="uploads" method="POST" action="/uploads">
 
     <input type="submit" class="btn btn-default" style="position:absolute;
     bottom:94%;left:6%;" name="touploads" value="Uploads">
 </form>
+
+<!-- buttons in form to move back to downloads -->
 
 <form id="downloads" method="POST" action="/downloads">
 
@@ -29,12 +42,15 @@
     bottom:94%;left:12%;" name="todownloads" value="Downloads">
 </form>
 
+<!-- button in form to move back to the home screen -->
 
 <form id="home" method="POST" action="/home">
 
     <input type="submit" class="btn btn-default" style="position:absolute;
     bottom:94%;left:1%;" name="tohome" value="Home">
 </form>
+
+<!-- currently hardcoded table to dislay example download data -->
 <div class="container">
     <table class="table table-hover">
         <thead>

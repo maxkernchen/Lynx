@@ -1,6 +1,17 @@
 <!doctype html>
+
+<!-- Home page of Lynk file sharing web gui
+
+@author Max Kernchen
+@author Michael Bruce
+
+@version: 3/30/2016
+
+-->
 <html lang="en">
 <head>
+
+    <!-- various js and css depences mainly bootstrap and jquery ui -->
     <meta charset="utf-8">
     <title>LYNX File Sharing</title>
     <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
@@ -11,46 +22,54 @@
 
     <script>
 
+    //script for creating the dialog that pops up when create button is pressed
  $(document).ready(function(){
   var dlg =  $("#dialog").dialog({
    autoOpen: false,
      modal: true, title: 'Create A New Lynk', draggable: true, width: 230
   });
+    //appends data from dialog to a form of id create
     dlg.parent().appendTo($("#create"));
+    //opens dialog on click of id button createlynk
   $("#createlynk").click(function(){
    $("#dialog").dialog('open');
   });
  });
-
+// script for creating a dialog which pops up when the join button is pressed
  $(document).ready(function(){
   var dlg =  $("#joindialog").dialog({
    autoOpen: false,
      modal: true, title: 'Join A Current Lynk', draggable: true, width: 230
   });
+   // appends data with the dialog to a form of id join
     dlg.parent().appendTo($("#join"));
+    //opens the dialog when the joinlynk button is pressed
   $("#joinlynk").click(function(){
    $("#joindialog").dialog('open');
   });
  });
-
+  // creates dialog for remove form
   $(document).ready(function(){
   var dlg =  $("#removedialog").dialog({
    autoOpen: false,
      modal: true, title: 'Remove A Lynk', draggable: true, width: 230
   });
+  // appends new data from within the dialog to the remove form
     dlg.parent().appendTo($("#remove"));
+    // opens the dialog when removelynk is pressed
   $("#removelynk").click(function(){
    $("#removedialog").dialog('open');
   });
  });
-
+  // opens the settings dialog which appears after any row is pressed in the table
   $(document).ready(function(){
   var dlg =  $("#settingsdialog").dialog({
    autoOpen: false,
      modal: true, title: 'Settings', draggable: true, width: 230
   });
+  //append its info to the settings form
     dlg.parent().appendTo($("#settings"));
-
+  // if a setting row is clicked open up the setting dialog
   $(".settingrow").click(function(){
    $("#settingsdialog").dialog('open');
   });
@@ -59,7 +78,7 @@
 </script>
 </head>
 
-
+<!-- form for creating a lynk connection -->
 <form id="create" method="POST" action="/createlynx">
         <input type="button" class="btn btn-success btn-lg" style="position:absolute;
         bottom:3%;left:9%;"
@@ -76,7 +95,7 @@
         </div>
         </form>
 
-
+<!-- form for joining a lynx connectiong -->
     <form id="join" method="POST" action="/joinlynx">
         <input type="button" class="btn btn-info btn-lg" style="position:absolute;
             bottom:3%;left:40%;"
@@ -90,14 +109,14 @@
             <input type="submit" class="btn btn-success " name="joincurrentlynk" value="Join">
         </div>
     </form>
-
+<!-- form for removing a lynx connection -->
 <form id="remove" method="POST" action="/removelynx">
     <input type="button" class="btn btn-danger btn-lg" style="position:absolute;
             bottom:3%;left:70%;"
            id="removelynk" value="Remove Lynk">
     <div id="removedialog">
         Lynks
-        <select name="Lynks">
+        <select name="Lynks">  <!-- drop down list -->
             <option value="Not">Not</option>
             <option value="Currently">Currently</option>
             <option value="Implemented">Implemented</option>
@@ -108,7 +127,7 @@
         <input type="submit" class="btn btn-danger" name="removeselectedlynk" value="Remove">
     </div>
 </form>
-
+<!-- the settings dialog form which appears after any row click on the home screen -->
 <form id="settings" method="POST" action="/settings">
     <div id="settingsdialog">
         Location
@@ -123,34 +142,35 @@
         <input type="submit" name="confirmsettings" value="Confirm">
     </div>
 </form>
-
+<!-- the uploads form which is used to switch pages to uploads -->
 <form id="uploads" method="POST" action="/uploads">
 
         <input type="submit" class="btn btn-default" style="position:absolute;
     bottom:94%;left:6%;" name="touploads" value="Uploads">
 </form>
-
+<!--  the downloads form which is used to switch pages to downloads -->
 <form id="downloads" method="POST" action="/downloads">
 
     <input type="submit" class="btn btn-default" style="position:absolute;
     bottom:94%;left:12%;" name="todownloads" value="Downloads">
 </form>
 
-
+<!-- the home form which is used to go back to the home screen -->
 <form id="home" method="POST" action="/home">
 
     <input type="submit" class="btn btn-default" style="position:absolute;
     bottom:94%;left:1%;" name="tohome" value="Home">
 </form>
 
+<!--  some separators to format our table -->
 
-
 <br>
 <br>
 <br>
 <br>
 <br>
 
+<!-- a currently hardcoded table of possible values in the lynk system -->
 <div class="container">
     <table class="table table-hover">
         <thead>
@@ -171,7 +191,6 @@
             <td>UnSynced</td>
             <td>John2</td>
         </tr>
-
         </tbody>
     </table>
 </div>

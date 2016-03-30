@@ -12,7 +12,7 @@ package main
 
 import (
 	"fmt"
-	//"html/template"
+	"../server"
 	"net/http"
 	"os"
 	"io/ioutil"
@@ -44,6 +44,7 @@ func main() {
 		os.Exit(1)
 	}
 
+
 	port := os.Args[1]
 	fmt.Println("Starting server on http://localhost:" + port)
 
@@ -62,9 +63,13 @@ func main() {
 	http.HandleFunc("/downloads", DownloadHandler)
 	http.HandleFunc("/home", HomeHandler)
 
+	go server.Listen(server.HandleFileRequest)
+
 	http.ListenAndServe(":"+port, nil)
 
+
 }
+
 /**
 	Method which is called when a new HTMLFiles struct is created it simply opens the
 	directory and returns the file and an error
@@ -77,6 +82,8 @@ func (fs HTMLFiles) Open(name string) (http.File, error) {
 		return nil, err
 	}
 	return f, nil
+
+
 }
 
 
@@ -134,6 +141,12 @@ func RemoveHandler(rw http.ResponseWriter, req *http.Request) {
 	fmt.Println(form) //returns an array of strings
 	rw.Write(INDEX_HTML)
 }
+/**
+ * Function that handles requests on the index page: "/settings".
+ * @param http.ResponseWriter rw - This is what we use to write our html back to
+ * the web page.
+ * @param *http.Request req - This is the http request sent to the server.
+ */
 
 func SettingsHandler(rw http.ResponseWriter, req *http.Request) {
 	req.ParseForm()
@@ -142,15 +155,33 @@ func SettingsHandler(rw http.ResponseWriter, req *http.Request) {
 	rw.Write(INDEX_HTML)
 }
 
+/**
+ * Function that handles requests on the index page: "/uploads".
+ * @param http.ResponseWriter rw - This is what we use to write our html back to
+ * the web page.
+ * @param *http.Request req - This is the http request sent to the server.
+ */
 func UploadHandler(rw http.ResponseWriter, req *http.Request) {
 
 	rw.Write(UPLOADS)
 }
-
+/**
+ * Function that handles requests on the index page: "/downloads".
+ * @param http.ResponseWriter rw - This is what we use to write our html back to
+ * the web page.
+ * @param *http.Request req - This is the http request sent to the server.
+ */
 func DownloadHandler(rw http.ResponseWriter, req *http.Request) {
 
 	rw.Write(DOWNLOADS)
 }
+
+/**
+ * Function that handles requests on the index page: "/home".
+ * @param http.ResponseWriter rw - This is what we use to write our html back to
+ * the web page.
+ * @param *http.Request req - This is the http request sent to the server.
+ */
 
 func HomeHandler(rw http.ResponseWriter, req *http.Request) {
 
