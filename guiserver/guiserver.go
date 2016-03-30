@@ -19,6 +19,9 @@ import (
 	"net/url"
 )
 var INDEX_HTML []byte
+var UPLOADS []byte
+var DOWNLOADS []byte
+
 var form url.Values
 
 /** A struct that we combine with our Go template to produce desired HTML */
@@ -54,6 +57,10 @@ func main() {
 	http.HandleFunc("/joinlynx", JoinHandler)
 	http.HandleFunc("/createlynx", CreateHandler)
 	http.HandleFunc("/removelynx", RemoveHandler)
+	http.HandleFunc("/settings", SettingsHandler)
+	http.HandleFunc("/uploads", UploadHandler)
+	http.HandleFunc("/downloads", DownloadHandler)
+	http.HandleFunc("/home", HomeHandler)
 
 	http.ListenAndServe(":"+port, nil)
 
@@ -127,10 +134,36 @@ func RemoveHandler(rw http.ResponseWriter, req *http.Request) {
 	fmt.Println(form) //returns an array of strings
 	rw.Write(INDEX_HTML)
 }
+
+func SettingsHandler(rw http.ResponseWriter, req *http.Request) {
+	req.ParseForm()
+	form = req.Form
+	fmt.Println(form) //returns an array of strings
+	rw.Write(INDEX_HTML)
+}
+
+func UploadHandler(rw http.ResponseWriter, req *http.Request) {
+
+	rw.Write(UPLOADS)
+}
+
+func DownloadHandler(rw http.ResponseWriter, req *http.Request) {
+
+	rw.Write(DOWNLOADS)
+}
+
+func HomeHandler(rw http.ResponseWriter, req *http.Request) {
+
+	rw.Write(INDEX_HTML)
+}
+
 /** Function INIT runs before main and allows us to load the index html before any operations
     are done on it
  */
 func init(){
 	INDEX_HTML, _ = ioutil.ReadFile("index.html")
+	UPLOADS, _ = ioutil.ReadFile("uploads.html")
+	DOWNLOADS, _ = ioutil.ReadFile("downloads.html")
+
 }
 

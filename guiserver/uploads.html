@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>LYNX File Sharing</title>
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="js/jquery-ui.css">
+    <script src="js/jquery-1.12.2.min.js"></script>
+    <script src="js/jquery-ui.js"></script>
+
+    <script>
+
+  $(document).ready(function(){
+  var dlg =  $("#uploadinfo").dialog({
+   autoOpen: false,
+     modal: true, title: 'Upload Info', draggable: true, width: 400
+  });
+    dlg.parent().appendTo($("#settings"));
+
+  $("#upload1").click(function(){
+   $("#uploadinfo").dialog('open');
+  });
+ });
+
+ $(document).ready(function(){
+  var dlg =  $("#uploadinfo2").dialog({
+   autoOpen: false,
+     modal: true, title: 'Upload Info', draggable: true, width: 400
+  });
+    dlg.parent().appendTo($("#settings"));
+
+  $("#upload2").click(function(){
+   $("#uploadinfo2").dialog('open');
+  });
+ });
+
+</script>
+</head>
+
+<form id="uploads" method="POST" action="/uploads">
+
+    <input type="submit" class="btn btn-default" style="position:absolute;
+    bottom:94%;left:6%;" name="touploads" value="Uploads">
+</form>
+
+<form id="downloads" method="POST" action="/downloads">
+
+    <input type="submit" class="btn btn-default" style="position:absolute;
+    bottom:94%;left:12%;" name="todownloads" value="Downloads">
+</form>
+
+
+<form id="home" method="POST" action="/home">
+
+    <input type="submit" class="btn btn-default" style="position:absolute;
+    bottom:94%;left:1%;" name="tohome" value="Home">
+</form>
+
+<br>
+<br>
+<br>
+<br>
+<br>
+
+<div id="uploadinfo">
+
+    <ul class="list-group">
+        <li class="list-group-item">
+            <span class="label label-default label-pill pull-xs-right">98%</span>
+             Downloader 1
+        </li>
+        <li class="list-group-item">
+            <span class="label label-default label-pill pull-xs-right">56%</span>
+            Downloader 2
+        </li>
+        <li class="list-group-item">
+            <span class="label label-default label-pill pull-xs-right">17%</span>
+            Downloader 3
+        </li>
+    </ul>
+</div>
+
+<div id="uploadinfo2">
+
+    <ul class="list-group">
+        <li class="list-group-item">
+            <span class="label label-default label-pill pull-xs-right">6%</span>
+            Downloader 1
+        </li>
+    </ul>
+</div>
+
+<div class="container">
+    <table class="table table-hover">
+        <thead>
+        <tr >
+            <th>File Name</th>
+            <th>Lynk</th>
+            <th>Downloaders</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr id="upload1" >
+            <td>data.txt</td>
+            <td>CoolDirectory</td>
+            <td>3</td>
+        </tr>
+        <tr id = "upload2">
+            <td>helloworld.java</td>
+            <td>JoinedDirectory</td>
+            <td>1</td>
+        </tr>
+
+        </tbody>
+    </table>
+</div>
+

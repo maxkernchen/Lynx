@@ -5,10 +5,11 @@
     <title>LYNX File Sharing</title>
     <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
     <link rel="stylesheet" href="js/jquery-ui.css">
+    <link rel="stylesheet" href="css/style.css">
     <script src="js/jquery-1.12.2.min.js"></script>
     <script src="js/jquery-ui.js"></script>
 
-    <script type="text/javascript">
+    <script>
 
  $(document).ready(function(){
   var dlg =  $("#dialog").dialog({
@@ -43,10 +44,23 @@
   });
  });
 
+  $(document).ready(function(){
+  var dlg =  $("#settingsdialog").dialog({
+   autoOpen: false,
+     modal: true, title: 'Settings', draggable: true, width: 230
+  });
+    dlg.parent().appendTo($("#settings"));
+
+  $(".settingrow").click(function(){
+   $("#settingsdialog").dialog('open');
+  });
+ });
 
 </script>
 </head>
-    <form id="create" method="POST" action="/createlynx">
+
+
+<form id="create" method="POST" action="/createlynx">
         <input type="button" class="btn btn-success btn-lg" style="position:absolute;
         bottom:3%;left:9%;"
                id="createlynk" value="Create Lynk">
@@ -58,7 +72,7 @@
             <br>
             <input type ="checkbox" name="extraoptions"> Extra Options
             <br>
-            <input type="submit" name="createnewlynk" value="Create">
+            <input type="submit" class="btn btn-success " name="createnewlynk" value="Create">
         </div>
         </form>
 
@@ -73,7 +87,7 @@
             Download Location
             <input type="text" name="downloadlocation">
             <br>
-            <input type="submit" name="joincurrentlynk" value="Join">
+            <input type="submit" class="btn btn-success " name="joincurrentlynk" value="Join">
         </div>
     </form>
 
@@ -91,8 +105,74 @@
         <br>
         <input type ="checkbox" name="extraoptions"> Extra Options
         <br>
-        <input type="submit" name="removeselectedlynk" value="Remove">
+        <input type="submit" class="btn btn-danger" name="removeselectedlynk" value="Remove">
     </div>
 </form>
 
+<form id="settings" method="POST" action="/settings">
+    <div id="settingsdialog">
+        Location
+        <input type="text" name="MetaPath">
+        <br>
+        Owner
+        <input type ="text" name="owner">
+        <br>
+        Sync Interval(mins)
+        <input type="number" min=".5" max="60" step=".5" value=".5" name="interval">
+        <br>
+        <input type="submit" name="confirmsettings" value="Confirm">
+    </div>
+</form>
+
+<form id="uploads" method="POST" action="/uploads">
+
+        <input type="submit" class="btn btn-default" style="position:absolute;
+    bottom:94%;left:6%;" name="touploads" value="Uploads">
+</form>
+
+<form id="downloads" method="POST" action="/downloads">
+
+    <input type="submit" class="btn btn-default" style="position:absolute;
+    bottom:94%;left:12%;" name="todownloads" value="Downloads">
+</form>
+
+
+<form id="home" method="POST" action="/home">
+
+    <input type="submit" class="btn btn-default" style="position:absolute;
+    bottom:94%;left:1%;" name="tohome" value="Home">
+</form>
+
+
+
+<br>
+<br>
+<br>
+<br>
+<br>
+
+<div class="container">
+    <table class="table table-hover">
+        <thead>
+        <tr >
+            <th>Name</th>
+            <th>Status</th>
+            <th>Owner</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="settingrow" >
+            <td>CoolDirectory</td>
+            <td>Synced</td>
+            <td>Me</td>
+        </tr>
+        <tr class = "settingrow">
+            <td>JoinedDirectory</td>
+            <td>UnSynced</td>
+            <td>John2</td>
+        </tr>
+
+        </tbody>
+    </table>
+</div>
 
