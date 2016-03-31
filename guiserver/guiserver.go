@@ -11,13 +11,14 @@
 package main
 
 import (
+	"capstone/server"
 	"fmt"
-	"../server"
-	"net/http"
-	"os"
 	"io/ioutil"
+	"net/http"
 	"net/url"
+	"os"
 )
+
 var INDEX_HTML []byte
 var UPLOADS []byte
 var DOWNLOADS []byte
@@ -29,6 +30,7 @@ type UserInput struct {
 	Name   string
 	FavNum string
 }
+
 /** Struct specifically for adding html resources like css */
 type HTMLFiles struct {
 	fs http.FileSystem
@@ -43,7 +45,6 @@ func main() {
 		fmt.Println("Usage: ", os.Args[0], " <port>")
 		os.Exit(1)
 	}
-
 
 	port := os.Args[1]
 	fmt.Println("Starting server on http://localhost:" + port)
@@ -67,15 +68,14 @@ func main() {
 
 	http.ListenAndServe(":"+port, nil)
 
-
 }
 
 /**
-	Method which is called when a new HTMLFiles struct is created it simply opens the
-	directory and returns the file and an error
-	@returns http.File a file to be used for http
-	@returns:error: an error is the file is not openable
- */
+Method which is called when a new HTMLFiles struct is created it simply opens the
+directory and returns the file and an error
+@returns http.File a file to be used for http
+@returns:error: an error is the file is not openable
+*/
 func (fs HTMLFiles) Open(name string) (http.File, error) {
 	f, err := fs.fs.Open(name)
 	if err != nil {
@@ -83,9 +83,7 @@ func (fs HTMLFiles) Open(name string) (http.File, error) {
 	}
 	return f, nil
 
-
 }
-
 
 /**
  * Function that handles requests on the index page: "/".
@@ -102,7 +100,7 @@ func IndexHandler(rw http.ResponseWriter, req *http.Request) {
 	t.Execute(rw, usrIn)
 	**/
 
-}/**
+} /**
  * Function that handles requests on the index page: "/createlynx".
  * @param http.ResponseWriter rw - This is what we use to write our html back to
  * the web page.
@@ -117,6 +115,7 @@ func CreateHandler(rw http.ResponseWriter, req *http.Request) {
 	rw.Write(INDEX_HTML)
 
 }
+
 /**
  * Function that handles requests on the index page: "/joinlynx".
  * @param http.ResponseWriter rw - This is what we use to write our html back to
@@ -129,7 +128,7 @@ func JoinHandler(rw http.ResponseWriter, req *http.Request) {
 	fmt.Println(form)
 	rw.Write(INDEX_HTML)
 
-}/**
+} /**
  * Function that handles requests on the index page: "/removelynx".
  * @param http.ResponseWriter rw - This is what we use to write our html back to
  * the web page.
@@ -141,6 +140,7 @@ func RemoveHandler(rw http.ResponseWriter, req *http.Request) {
 	fmt.Println(form) //returns an array of strings
 	rw.Write(INDEX_HTML)
 }
+
 /**
  * Function that handles requests on the index page: "/settings".
  * @param http.ResponseWriter rw - This is what we use to write our html back to
@@ -165,6 +165,7 @@ func UploadHandler(rw http.ResponseWriter, req *http.Request) {
 
 	rw.Write(UPLOADS)
 }
+
 /**
  * Function that handles requests on the index page: "/downloads".
  * @param http.ResponseWriter rw - This is what we use to write our html back to
@@ -189,12 +190,11 @@ func HomeHandler(rw http.ResponseWriter, req *http.Request) {
 }
 
 /** Function INIT runs before main and allows us to load the index html before any operations
-    are done on it
- */
-func init(){
+  are done on it
+*/
+func init() {
 	INDEX_HTML, _ = ioutil.ReadFile("index.html")
 	UPLOADS, _ = ioutil.ReadFile("uploads.html")
 	DOWNLOADS, _ = ioutil.ReadFile("downloads.html")
 
 }
-
