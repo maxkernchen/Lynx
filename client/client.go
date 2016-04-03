@@ -14,7 +14,7 @@ package client
 import (
 	"bufio"
 	"bytes"
-	"capstone/mycrypt"
+	"../mycrypt"
 	"compress/gzip"
 	"errors"
 	"fmt"
@@ -26,6 +26,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"os/user"
 )
 
 /**	A struct which represents a Peer of the client */
@@ -420,3 +421,46 @@ func contains(s []Peer, e Peer) bool {
 	}
 	return false
 }
+/**
+  Function which creates a new metainfo file for use within the gui server
+  @param:
+  @param:
+ */
+func CreateMeta(downloadsdir, name string){
+
+	os.Create("temp_meta.info")
+
+	metaFile,err := os.OpenFile("temp_meta.info", os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	metaFile.WriteString("announce:::"+tracker+"\n")
+	metaFile.WriteString("name:::" + name + "\n")
+	currentUser, err := user.Current()
+	metaFile.WriteString("owner::"+currentUser.Name +"\n")
+
+
+	start(downloadsdir)
+
+	fileCopy("temp_meta.info", downloadsdir + "meta.txt")
+
+	//err2 := os.Remove("temp_meta.info") move removal to shutdown process cannot remove
+	// due to in use by other proc?
+
+
+
+
+}
+func visit(path string, f os.FileInfo, err error) error {
+	fmt.Printf("Visited: %s\n", path)
+	addToMetainfo(path,"temp_meta.info")
+	return nil
+}
+
+
+func start(root string) {
+	err := filepath.Walk(root, visit)
+	fmt.Printf("filepath.Walk() returned %v\n", err)
+}
+
