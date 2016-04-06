@@ -377,7 +377,6 @@ func getFile(fileName string) error {
 		return errors.New("Did not receive File")
 	}
 }
-
 /**
  * Asks the tracker for a list of peers and then places them into peers array
  */
@@ -407,7 +406,6 @@ func askTrackerForPeers() {
 
 	//fmt.Println(peers)
 }
-
 /**
  * Simple helper method that checks peers array for specific peer.
  * @param s []peers - The peers array
@@ -423,11 +421,11 @@ func contains(s []Peer, e Peer) bool {
 }
 /**
   Function which creates a new metainfo file for use within the gui server
-  @param:
-  @param:
+
+  @param:downloadsdir: the directory where the files exisit to be added to the lynk
+  @param:name: the name of the new lynk
  */
 func CreateMeta(downloadsdir, name string){
-
 	os.Create("temp_meta.info")
 
 	metaFile,err := os.OpenFile("temp_meta.info", os.O_APPEND|os.O_WRONLY, 0644)
@@ -435,32 +433,74 @@ func CreateMeta(downloadsdir, name string){
 		fmt.Println(err)
 	}
 
-	metaFile.WriteString("announce:::"+tracker+"\n")
-	metaFile.WriteString("name:::" + name + "\n")
 	currentUser, err := user.Current()
+	metaFile.WriteString("announce:::"+findPCsIP()+"\n") //add current ip
+	metaFile.WriteString("lynkname:::" + name + "\n")
 	metaFile.WriteString("owner::"+currentUser.Name +"\n")
+	metaFile.WriteString("downloadsdir:::"+downloadsdir +"\n")
 
+	startWalk(downloadsdir)
 
-	start(downloadsdir)
-
-	fileCopy("temp_meta.info", downloadsdir + "meta.txt")
+	fileCopy("temp_meta.info", downloadsdir + "meta.info")
 
 	//err2 := os.Remove("temp_meta.info") move removal to shutdown process cannot remove
 	// due to in use by other proc?
-
-
-
-
 }
-func visit(path string, f os.FileInfo, err error) error {
-	fmt.Printf("Visited: %s\n", path)
-	addToMetainfo(path,"temp_meta.info")
+/**
+ Function which visits each file within a directory
+ @param:path:the path where the root directory is located
+ @param:f:each file within the root or inner directories
+ @param:err: any error we way encoutner along the way
+ */
+func visit(path string, file os.FileInfo, err error) error {
+	//dont add directories to meta.info
+	if(!file.IsDir()){
+		addToMetainfo(path,"temp_meta.info")
+	}
+
 	return nil
 }
-
-
-func start(root string) {
-	err := filepath.Walk(root, visit)
-	fmt.Printf("filepath.Walk() returned %v\n", err)
+/**
+ Function which walks through all the files in the directory and calls visit
+ @param:root: the root directory to start our walking procedure
+*/
+func startWalk(root string) {
+	filepath.Walk(root, visit)
 }
+
+/**
+* Finds the ip of the current pc
+* @return error - The single string ip
+*/
+func findPCsIP() string {
+	var onlyfirstip = false //only need first ip address
+	var ipstring = ""
+	ifaces, err := net.Interfaces()
+	for _, i := range ifaces {
+		addrs, err := i.Addrs()
+		if err != nil{
+			fmt.Println(err)
+		}
+		for _, addrs := range addrs {
+			if ipnet, ok := addrs.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+				if ipnet.IP.To4() != nil {
+					if(!onlyfirstip){
+						onlyfirstip = true
+						ipstring=ipnet.IP.String()
+					}
+
+
+				}
+			}
+
+		}
+
+	}
+
+	if err != nil{
+		fmt.Println(err)
+	}
+	return ipstring
+}
+
 

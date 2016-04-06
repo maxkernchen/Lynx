@@ -75,19 +75,21 @@
   });
  });
 
+
 </script>
 </head>
 
 <!-- form for creating a lynk connection -->
-<form id="create" method="POST" action="/createlynx">
+<form id="create" method="POST" action="/createlynx" >
         <input type="button" class="btn btn-success btn-lg" style="position:absolute;
         bottom:3%;left:9%;"
                id="createlynk" value="Create Lynk">
         <div id="dialog">
             Directory Path
-            <input type="text" name="DirectoryPath"><br>
+            <input type="text" name="DirectoryPath" required >
+            <br>
             Name
-            <input type="text" name="Name">
+            <input type="text" name="Name" required>
             <br>
             <input type ="checkbox" name="extraoptions"> Extra Options
             <br>

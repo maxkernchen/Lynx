@@ -8,12 +8,12 @@
  *	 @verison: 2/17/2016
  */
 
-package main
+package tracker
 
 import (
 	"bufio"
 	"bytes"
-	"capstone/mycrypt"
+	"../mycrypt"
 	"compress/gzip"
 	"errors"
 	"fmt"
@@ -22,6 +22,7 @@ import (
 	"net"
 	"os"
 	"strings"
+	"os/user"
 )
 
 /**	A struct which represents a Peer of the client */
@@ -157,14 +158,14 @@ func main() {
 		i++
 	}
 
-	listen()
+	Listen()
 }
 
 /**
  * Creates a welcomeSocket that listens for TCP connections - once someone connects a goroutine is spawned
  * to handle the request
  */
-func listen() {
+func Listen() {
 
 	fmt.Println("Starting Tracker on Port 9000")
 
@@ -313,3 +314,99 @@ func sendFile(fileName string, conn net.Conn) error {
 
 	return fileToSend.Close()
 }
+/**
+ * Creates a new swarm.info upon clicking of create button in gui
+ * @param string downloadsdir - the directory where all files within it will be put into the lynk
+ * @param string lynkname - the name of the lynk
+ */
+func CreateSwarm(downloadsdir, lynkname string){
+	p1 := Peer{IP: "", Port: "4500"}
+
+	os.Create("temp_swarm.info")
+
+	swarmFile,err := os.OpenFile("temp_swarm.info", os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	swarmFile.WriteString("locationofdownloads:::"+downloadsdir + "\n")
+
+	currentuser, err := user.Current()
+	trackerdir := lynkname+"_tracker"
+	os.Mkdir(currentuser.HomeDir+"/"+trackerdir,0644)
+
+	ipstring := findPCsIP()
+	p1.IP=ipstring
+	addToSwarminfo(p1,"temp_swarm.info")
+
+	fileCopy("temp_swarm.info", currentuser.HomeDir+"/"+trackerdir+"/swarm.info")
+	fileCopy("temp_meta.info", currentuser.HomeDir+"/"+trackerdir+"/meta.info")
+
+
+}
+
+/**
+ * Copies a file from src to dst
+ * @param string src - the file that will be copied
+ * @param string dst - the destination of the file to be copied
+ * @return error - An error can be produced when issues arise from trying to access,
+ * create, and write from either the src or dst files - otherwise error will be nil.
+ */
+func fileCopy(src, dst string) error {
+	in, err := os.Open(src) // Opens input
+	if err != nil {
+		return err
+	}
+	defer in.Close()
+
+	out, err := os.Create(dst) // Opens output
+	if err != nil {
+		return err
+	}
+	//defer out.Close()
+
+	_, err = io.Copy(out, in) // Copies the file contents
+	if err != nil {
+		return err
+	}
+
+	return out.Close() // Checks for close error
+}
+/**
+* Finds the ip of the current pc
+* @return error - The single string ip
+*/
+func findPCsIP() string {
+	var onlyfirstip = false
+        var ipstring = ""
+	ifaces, err := net.Interfaces()
+	for _, i := range ifaces {
+		addrs, err := i.Addrs()
+		if err != nil{
+			fmt.Println(err)
+		}
+		for _, addrs := range addrs {
+			if ipnet, ok := addrs.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+				if ipnet.IP.To4() != nil {
+					if(!onlyfirstip){
+						onlyfirstip = true
+						ipstring=ipnet.IP.String()
+					}
+
+
+				}
+			}
+
+		}
+
+	}
+
+	if err != nil{
+		fmt.Println(err)
+	}
+	return ipstring
+}
+
+
+
+

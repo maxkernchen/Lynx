@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"../server"
 	"../client"
+	"../tracker"
 	"net/http"
 	"os"
 	"io/ioutil"
@@ -65,6 +66,7 @@ func main() {
 	http.HandleFunc("/home", HomeHandler)
 
 	go server.Listen(server.HandleFileRequest)
+	go tracker.Listen()
 
 	http.ListenAndServe(":"+port, nil)
 
@@ -84,9 +86,7 @@ func (fs HTMLFiles) Open(name string) (http.File, error) {
 	}
 	return f, nil
 
-
 }
-
 
 /**
  * Function that handles requests on the index page: "/".
@@ -112,10 +112,11 @@ func IndexHandler(rw http.ResponseWriter, req *http.Request) {
 func CreateHandler(rw http.ResponseWriter, req *http.Request) {
 	req.ParseForm()
 	form = req.Form
-	fmt.Println(form)
 	var dir []string = form["DirectoryPath"]
 	var name []string = form["Name"]
+
 	client.CreateMeta(dir[0],name[0])
+	tracker.CreateSwarm(dir[0],name[0])
 	rw.Write(INDEX_HTML)
 
 }
