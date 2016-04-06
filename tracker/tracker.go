@@ -13,7 +13,7 @@ package tracker
 import (
 	"bufio"
 	"bytes"
-	"../mycrypt"
+	"capstone/mycrypt"
 	"compress/gzip"
 	"errors"
 	"fmt"
@@ -21,8 +21,8 @@ import (
 	"log"
 	"net"
 	"os"
-	"strings"
 	"os/user"
+	"strings"
 )
 
 /**	A struct which represents a Peer of the client */
@@ -314,34 +314,34 @@ func sendFile(fileName string, conn net.Conn) error {
 
 	return fileToSend.Close()
 }
+
 /**
  * Creates a new swarm.info upon clicking of create button in gui
  * @param string downloadsdir - the directory where all files within it will be put into the lynk
  * @param string lynkname - the name of the lynk
  */
-func CreateSwarm(downloadsdir, lynkname string){
-	p1 := Peer{IP: "", Port: "4500"}
+func CreateSwarm(downloadsdir, lynkname string) {
+	p1 := Peer{IP: "", Port: "8080"}
 
 	os.Create("temp_swarm.info")
 
-	swarmFile,err := os.OpenFile("temp_swarm.info", os.O_APPEND|os.O_WRONLY, 0644)
+	swarmFile, err := os.OpenFile("temp_swarm.info", os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	swarmFile.WriteString("locationofdownloads:::"+downloadsdir + "\n")
+	swarmFile.WriteString("locationofdownloads:::" + downloadsdir + "\n")
 
 	currentuser, err := user.Current()
-	trackerdir := lynkname+"_tracker"
-	os.Mkdir(currentuser.HomeDir+"/"+trackerdir,0644)
+	trackerdir := lynkname + "_tracker"
+	os.Mkdir(currentuser.HomeDir+"/"+trackerdir, 0755)
 
 	ipstring := findPCsIP()
-	p1.IP=ipstring
-	addToSwarminfo(p1,"temp_swarm.info")
+	p1.IP = ipstring
+	addToSwarminfo(p1, "temp_swarm.info")
 
 	fileCopy("temp_swarm.info", currentuser.HomeDir+"/"+trackerdir+"/swarm.info")
 	fileCopy("temp_meta.info", currentuser.HomeDir+"/"+trackerdir+"/meta.info")
-
 
 }
 
@@ -372,27 +372,27 @@ func fileCopy(src, dst string) error {
 
 	return out.Close() // Checks for close error
 }
+
 /**
 * Finds the ip of the current pc
 * @return error - The single string ip
-*/
+ */
 func findPCsIP() string {
 	var onlyfirstip = false
-        var ipstring = ""
+	var ipstring = ""
 	ifaces, err := net.Interfaces()
 	for _, i := range ifaces {
 		addrs, err := i.Addrs()
-		if err != nil{
+		if err != nil {
 			fmt.Println(err)
 		}
 		for _, addrs := range addrs {
 			if ipnet, ok := addrs.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
 				if ipnet.IP.To4() != nil {
-					if(!onlyfirstip){
+					if !onlyfirstip {
 						onlyfirstip = true
-						ipstring=ipnet.IP.String()
+						ipstring = ipnet.IP.String()
 					}
-
 
 				}
 			}
@@ -401,12 +401,8 @@ func findPCsIP() string {
 
 	}
 
-	if err != nil{
+	if err != nil {
 		fmt.Println(err)
 	}
 	return ipstring
 }
-
-
-
-

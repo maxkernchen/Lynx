@@ -10,7 +10,7 @@
 
 package main
 
-import "../tracker"
+import "capstone/tracker"
 
 /**
 
