@@ -119,9 +119,7 @@
     <div id="removedialog">
         Lynks
         <select name="Lynks">  <!-- drop down list -->
-            <option value="Not">Not</option>
-            <option value="Currently">Currently</option>
-            <option value="Implemented">Implemented</option>
+           {{.RemovalList}}
         </select>
         <br>
         <input type ="checkbox" name="extraoptions"> Extra Options
@@ -173,27 +171,19 @@
 <br>
 
 <!-- a currently hardcoded table of possible values in the lynk system -->
+
+
 <div class="container">
-    <table class="table table-hover">
+    <table class="table table-hover" id="lynktable">
         <thead>
-        <tr >
+        <tr>
             <th>Name</th>
             <th>Status</th>
             <th>Owner</th>
         </tr>
         </thead>
         <tbody>
-        <tr class="settingrow" >
-            <td>CoolDirectory</td>
-            <td>Synced</td>
-            <td>Me</td>
-        </tr>
-        <tr class = "settingrow">
-            <td>JoinedDirectory</td>
-            <td>UnSynced</td>
-            <td>John2</td>
-        </tr>
+        {{.Entries}}
         </tbody>
     </table>
 </div>
-

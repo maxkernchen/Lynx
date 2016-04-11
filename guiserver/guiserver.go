@@ -11,16 +11,18 @@
 package main
 
 import (
-	"capstone/client"
-	"capstone/server"
-	"capstone/tracker"
 	"fmt"
-	"io/ioutil"
+	"../server"
+	"../client"
+	"../tracker"
 	"net/http"
-	"net/url"
 	"os"
+	"io/ioutil"
+	"net/url"
+	"bufio"
+	"strings"
+	"html/template"
 )
-
 var INDEX_HTML []byte
 var UPLOADS []byte
 var DOWNLOADS []byte
@@ -32,7 +34,6 @@ type UserInput struct {
 	Name   string
 	FavNum string
 }
-
 /** Struct specifically for adding html resources like css */
 type HTMLFiles struct {
 	fs http.FileSystem
@@ -47,6 +48,7 @@ func main() {
 		fmt.Println("Usage: ", os.Args[0], " <port>")
 		os.Exit(1)
 	}
+
 
 	port := os.Args[1]
 	fmt.Println("Starting server on http://localhost:" + port)
@@ -67,18 +69,23 @@ func main() {
 	http.HandleFunc("/home", HomeHandler)
 
 	go server.Listen(server.HandleFileRequest)
+
 	go tracker.Listen()
 
 	http.ListenAndServe(":"+port, nil)
 
+
+
+
+
 }
 
 /**
-Method which is called when a new HTMLFiles struct is created it simply opens the
-directory and returns the file and an error
-@returns http.File a file to be used for http
-@returns:error: an error is the file is not openable
-*/
+	Method which is called when a new HTMLFiles struct is created it simply opens the
+	directory and returns the file and an error
+	@returns http.File a file to be used for http
+	@returns:error: an error is the file is not openable
+ */
 func (fs HTMLFiles) Open(name string) (http.File, error) {
 	f, err := fs.fs.Open(name)
 	if err != nil {
@@ -96,14 +103,24 @@ func (fs HTMLFiles) Open(name string) (http.File, error) {
  */
 func IndexHandler(rw http.ResponseWriter, req *http.Request) {
 	//usrIn := UserInput{Name: os.Args[2], FavNum: os.Args[3]} // This will change
-	rw.Write(INDEX_HTML)
-	/**t := template.New("cool template")
-	t, _ = t.Parse("<h1>Hello {{.Name}}!</h1> <p>Your Favorite Number is {{.FavNum}}.</p>
-	<input id=clickMe type=button value=clickme onclick=printSomething(); />")
-	t.Execute(rw, usrIn)
-	**/
+	//rw.Write(INDEX_HTML)
+	t := template.New("cool template")
+	t, err := t.ParseFiles("index.html")
+	if err != nil{
+		fmt.Println(err)
+	}
+	//t,_ = t.ParseFiles("index.html")
+	tableEntries := TablePopulate("resources/lynks.txt")
+	tableTemplate := template.HTML(tableEntries)
+	removalEntries := RemoveListPopulate("resources/lynks.txt")
+	removalTemplate := template.HTML(removalEntries)
+	t.ExecuteTemplate(rw,"index.html", map[string] template.HTML {"Entries": tableTemplate,
+		"RemovalList" : removalTemplate})
 
-} /**
+
+
+}
+/**
  * Function that handles requests on the index page: "/createlynx".
  * @param http.ResponseWriter rw - This is what we use to write our html back to
  * the web page.
@@ -115,12 +132,13 @@ func CreateHandler(rw http.ResponseWriter, req *http.Request) {
 	var dir []string = form["DirectoryPath"]
 	var name []string = form["Name"]
 
-	client.CreateMeta(dir[0], name[0])
-	tracker.CreateSwarm(dir[0], name[0])
-	rw.Write(INDEX_HTML)
+	client.CreateMeta(dir[0],name[0])
+
+	tracker.CreateSwarm(dir[0],name[0])
+
+	IndexHandler(rw,req)
 
 }
-
 /**
  * Function that handles requests on the index page: "/joinlynx".
  * @param http.ResponseWriter rw - This is what we use to write our html back to
@@ -131,9 +149,9 @@ func JoinHandler(rw http.ResponseWriter, req *http.Request) {
 	req.ParseForm()
 	form = req.Form
 	fmt.Println(form)
-	rw.Write(INDEX_HTML)
+	IndexHandler(rw,req)
 
-} /**
+}/**
  * Function that handles requests on the index page: "/removelynx".
  * @param http.ResponseWriter rw - This is what we use to write our html back to
  * the web page.
@@ -143,9 +161,8 @@ func RemoveHandler(rw http.ResponseWriter, req *http.Request) {
 	req.ParseForm()
 	form = req.Form
 	fmt.Println(form) //returns an array of strings
-	rw.Write(INDEX_HTML)
+	IndexHandler(rw,req)
 }
-
 /**
  * Function that handles requests on the index page: "/settings".
  * @param http.ResponseWriter rw - This is what we use to write our html back to
@@ -157,7 +174,7 @@ func SettingsHandler(rw http.ResponseWriter, req *http.Request) {
 	req.ParseForm()
 	form = req.Form
 	fmt.Println(form) //returns an array of strings
-	rw.Write(INDEX_HTML)
+	IndexHandler(rw,req)
 }
 
 /**
@@ -170,7 +187,6 @@ func UploadHandler(rw http.ResponseWriter, req *http.Request) {
 
 	rw.Write(UPLOADS)
 }
-
 /**
  * Function that handles requests on the index page: "/downloads".
  * @param http.ResponseWriter rw - This is what we use to write our html back to
@@ -191,15 +207,60 @@ func DownloadHandler(rw http.ResponseWriter, req *http.Request) {
 
 func HomeHandler(rw http.ResponseWriter, req *http.Request) {
 
-	rw.Write(INDEX_HTML)
+	IndexHandler(rw,req)
+}
+
+func TablePopulate(pathtotable string) string {
+
+	var tableEntries = ""
+	lynksFile, err := os.Open(pathtotable)
+	if err != nil {
+		fmt.Println(err)
+	}
+	scanner := bufio.NewScanner(lynksFile)
+
+	// Scan each line
+	for scanner.Scan() {
+
+		line := strings.TrimSpace(scanner.Text()) // Trim helps with errors in \n
+		split := strings.Split(line, ":::")
+		tableEntries += "<tr class = settingrow > \n"
+		tableEntries += "<td>"+ split[0]+ "</td>\n"
+		tableEntries += "<td>"+ split[1]+ "</td>\n"
+		tableEntries += "<td>"+ split[2]+ "</td>\n"
+		tableEntries += "</tr>\n"
+
+	}
+	return tableEntries
+}
+
+func RemoveListPopulate(pathtotable string) string {
+
+	var tableEntries = ""
+	lynksFile, err := os.Open(pathtotable)
+	if err != nil {
+		fmt.Println(err)
+	}
+	scanner := bufio.NewScanner(lynksFile)
+
+	// Scan each line
+	for scanner.Scan() {
+
+		line := strings.TrimSpace(scanner.Text()) // Trim helps with errors in \n
+		split := strings.Split(line, ":::")
+		tableEntries +=  "<option value=\"" + split[0] + "\">" + split[0] + "</option>"
+
+	}
+	return tableEntries
 }
 
 /** Function INIT runs before main and allows us to load the index html before any operations
-  are done on it
-*/
-func init() {
+    are done on it
+ */
+func init(){
 	INDEX_HTML, _ = ioutil.ReadFile("index.html")
 	UPLOADS, _ = ioutil.ReadFile("uploads.html")
 	DOWNLOADS, _ = ioutil.ReadFile("downloads.html")
 
 }
+

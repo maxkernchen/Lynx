@@ -14,7 +14,7 @@ package client
 import (
 	"bufio"
 	"bytes"
-	"capstone/mycrypt"
+	"../mycrypt"
 	"compress/gzip"
 	"errors"
 	"fmt"
@@ -23,16 +23,24 @@ import (
 	"net"
 	"net/textproto"
 	"os"
-	"os/user"
 	"path/filepath"
 	"strconv"
 	"strings"
+	"os/user"
 )
 
 /**	A struct which represents a Peer of the client */
 type Peer struct {
 	IP   string
 	Port string
+}
+/**
+   A struct which holds all the lynks within a connection
+ */
+type Lynk struct{
+	Name string
+	Owner string
+	Synced string
 }
 
 /** A struct based which represents a File in our Lynx directory. It is based
@@ -44,6 +52,9 @@ type File struct {
 	chunks      string
 	chunkLength int
 }
+
+/** An array of the lynks found from parsing the lynks.txt file */
+var lynks []Lynk
 
 /** An array of the files found from parsing the metainfo file */
 var files []File
@@ -138,6 +149,7 @@ func parseMetainfo(metaPath string) error {
 	for scanner.Scan() {
 
 		line := strings.TrimSpace(scanner.Text()) // Trim helps with errors in \n
+		fmt.Println(line)
 		split := strings.Split(line, ":::")
 
 		if split[0] == "announce" {
@@ -217,7 +229,7 @@ func addToMetainfo(addPath, metaPath string) error {
  * @return error - An error can be produced when issues arise from trying to access,
  * create, and write from either the src or dst files - otherwise error will be nil.
  */
-func fileCopy(src, dst string) error {
+func FileCopy(src, dst string) error {
 	in, err := os.Open(src) // Opens input
 	if err != nil {
 		return err
@@ -377,7 +389,6 @@ func getFile(fileName string) error {
 		return errors.New("Did not receive File")
 	}
 }
-
 /**
  * Asks the tracker for a list of peers and then places them into peers array
  */
@@ -407,7 +418,6 @@ func askTrackerForPeers() {
 
 	//fmt.Println(peers)
 }
-
 /**
  * Simple helper method that checks peers array for specific peer.
  * @param s []peers - The peers array
@@ -421,53 +431,52 @@ func contains(s []Peer, e Peer) bool {
 	}
 	return false
 }
-
 /**
   Function which creates a new metainfo file for use within the gui server
 
   @param:downloadsdir: the directory where the files exisit to be added to the lynk
   @param:name: the name of the new lynk
-*/
-func CreateMeta(downloadsdir, name string) {
+ */
+func CreateMeta(downloadsdir, name string){
 	os.Create("temp_meta.info")
 
-	metaFile, err := os.OpenFile("temp_meta.info", os.O_APPEND|os.O_WRONLY, 0644)
+	metaFile,err := os.OpenFile("temp_meta.info", os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
 		fmt.Println(err)
 	}
 
 	currentUser, err := user.Current()
-	metaFile.WriteString("announce:::" + findPCsIP() + "\n") //add current ip
+	metaFile.WriteString("announce:::"+findPCsIP()+"\n") //add current ip
 	metaFile.WriteString("lynkname:::" + name + "\n")
-	metaFile.WriteString("owner::" + currentUser.Name + "\n")
-	metaFile.WriteString("downloadsdir:::" + downloadsdir + "\n")
+	metaFile.WriteString("owner:::"+currentUser.Name +"\n")
+	metaFile.WriteString("downloadsdir:::"+downloadsdir +"\n")
+
+	addLynk(name,currentUser.Name)
 
 	startWalk(downloadsdir)
 
-	fileCopy("temp_meta.info", downloadsdir+"meta.info")
+	FileCopy("temp_meta.info", downloadsdir + "meta.info")
 
 	//err2 := os.Remove("temp_meta.info") move removal to shutdown process cannot remove
 	// due to in use by other proc?
 }
-
 /**
-Function which visits each file within a directory
-@param:path:the path where the root directory is located
-@param:f:each file within the root or inner directories
-@param:err: any error we way encoutner along the way
-*/
+ Function which visits each file within a directory
+ @param:path:the path where the root directory is located
+ @param:f:each file within the root or inner directories
+ @param:err: any error we way encoutner along the way
+ */
 func visit(path string, file os.FileInfo, err error) error {
 	//dont add directories to meta.info
-	if !file.IsDir() {
-		addToMetainfo(path, "temp_meta.info")
+	if(!file.IsDir()){
+		addToMetainfo(path,"temp_meta.info")
 	}
 
 	return nil
 }
-
 /**
-Function which walks through all the files in the directory and calls visit
-@param:root: the root directory to start our walking procedure
+ Function which walks through all the files in the directory and calls visit
+ @param:root: the root directory to start our walking procedure
 */
 func startWalk(root string) {
 	filepath.Walk(root, visit)
@@ -476,23 +485,24 @@ func startWalk(root string) {
 /**
 * Finds the ip of the current pc
 * @return error - The single string ip
- */
+*/
 func findPCsIP() string {
 	var onlyfirstip = false //only need first ip address
 	var ipstring = ""
 	ifaces, err := net.Interfaces()
 	for _, i := range ifaces {
 		addrs, err := i.Addrs()
-		if err != nil {
+		if err != nil{
 			fmt.Println(err)
 		}
 		for _, addrs := range addrs {
 			if ipnet, ok := addrs.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
 				if ipnet.IP.To4() != nil {
-					if !onlyfirstip {
+					if(!onlyfirstip){
 						onlyfirstip = true
-						ipstring = ipnet.IP.String()
+						ipstring=ipnet.IP.String()
 					}
+
 
 				}
 			}
@@ -500,9 +510,35 @@ func findPCsIP() string {
 		}
 
 	}
-
-	if err != nil {
+	if err != nil{
 		fmt.Println(err)
 	}
 	return ipstring
 }
+
+func addLynk(name, owner string){
+
+	lynkFile,err := os.OpenFile("resources/lynks.txt", os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		fmt.Println(err)
+	}
+	lynkFile.WriteString(name + ":::" +"unsynced:::" + owner + "\n")
+
+	lynkFile.Close()
+
+}
+func removeLynk(name string){
+
+	lynkFile,err := os.OpenFile("resources/lynks.txt", os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	lynkFile.Close()
+
+
+
+
+}
+
+
