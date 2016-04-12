@@ -148,7 +148,7 @@ func CreateHandler(rw http.ResponseWriter, req *http.Request) {
 func JoinHandler(rw http.ResponseWriter, req *http.Request) {
 	req.ParseForm()
 	form = req.Form
-	fmt.Println(form)
+
 	IndexHandler(rw,req)
 
 }/**
@@ -160,7 +160,13 @@ func JoinHandler(rw http.ResponseWriter, req *http.Request) {
 func RemoveHandler(rw http.ResponseWriter, req *http.Request) {
 	req.ParseForm()
 	form = req.Form
-	fmt.Println(form) //returns an array of strings
+	var name []string = form["Lynks"]
+	if name != nil{
+		client.DeleteLynk(name[0])
+
+		removeLynkFile("resources/lynks.txt")
+		TablePopulate("resources/lynks.txt")
+	}
 	IndexHandler(rw,req)
 }
 /**
@@ -231,6 +237,7 @@ func TablePopulate(pathtotable string) string {
 		tableEntries += "</tr>\n"
 
 	}
+	client.ParseLynks(pathtotable)
 	return tableEntries
 }
 
@@ -253,6 +260,11 @@ func RemoveListPopulate(pathtotable string) string {
 	}
 	return tableEntries
 }
+
+func removeLynkFile(path string){
+	os.Remove(path)
+}
+
 
 /** Function INIT runs before main and allows us to load the index html before any operations
     are done on it

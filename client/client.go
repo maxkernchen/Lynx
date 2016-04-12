@@ -516,28 +516,95 @@ func findPCsIP() string {
 	return ipstring
 }
 
-func addLynk(name, owner string){
+
+
+func addLynk(name, owner string) error{
 
 	lynkFile,err := os.OpenFile("resources/lynks.txt", os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
 		fmt.Println(err)
+	}
+	i := 0
+	for i < len(lynks) {
+		if lynks[i].Name == name {
+			return errors.New("Can't Add Duplicate Lynk")
+		}
+		i++
 	}
 	lynkFile.WriteString(name + ":::" +"unsynced:::" + owner + "\n")
 
-	lynkFile.Close()
+	ParseLynks("resources/lynks.txt")
+	fmt.Println(lynks)
+
+	return lynkFile.Close()
 
 }
-func removeLynk(name string){
 
-	lynkFile,err := os.OpenFile("resources/lynks.txt", os.O_APPEND|os.O_WRONLY, 0644)
+/**
+ * Parses the information in meta.info file and places each entry into a File
+ * struct and appends that struct to the array of structs
+ * @param string metaPath - The path to the metainfo file
+ * @return error - An error can be produced when issues arise from trying to access
+ * the meta file or from an invalid meta file type - otherwise error will be nil.
+ */
+func ParseLynks(lynksFilePath string) error {
+	lynks = nil // Resets files array
+
+	lynksFile, err := os.Open(lynksFilePath)
 	if err != nil {
-		fmt.Println(err)
+		return err
 	}
 
-	lynkFile.Close()
+	scanner := bufio.NewScanner(lynksFile)
+	tempLynk := Lynk{}
+
+	// Scan each line
+	for scanner.Scan() {
+
+		line := strings.TrimSpace(scanner.Text()) // Trim helps with errors in \n
+		split := strings.Split(line, ":::")
+		tempLynk.Name = split[0]
+		tempLynk.Synced = split[1]
+		tempLynk.Owner = split[2]
+
+		lynks = append(lynks, tempLynk) // Append the current file to the file array
+		tempLynk = Lynk{}           // Empty the current file
+	}
 
 
+	return lynksFile.Close()
+}
+func DeleteLynk(nameToDelete string) {
 
+	i := 0
+	for i < len(lynks) {
+		if nameToDelete == lynks[i].Name {
+			lynks = append(lynks[:i], lynks[i+1:]...)
+		}
+		i++
+	}
+	updateLynksFile()
+
+}
+
+func updateLynksFile() error {
+
+
+	newLynks, err := os.Create("resources/lynks.txt")
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	i := 0
+	for i < len(lynks) {
+		newLynks.WriteString(lynks[i].Name+":::" +lynks[i].Synced+":::" +
+		lynks[i].Owner + "\n")
+
+		i++
+	}
+
+	return newLynks.Close()
 
 }
 
