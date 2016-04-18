@@ -41,6 +41,7 @@ type Lynk struct{
 	Name string
 	Owner string
 	Synced string
+	DownloadDirectory string
 }
 
 /** A struct based which represents a File in our Lynx directory. It is based
@@ -138,8 +139,8 @@ func parseMetainfo(metaPath string) error {
 	metaFile, err := os.Open(metaPath)
 	if err != nil {
 		return err
-	} else if metaPath != "../resources/meta.info" {
-		return errors.New("Invalid File Type")
+	//} else if metaPath != "../resources/meta.info" {
+	//	return errors.New("Invalid File Type")
 	}
 
 	scanner := bufio.NewScanner(metaFile)
@@ -292,7 +293,7 @@ func main() {
 func HaveFile(fileName string) bool {
 	have := false
 
-	parseMetainfo("../resources/meta.info")
+	parseMetainfo("/resources/meta.info")
 
 	i := 0
 	for i < len(files) && !have {
@@ -324,7 +325,7 @@ func GetTracker() string {
  */
 func getFile(fileName string) error {
 	// Will parseMetainfo file and then ask tracker for list of peers when tracker is implemented
-	parseMetainfo("../resources/meta.info")
+	parseMetainfo("temp_meta.info")
 	askTrackerForPeers()
 	//peers = append(peers, Peer{IP: "127.0.0.1", Port: "8080"}) // For testing ONLY - Hardcodes myself as a peer
 
@@ -447,6 +448,7 @@ func CreateMeta(downloadsdir, name string){
 
 	currentUser, err := user.Current()
 	metaFile.WriteString("announce:::"+findPCsIP()+"\n") //add current ip
+	metaFile.WriteString("port:::4005\n");
 	metaFile.WriteString("lynkname:::" + name + "\n")
 	metaFile.WriteString("owner:::"+currentUser.Name +"\n")
 	metaFile.WriteString("downloadsdir:::"+downloadsdir +"\n")
@@ -607,5 +609,39 @@ func updateLynksFile() error {
 	return newLynks.Close()
 
 }
+func JoinLynk(metaPath, downloadsdir string){
+	metaFile, err := os.Open(metaPath)
+	if err != nil {
+		fmt.Println(err)
+		//} else if metaPath != "../resources/meta.info" {
+		//	return errors.New("Invalid File Type")
+	}
+	lynkName := ""
+	owner    := ""
+	scanner := bufio.NewScanner(metaFile)
+	tempPeer := Peer{}
+	// Scan each line
+	for scanner.Scan() {
 
+		line := strings.TrimSpace(scanner.Text()) // Trim helps with errors in \n
+		split := strings.Split(line, ":::")
 
+		if split[0] == "announce" {
+			tempPeer.IP = split[META_VALUE_INDEX]
+		} else if split[0] == "port" {
+			tempPeer.Port = split[META_VALUE_INDEX]
+		} else if split[0] == "lynkname"{
+			lynkName = split[META_VALUE_INDEX]
+		} else if split[0] == "owner"{
+			owner = split[META_VALUE_INDEX]
+		}
+	}
+
+	peers = append(peers,tempPeer)
+	fmt.Println(peers)
+
+	addLynk(lynkName, owner)
+
+	getFile("3HLxd.jpg")
+
+}

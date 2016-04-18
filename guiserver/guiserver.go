@@ -148,6 +148,9 @@ func CreateHandler(rw http.ResponseWriter, req *http.Request) {
 func JoinHandler(rw http.ResponseWriter, req *http.Request) {
 	req.ParseForm()
 	form = req.Form
+	var metapath []string = form["MetaPath"]
+	var downloads []string = form["downloadlocation"]
+	client.JoinLynk(metapath[0],downloads[0])
 
 	IndexHandler(rw,req)
 

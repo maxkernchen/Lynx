@@ -104,9 +104,10 @@
                id="joinlynk" value="Join Lynk">
         <div id="joindialog">
             Metainfo Path
-            <input type="text" name="MetaPath"><br>
+            <input type="text" name="MetaPath" required>
+            <br>
             Download Location
-            <input type="text" name="downloadlocation">
+            <input type="text" name="downloadlocation" required>
             <br>
             <input type="submit" class="btn btn-success " name="joincurrentlynk" value="Join">
         </div>
@@ -171,7 +172,8 @@
 <br>
 
 <!-- a currently hardcoded table of possible values in the lynk system -->
-
+<h1 style="position:absolute;
+    bottom:85%;left:33%"> List of Current Lynks </h1>
 
 <div class="container">
     <table class="table table-hover" id="lynktable">
