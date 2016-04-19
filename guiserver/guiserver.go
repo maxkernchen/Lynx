@@ -1,6 +1,6 @@
 /**
  *
- *	The web server resposible for rendering our GUI.
+ *	The web server responsible for rendering our GUI.
  *
  *	 @author: Michael Bruce
  *	 @author: Max Kernchen
@@ -22,13 +22,16 @@ import (
 	"bufio"
 	"strings"
 	"html/template"
+	"os/user"
 )
-var INDEX_HTML []byte
+/** Holds our uploads html page */
 var UPLOADS []byte
+/** Holds our downloads html page */
 var DOWNLOADS []byte
-
+/** current form data that was submitted */
 var form url.Values
-
+/** The location of the user's root directory */
+var homepath string
 /** A struct that we combine with our Go template to produce desired HTML */
 type UserInput struct {
 	Name   string
@@ -44,11 +47,10 @@ type HTMLFiles struct {
  */
 func main() {
 
-	if len(os.Args) != 4 {
+	if len(os.Args) != 2 {
 		fmt.Println("Usage: ", os.Args[0], " <port>")
 		os.Exit(1)
 	}
-
 
 	port := os.Args[1]
 	fmt.Println("Starting server on http://localhost:" + port)
@@ -73,10 +75,6 @@ func main() {
 	go tracker.Listen()
 
 	http.ListenAndServe(":"+port, nil)
-
-
-
-
 
 }
 
@@ -110,14 +108,12 @@ func IndexHandler(rw http.ResponseWriter, req *http.Request) {
 		fmt.Println(err)
 	}
 	//t,_ = t.ParseFiles("index.html")
-	tableEntries := TablePopulate("resources/lynks.txt")
+	tableEntries := TablePopulate(homepath+"/lynks.txt")
 	tableTemplate := template.HTML(tableEntries)
-	removalEntries := RemoveListPopulate("resources/lynks.txt")
+	removalEntries := RemoveListPopulate(homepath+"/lynks.txt")
 	removalTemplate := template.HTML(removalEntries)
 	t.ExecuteTemplate(rw,"index.html", map[string] template.HTML {"Entries": tableTemplate,
 		"RemovalList" : removalTemplate})
-
-
 
 }
 /**
@@ -165,10 +161,10 @@ func RemoveHandler(rw http.ResponseWriter, req *http.Request) {
 	form = req.Form
 	var name []string = form["Lynks"]
 	if name != nil{
-		client.DeleteLynk(name[0])
 
-		removeLynkFile("resources/lynks.txt")
-		TablePopulate("resources/lynks.txt")
+		client.DeleteLynk(name[0])
+		//removeLynkFile("resources/lynks.txt")
+		TablePopulate(homepath+"/lynks.txt")
 	}
 	IndexHandler(rw,req)
 }
@@ -218,11 +214,17 @@ func HomeHandler(rw http.ResponseWriter, req *http.Request) {
 
 	IndexHandler(rw,req)
 }
+/**
+   Function which will replace an element in the table in order to popluate it within the html
+   file
+   @param: pathToTable - the location of the lynks table .txt file
+   @returns: the string which cotains the correct html table tags to be added to the html file
+ */
 
-func TablePopulate(pathtotable string) string {
+func TablePopulate(pathToTable string) string {
 
 	var tableEntries = ""
-	lynksFile, err := os.Open(pathtotable)
+	lynksFile, err := os.Open(pathToTable)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -240,14 +242,22 @@ func TablePopulate(pathtotable string) string {
 		tableEntries += "</tr>\n"
 
 	}
-	client.ParseLynks(pathtotable)
+	client.ParseLynks(pathToTable)
 	return tableEntries
 }
+/**
+    Function which creates string that contains the html for populating the dropdown list in
+    the remove button
 
-func RemoveListPopulate(pathtotable string) string {
+    @param: pathToTable - the path that the lynks table lives in
+    @returns - a string that can be used with the html file to populate the dropdown list
+
+ */
+
+func RemoveListPopulate(pathToTable string) string {
 
 	var tableEntries = ""
-	lynksFile, err := os.Open(pathtotable)
+	lynksFile, err := os.Open(pathToTable)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -264,18 +274,15 @@ func RemoveListPopulate(pathtotable string) string {
 	return tableEntries
 }
 
-func removeLynkFile(path string){
-	os.Remove(path)
-}
-
-
 /** Function INIT runs before main and allows us to load the index html before any operations
-    are done on it
+    are done on it and find the root directory on the user's computer
  */
 func init(){
-	INDEX_HTML, _ = ioutil.ReadFile("index.html")
 	UPLOADS, _ = ioutil.ReadFile("uploads.html")
 	DOWNLOADS, _ = ioutil.ReadFile("downloads.html")
+	currentusr,_ := user.Current()
+	homepath = currentusr.HomeDir
+
 
 }
 

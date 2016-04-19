@@ -150,7 +150,6 @@ func parseMetainfo(metaPath string) error {
 	for scanner.Scan() {
 
 		line := strings.TrimSpace(scanner.Text()) // Trim helps with errors in \n
-		fmt.Println(line)
 		split := strings.Split(line, ":::")
 
 		if split[0] == "announce" {
@@ -293,7 +292,7 @@ func main() {
 func HaveFile(fileName string) bool {
 	have := false
 
-	parseMetainfo("/resources/meta.info")
+	parseMetainfo("../resources/meta.info")
 
 	i := 0
 	for i < len(files) && !have {
@@ -519,12 +518,18 @@ func findPCsIP() string {
 }
 
 
+/**
+   Function which adds a lynk to list of lynks and also will added it to lynks.txt file as well
 
+   @param: name - the name of the lynk
+   @param: owner- the owner of the lynk
+ */
 func addLynk(name, owner string) error{
 
 	lynkFile,err := os.OpenFile("resources/lynks.txt", os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
 		fmt.Println(err)
+		// create file if not real
 	}
 	i := 0
 	for i < len(lynks) {
@@ -576,6 +581,11 @@ func ParseLynks(lynksFilePath string) error {
 
 	return lynksFile.Close()
 }
+/**
+   Function which deletes a Lynk based upon its name from the list of lynks
+
+   @param:nameToDelete - the lynk we want to remove
+ */
 func DeleteLynk(nameToDelete string) {
 
 	i := 0
@@ -586,11 +596,11 @@ func DeleteLynk(nameToDelete string) {
 		i++
 	}
 	updateLynksFile()
-
 }
-
+/**
+   Function which parses the list of lynks and updates the lynks.txt file
+ */
 func updateLynksFile() error {
-
 
 	newLynks, err := os.Create("resources/lynks.txt")
 	if err != nil {
@@ -607,8 +617,15 @@ func updateLynksFile() error {
 	}
 
 	return newLynks.Close()
-
 }
+/**
+   Function which will allow a user to join an existing link by way of its meta.info file
+
+   @param:metaPath - the path to the meta.info file which will be used to find the information
+   		    about the lynk
+   @param:downloadsdir - the place where all the files will be downloaded after they have been found
+   			in the meta.ifno file
+ */
 func JoinLynk(metaPath, downloadsdir string){
 	metaFile, err := os.Open(metaPath)
 	if err != nil {
@@ -641,7 +658,6 @@ func JoinLynk(metaPath, downloadsdir string){
 	fmt.Println(peers)
 
 	addLynk(lynkName, owner)
-
-	getFile("3HLxd.jpg")
+	// getFile("3HLxd.jpg", lynkName)
 
 }
