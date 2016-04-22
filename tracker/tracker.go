@@ -13,7 +13,7 @@ package tracker
 import (
 	"bufio"
 	"bytes"
-	"capstone/mycrypt"
+	"../mycrypt"
 	"compress/gzip"
 	"errors"
 	"fmt"
@@ -162,9 +162,15 @@ func addToSwarminfo(addPeer Peer, swarmPath string) error {
 		return err
 	}
 
-	parseSwarminfo(swarmPath)
 	lynkName := getLynkName(swarmPath)
 	lynk := getLynk(lynks, lynkName)
+	if lynk == nil {
+		lynks = append(lynks, Lynk {Name: lynkName})
+		lynk = getLynk(lynks, lynkName)
+	}
+
+	parseSwarminfo(swarmPath)
+
 
 	i := 0
 	for i < len(lynk.Peers) {

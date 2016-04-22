@@ -13,7 +13,7 @@ package client
 import (
 	"bufio"
 	"bytes"
-	"capstone/mycrypt"
+	"../mycrypt"
 	"compress/gzip"
 	"errors"
 	"fmt"
@@ -245,16 +245,19 @@ func parseMetainfo(metaPath string) error {
  * error will be nil.
  */
 func addToMetainfo(addPath, metaPath string) error {
+	fmt.Println("add to meta")
 	metaFile, err := os.OpenFile(metaPath, os.O_APPEND|os.O_WRONLY, 0644) // Opens for appending
 	if err != nil {
+		fmt.Println(err)
 		return err
 	}
 
 	addStat, err := os.Stat(addPath)
 	if err != nil {
+		fmt.Println(err)
 		return err
 	}
-
+	fmt.Println(addStat.Name() + " this is addstat")
 	parseMetainfo(metaPath)
 	lynkName := GetLynkName(metaPath)
 	lynk := getLynk(lynks, lynkName)
@@ -576,7 +579,9 @@ func visitFiles(path string, file os.FileInfo, err error) error {
 	//dont add directories to meta.info
 	if !file.IsDir() && !strings.Contains(path, "_Tracker") && file.Name() != "meta.info" {
 		fmt.Println(file.Name())
-		tmpStr := strings.TrimPrefix(path, homePath)
+		slashes := strings.Replace(path, "\\", "/", -1)
+		fmt.Println(slashes)
+		tmpStr := strings.TrimPrefix(slashes, homePath)
 		tmpArr := strings.Split(tmpStr, "/")
 		addToMetainfo(path, homePath+tmpArr[0]+"/meta.info")
 	}
@@ -592,7 +597,7 @@ Function which visits each directory within a directory
 */
 func visitDirectories(path string, file os.FileInfo, err error) error {
 	base := strings.TrimPrefix(path, homePath)
-	//fmt.Println(base)
+	fmt.Println(base)
 
 	if file.IsDir() && !strings.Contains(base, "/") && base != "" {
 		fmt.Println(file.Name())
@@ -793,6 +798,7 @@ func JoinLynk(metaPath, downloadsdir string) {
 func init() {
 	currentusr, _ := user.Current()
 	homePath = currentusr.HomeDir + "/Lynx/"
+	homePath = strings.Replace(homePath, "\\", "/", -1)
 	filepath.Walk(homePath, visitDirectories)
 	genLynks()
 	fmt.Println(lynks)
