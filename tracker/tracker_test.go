@@ -13,7 +13,9 @@ package tracker
 import (
 	"bufio"
 	"fmt"
+	"io/ioutil"
 	"net"
+	"os/user"
 	"strings"
 	"testing"
 )
@@ -23,6 +25,18 @@ var successful = 0
 
 /** Total # of the tests. */
 const total = 7
+
+/** Gets user's home directory */
+var cU, _ = user.Current()
+
+/** Adds "Lynx" to home directory string */
+var hPath = cU.HomeDir + "/Lynx/"
+
+/** Uses homePath and our Tests Lynk to create swarm path */
+var sPath = hPath + "Tests/Tests_Tracker/swarm.info"
+
+/** Uses homePath and our Tests Lynk to create meta path */
+var mPath = hPath + "Tests/Tests_Tracker/meta.info"
 
 /**
  * Unit tests for listen, handle, and send functions
@@ -57,16 +71,18 @@ func TestListenHandleSend(t *testing.T) {
 
 	conn, err = net.Dial("tcp", "127.0.0.1:9000")
 
-	fmt.Fprintf(conn, "Swarm_Request:813.444.555.111:7500\n")
+	fmt.Fprintf(conn, "Swarm_Request:813.444.555.111:7500:Tests\n")
 
 	reply, err = bufio.NewReader(conn).ReadString('\n') // Waits for a String ending in newline
 	reply = strings.TrimSpace(reply)
+	content, _ := ioutil.ReadFile(sPath)
+	s := string(content)
 
-	if reply == "127.0.0.1:::8080" {
+	if strings.Contains(s, reply) {
 		fmt.Println("Successfully Handled Valid Request")
 		successful++
 	} else {
-		t.Error("Test failed, expected to receive first line of swarm.info. Got", reply)
+		t.Error("Test failed, expected to receive swarm.info. Got", reply)
 	}
 
 	conn.Close()
@@ -75,12 +91,14 @@ func TestListenHandleSend(t *testing.T) {
 
 	conn, err = net.Dial("tcp", "127.0.0.1:9000")
 
-	fmt.Fprintf(conn, "Meta_Request:813.444.555.111:7500\n")
+	fmt.Fprintf(conn, "Meta_Request:813.444.555.111:7500:Tests\n")
 
 	reply, err = bufio.NewReader(conn).ReadString('\n') // Waits for a String ending in newline
 	reply = strings.TrimSpace(reply)
+	content, _ = ioutil.ReadFile(mPath)
+	s = string(content)
 
-	if reply == "announce:::127.0.0.1:9000" {
+	if strings.Contains(s, reply) {
 		fmt.Println("Successfully Sent A File")
 		successful++
 	} else {
@@ -96,10 +114,10 @@ func TestListenHandleSend(t *testing.T) {
 func TestSwarminfo(t *testing.T) {
 	fmt.Println("\n----------------TestParseSwarminfo----------------")
 
-	result := parseSwarminfo("../resources/swarm.info")
+	result := parseSwarminfo(sPath)
 
 	if result != nil {
-		t.Error("Test failed, expected duplicate error. Got ", result)
+		t.Error("Test failed, expected no error. Got ", result)
 	} else {
 		fmt.Println("Successfully Parsed Swarm Info")
 		successful++
@@ -108,10 +126,10 @@ func TestSwarminfo(t *testing.T) {
 	fmt.Println("\n----------------TestAddToSwarminfo----------------")
 
 	p1 := Peer{IP: "124.123.563.186", Port: "4500"}
-	result = addToSwarminfo(p1, "../resources/swarm.info")
+	result = addToSwarminfo(p1, sPath)
 
 	if result == nil {
-		t.Error("Test failed, expected duplicate error. Got ", result)
+		t.Error("*Run Test Twice If This Is First Time* Test failed, expected duplicate error. Got ", result)
 	} else {
 		fmt.Println("Successfully Avoided Duplicate")
 		successful++
@@ -119,7 +137,7 @@ func TestSwarminfo(t *testing.T) {
 
 	fmt.Println("\n----------------TestUpdateSwarminfo----------------")
 
-	result = updateSwarminfo()
+	result = updateSwarminfo(sPath)
 
 	if result != nil {
 		t.Error("Test failed, expected no error. Got ", result)

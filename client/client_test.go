@@ -12,6 +12,8 @@ package client
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os/user"
 	"strings"
 	"testing"
 )
@@ -22,14 +24,26 @@ var successful = 0
 /** Total # of the tests. */
 const total = 19
 
+/** Gets user's home directory */
+var cU, _ = user.Current()
+
+/** Adds "Lynx" to home directory string */
+var hPath = cU.HomeDir + "/Lynx/"
+
+/** Uses homePath and our Tests Lynk to create mPath */
+var mPath = hPath + "Tests/meta.info"
+
 /**
- * Unit tests for our filecopy function.
+ * Unit tests for our FileCopy function.
  * @param *testing.T t - The wrapper for the test
  */
 func TestFileCopy(t *testing.T) {
 	fmt.Println("\n----------------TestFileCopy----------------")
+	fmt.Println(mPath)
+	fmt.Println(mPath)
+	fmt.Println(mPath)
 
-	result := fileCopy("test.txt", "test2.txt")
+	result := FileCopy("test.txt", "test2.txt")
 
 	if result != nil {
 		t.Error("Test failed, expected no errors. Got ", result)
@@ -39,7 +53,7 @@ func TestFileCopy(t *testing.T) {
 	}
 
 	// Tests that overwriting a file is fine
-	result = fileCopy("test.txt", "test2.txt")
+	result = FileCopy("test.txt", "test2.txt")
 
 	if result != nil {
 		t.Error("Test failed, expected no errors. Got ", result)
@@ -48,7 +62,7 @@ func TestFileCopy(t *testing.T) {
 		successful++
 	}
 
-	result = fileCopy("fake.txt", "test2.txt")
+	result = FileCopy("fake.txt", "test2.txt")
 
 	if result == nil {
 		t.Error("Test failed, expected failure due to non-existent file fake.txt. Got ", result)
@@ -57,7 +71,7 @@ func TestFileCopy(t *testing.T) {
 		successful++
 	}
 
-	result = fileCopy("nopermission.txt", "test2.txt")
+	result = FileCopy("nopermission.txt", "test2.txt")
 
 	if result == nil {
 		t.Error("Test failed, expected failure due to permissions on nopermission.txt. Got ", result)
@@ -74,13 +88,15 @@ func TestFileCopy(t *testing.T) {
 func TestAddToMetainfo(t *testing.T) {
 	fmt.Println("\n----------------TestAddToMetainfo----------------")
 
-	parseMetainfo("../resources/meta.info")
+	//parseMetainfo("../resources/meta.info")
+	parseMetainfo(mPath)
 	hasTest := false
+	tLynk := getLynk(lynks, "Tests")
 
 	i := 0
-	for i < len(files) {
+	for i < len(tLynk.Files) {
 		//fmt.Print(files[i].name)
-		if files[i].name == "test.txt" {
+		if tLynk.Files[i].name == "test.txt" {
 			//fmt.Print(files[i].name)
 			hasTest = true
 		}
@@ -88,7 +104,7 @@ func TestAddToMetainfo(t *testing.T) {
 	}
 
 	// add test.txt to the metainfo
-	result := addToMetainfo("test.txt", "../resources/meta.info")
+	result := addToMetainfo("test.txt", mPath)
 
 	if result != nil && !hasTest {
 		t.Error("Test failed, expected no errors. Got ", result)
@@ -97,12 +113,12 @@ func TestAddToMetainfo(t *testing.T) {
 		successful++
 	}
 
-	parseMetainfo("../resources/meta.info")
+	parseMetainfo(mPath)
 
 	// check that test.txt is in the File struct list
 	i = 0
-	for i < len(files) {
-		if files[i].name == "test.txt" {
+	for i < len(tLynk.Files) {
+		if tLynk.Files[i].name == "test.txt" {
 			hasTest = true
 		}
 		i++
@@ -115,7 +131,7 @@ func TestAddToMetainfo(t *testing.T) {
 		successful++
 	}
 
-	result = addToMetainfo("test.txt", "../resources/meta.info")
+	result = addToMetainfo("test.txt", mPath)
 
 	if result == nil {
 		t.Error("Test failed, expected failure due to duplicates. Got ", result)
@@ -150,7 +166,7 @@ func TestParseMetainfo(t *testing.T) {
 		successful++
 	}
 
-	result = parseMetainfo("../resources/meta.info")
+	result = parseMetainfo(mPath)
 
 	if result != nil {
 		t.Error("Test failed, expected no errors. Got ", result)
@@ -167,9 +183,9 @@ func TestParseMetainfo(t *testing.T) {
 func TestUpdateMetainfo(t *testing.T) {
 	fmt.Println("\n----------------TestUpdateMetainfo----------------")
 
-	parseMetainfo("../resources/meta.info")
+	parseMetainfo(mPath)
 
-	result := updateMetainfo()
+	result := updateMetainfo(mPath)
 
 	if result != nil {
 		t.Error("Test failed, expected no errors. Got ", result)
@@ -188,12 +204,15 @@ func TestDeleteEntry(t *testing.T) {
 	fmt.Println("\n----------------TestDeleteEntry----------------")
 	failed := false
 
-	parseMetainfo("../resources/meta.info")
-	deleteEntry("test.txt")
+	parseMetainfo(mPath)
+	lynkName := GetLynkName(mPath)
+	deleteEntry("test.txt", lynkName)
+
+	tLynk := getLynk(lynks, lynkName)
 
 	i := 0
-	for i < len(files) {
-		if files[i].name == "test.txt" {
+	for i < len(tLynk.Files) {
+		if tLynk.Files[i].name == "test.txt" {
 			t.Error("Error, test.txt is still in files")
 			failed = true
 		}
@@ -207,11 +226,11 @@ func TestDeleteEntry(t *testing.T) {
 		failed = false
 	}
 
-	deleteEntry("test11.txt")
+	deleteEntry("test11.txt", lynkName)
 
 	i = 0
-	for i < len(files) {
-		if files[i].name == "test11.txt" {
+	for i < len(tLynk.Files) {
+		if tLynk.Files[i].name == "test11.txt" {
 			t.Error("Error, test11.txt is still in files")
 			failed = true
 		}
@@ -234,7 +253,7 @@ func TestDeleteEntry(t *testing.T) {
 func TestGetFile(t *testing.T) {
 	fmt.Println("\n----------------TestGetFile----------------")
 
-	err := getFile("test.txt")
+	err := getFile("test.txt", "Tests")
 
 	if err != nil {
 		t.Error(err.Error())
@@ -243,7 +262,7 @@ func TestGetFile(t *testing.T) {
 		successful++
 	}
 
-	err = getFile("non-existent.txt")
+	err = getFile("non-existent.txt", "Tests")
 
 	if err != nil {
 		fmt.Println("Successfully Produced Non-Existent File Error")
@@ -261,7 +280,7 @@ func TestGetFile(t *testing.T) {
 func TestHaveFile(t *testing.T) {
 	fmt.Println("\n----------------TestHaveFile----------------")
 
-	result := HaveFile("test.txt")
+	result := HaveFile("Tests/test.txt")
 
 	if result {
 		fmt.Println("Successfully Found 'test.txt'")
@@ -270,7 +289,7 @@ func TestHaveFile(t *testing.T) {
 		t.Error("Could Not Find 'test.txt'")
 	}
 
-	result = HaveFile("non-existent.txt")
+	result = HaveFile("Tests/non-existent.txt")
 
 	if !result {
 		fmt.Println("Successfully Produced False For Non-Existent File")
@@ -288,9 +307,11 @@ func TestHaveFile(t *testing.T) {
 func TestGetTracker(t *testing.T) {
 	fmt.Println("\n----------------TestGetTracker----------------")
 
-	ip := GetTracker() // Should be 127.0.0.1 during testing
+	ip := GetTracker(mPath) // Should be 127.0.0.1 during testing
+	content, _ := ioutil.ReadFile(mPath)
+	s := string(content)
 
-	if strings.Compare(ip, "127.0.0.1:9000") == 0 {
+	if strings.Contains(s, ip) {
 		fmt.Println("Successfully Got Tracker")
 		successful++
 	} else {
@@ -305,9 +326,11 @@ func TestGetTracker(t *testing.T) {
 func TestAskTrackerForPeers(t *testing.T) {
 	fmt.Println("\n----------------TestAskTracker----------------")
 
-	askTrackerForPeers()
+	lynkName := GetLynkName(mPath)
+	lynk := getLynk(lynks, lynkName)
+	askTrackerForPeers(lynkName)
 
-	if len(peers) <= 0 {
+	if len(lynk.Peers) <= 0 {
 		t.Error("Did Not Get Correct List Of Peers")
 	} else {
 		fmt.Println("Successfully Got Peers")

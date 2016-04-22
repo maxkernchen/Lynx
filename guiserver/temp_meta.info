@@ -1,34 +1,3 @@
-announce:::152.30.209.161
-lynkname:::cool_lynk_3
-owner::Michael Bruce
-downloadsdir:::/Users/mjb1337/Desktop/Cool_Folder_1/
-length:::6148
-path:::/Users/mjb1337/Desktop/Cool_Folder_1/.DS_Store
-name:::.DS_Store
-chunkLength:::-1
-chunks:::chunking not currently implemented
-:#!
-length:::98311
-path:::/Users/mjb1337/Desktop/Cool_Folder_1/Screen Shot 2016-02-23 at 8.28.12 PM.png
-name:::Screen Shot 2016-02-23 at 8.28.12 PM.png
-chunkLength:::-1
-chunks:::chunking not currently implemented
-:#!
-length:::100890
-path:::/Users/mjb1337/Desktop/Cool_Folder_1/Screen Shot 2016-02-23 at 8.29.59 PM.png
-name:::Screen Shot 2016-02-23 at 8.29.59 PM.png
-chunkLength:::-1
-chunks:::chunking not currently implemented
-:#!
-length:::23681
-path:::/Users/mjb1337/Desktop/Cool_Folder_1/Screen Shot 2016-02-23 at 8.31.36 PM.png
-name:::Screen Shot 2016-02-23 at 8.31.36 PM.png
-chunkLength:::-1
-chunks:::chunking not currently implemented
-:#!
-length:::1062
-path:::/Users/mjb1337/Desktop/Cool_Folder_1/meta.info
-name:::meta.info
-chunkLength:::-1
-chunks:::chunking not currently implemented
-:#!
+announce:::192.168.1.9:9000
+lynkName:::lol
+owner:::Michael Bruce

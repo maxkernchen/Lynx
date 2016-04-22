@@ -48,7 +48,7 @@ func TestListenHandleSend(t *testing.T) {
 
 	fmt.Println("\n----------------TestHandleRequest----------------")
 
-	fmt.Fprintf(conn, "Do_You_Have_FileName:fake.txt\n")
+	fmt.Fprintf(conn, "Do_You_Have_FileName:Tests/fake.txt\n")
 
 	reply, err := bufio.NewReader(conn).ReadString('\n') // Waits for a String ending in newline
 	reply = strings.TrimSpace(reply)
@@ -63,7 +63,7 @@ func TestListenHandleSend(t *testing.T) {
 
 	conn, err = net.Dial("tcp", "127.0.0.1:8080")
 
-	fmt.Fprintf(conn, "Do_You_Have_FileName:test.txt\n")
+	fmt.Fprintf(conn, "Do_You_Have_FileName:Tests/test.txt\n")
 
 	reply, err = bufio.NewReader(conn).ReadString('\n') // Waits for a String ending in newline
 	reply = strings.TrimSpace(reply)
@@ -77,7 +77,7 @@ func TestListenHandleSend(t *testing.T) {
 
 	fmt.Println("\n----------------TestSendFile----------------")
 
-	file, err := os.Create("test.txt_ServerTest") // + "_Network" is for TESTING that this was a file sent over the network
+	file, err := os.Create("test.txt_ServerTest")
 	if err != nil {
 		t.Error(err.Error())
 	}

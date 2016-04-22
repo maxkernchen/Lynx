@@ -1,7 +1,6 @@
 /**
  *
- *	The server side of the Lynx application. Currently handles ~ sending files, handling file requests,
- *  listening for client connections.
+ *	The server side of the Lynx application. It is the one responsible for sending data out.
  *
  *	 @author: Michael Bruce
  *	 @author: Max Kernchen
@@ -21,14 +20,22 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net"
+	"os"
+	"os/user"
 	"strings"
 )
+
+/** Welcome Socket Error Value */
+const SOCK_ERR = -1
+
+/** The location of the user's root directory */
+var homePath string
 
 /**
  * Function used to drive and test our server's functions
  */
 func main() {
-	pushMeta()
+	pushMeta("~/Lynx/Tests/meta.info")
 	Listen(HandleFileRequest)
 }
 
@@ -43,7 +50,8 @@ func Listen(handler func(net.Conn) error) {
 	welcomeSocket, wErr := net.Listen("tcp", ":8080") // Will later need to set port dynamically
 
 	if wErr != nil {
-		// handle error
+		fmt.Println("Could Not Create Server Welcome Socket - Aborting.")
+		os.Exit(SOCK_ERR) // Cannot recover from not being able to generate welcomeSocket  - exits w/ -1
 	}
 
 	var cErr error
@@ -51,7 +59,7 @@ func Listen(handler func(net.Conn) error) {
 	for cErr == nil {
 		conn, cErr := welcomeSocket.Accept()
 		if cErr != nil {
-			// handle error
+			// If a connection error
 		}
 		go handler(conn)
 	}
@@ -103,13 +111,12 @@ func HandleFileRequest(conn net.Conn) error {
 
 /**
  * Sends a file across the network to a peer.
- * @param string fileName - The name of the file to send to the peer
+ * @param string fileName - The name of the file to send to the peer. It will have path from root of Lynx Directory.
  * @param net.Conn conn - The socket over which we will send the file
  * @return error - An error can be produced when trying open a file or write over
  * the network - otherwise error will be nil.
  */
 func sendFile(fileName string, conn net.Conn) error {
-	fileName = "../client/" + fileName // Should change this - move files to a different directory
 	fmt.Println(fileName)
 
 	/*fileToSend, err := os.Open(fileName)
@@ -118,7 +125,7 @@ func sendFile(fileName string, conn net.Conn) error {
 	}*/
 
 	// Can use read when implementing chunking
-	fBytes, err := ioutil.ReadFile(fileName)
+	fBytes, err := ioutil.ReadFile(homePath + fileName)
 	//length := len(fBytes)
 	//fmt.Fprintf(conn, "%d\n", length) // Reply
 
@@ -159,18 +166,19 @@ func sendFile(fileName string, conn net.Conn) error {
  * @return error - An error can be produced when trying to connect to the tracker
  * over the network - otherwise error will be nil.
  */
-func pushMeta() error {
-	trackerIP := client.GetTracker()
+func pushMeta(metaPath string) error {
+	trackerIP := client.GetTracker(metaPath)
 	conn, err := net.Dial("tcp", trackerIP)
 	if err != nil {
 		fmt.Println(err)
 		return err
 	}
 
-	fmt.Fprintf(conn, "Meta_Push\n") // Lets tracker know we are pushing
+	lynkName := client.GetLynkName(metaPath)
+	fmt.Fprintf(conn, "Meta_Push:"+lynkName+"\n") // Lets tracker know we are pushing
 
 	//sendFile("../resources/meta.info", conn)
-	err = sendFile("../server/meta.info_test", conn)
+	err = sendFile(metaPath, conn)
 
 	if err != nil {
 		fmt.Println(err)
@@ -178,4 +186,12 @@ func pushMeta() error {
 	}
 
 	return conn.Close()
+}
+
+/**
+ * Function init runs before main and allows us to create an array of Lynks.
+ */
+func init() {
+	currentusr, _ := user.Current()
+	homePath = currentusr.HomeDir + "/Lynx/"
 }

@@ -22,6 +22,7 @@ import (
 	"net"
 	"os"
 	"os/user"
+	"path/filepath"
 	"strings"
 )
 
@@ -30,6 +31,32 @@ type Peer struct {
 	IP   string
 	Port string
 }
+
+/** A struct which holds all the information about a specific Lynk. */
+type Lynk struct {
+	Name    string
+	Owner   string
+	Synced  string
+	Tracker string
+	Files   []File
+	Peers   []Peer
+}
+
+/** A struct based which represents a File in a Lynk's directory. It is based
+upon BitTorrent protocol dictionaries */
+type File struct {
+	length      int
+	path        string // Might not need path
+	name        string
+	chunks      string
+	chunkLength int
+}
+
+/** An array of lynks this tracker presides over */
+var lynks []Lynk
+
+/** The location of the user's root directory */
+var homePath string
 
 /** An array of all the client's peers */
 var peers []Peer
@@ -54,24 +81,27 @@ func deleteEntry(peerToDelete Peer) {
  * @return error - An error can be produced when issues arise from trying to create
  * or remove the swarm file - otherwise error will be nil.
  */
-func updateSwarminfo() error {
-	parseSwarminfo("../resources/swarm.info")
+func updateSwarminfo(swarmPath string) error {
+	parseSwarminfo(swarmPath)
 
-	err := os.Remove("../resources/swarm.info")
+	err := os.Remove(swarmPath)
 	if err != nil {
 		fmt.Println(err)
 		return err
 	}
 
-	newSwarmInfo, err := os.Create("../resources/swarm.info")
+	newSwarmInfo, err := os.Create(swarmPath)
 	if err != nil {
 		fmt.Println(err)
 		return err
 	}
+
+	lynkName := getLynkName(swarmPath)
+	lynk := getLynk(lynks, lynkName)
 
 	i := 0
-	for i < len(peers) {
-		newSwarmInfo.WriteString(peers[i].IP + ":::" + peers[i].Port + "\n")
+	for i < len(lynk.Peers) {
+		newSwarmInfo.WriteString(lynk.Peers[i].IP + ":::" + lynk.Peers[i].Port + "\n")
 		i++
 	}
 
@@ -86,12 +116,17 @@ func updateSwarminfo() error {
  * the swarm file or from an invalid swarm file type - otherwise error will be nil.
  */
 func parseSwarminfo(swarmPath string) error {
-	peers = nil // Resets peers array
+	lynkName := getLynkName(swarmPath)
+	lynk := getLynk(lynks, lynkName)
+
+	fmt.Println(lynk)
+	//peers = nil // Resets peers array
+	lynk.Peers = nil // Resets peers array
 
 	swarmFile, err := os.Open(swarmPath)
 	if err != nil {
 		return err
-	} else if swarmPath != "../resources/swarm.info" {
+	} else if !strings.Contains(swarmPath, "swarm.info") {
 		return errors.New("Invalid File Type")
 	}
 
@@ -105,9 +140,11 @@ func parseSwarminfo(swarmPath string) error {
 
 		tempPeer.IP = split[0]
 		tempPeer.Port = split[1]
-		peers = append(peers, tempPeer) // Append the current file to the file array
+		//peers = append(peers, tempPeer) // Append the current file to the file array
+		lynk.Peers = append(lynk.Peers, tempPeer) // Append the current file to the file array
 	}
 
+	fmt.Println(lynk.Peers)
 	return swarmFile.Close()
 }
 
@@ -126,10 +163,12 @@ func addToSwarminfo(addPeer Peer, swarmPath string) error {
 	}
 
 	parseSwarminfo(swarmPath)
+	lynkName := getLynkName(swarmPath)
+	lynk := getLynk(lynks, lynkName)
 
 	i := 0
-	for i < len(peers) {
-		if peers[i].IP == addPeer.IP && peers[i].Port == addPeer.Port {
+	for i < len(lynk.Peers) {
+		if lynk.Peers[i].IP == addPeer.IP && lynk.Peers[i].Port == addPeer.Port {
 			return errors.New("Can't Add Duplicates To Swarminfo")
 		}
 		i++
@@ -145,7 +184,7 @@ func addToSwarminfo(addPeer Peer, swarmPath string) error {
  * Function used to drive and test our other client functions
  */
 func main() {
-	p1 := Peer{IP: "124.123.563.186", Port: "4500"}
+	/*p1 := Peer{IP: "124.123.563.186", Port: "4500"}
 	p2 := Peer{IP: "812.333.444.555", Port: "6000"}
 	addToSwarminfo(p1, "../resources/swarm.info")
 	addToSwarminfo(p2, "../resources/swarm.info")
@@ -158,7 +197,7 @@ func main() {
 		i++
 	}
 
-	Listen()
+	Listen()*/
 }
 
 /**
@@ -169,7 +208,7 @@ func Listen() {
 
 	fmt.Println("Starting Tracker on Port 9000")
 
-	welcomeSocket, wErr := net.Listen("tcp", ":9000") // Will later need to set port dynamically
+	welcomeSocket, wErr := net.Listen("tcp", ":9000") // Starts Tracker on Port 9000 by default
 
 	if wErr != nil {
 		// handle error
@@ -201,22 +240,24 @@ func handleRequest(conn net.Conn) error {
 	}
 
 	request = strings.TrimSpace(request)
-	fmt.Println(request)
+	fmt.Println("REQUEST:" + request)
 	// Makes sure we are dealing with a request and not a push
-	if request != "Meta_Push" {
-		// Client syntax for request is "Swarm_Request:<IP>:<Port>\n"
+	if !strings.Contains(request, "Meta_Push:") {
+		// Client syntax for request is "X_Request:<IP>:<Port>:<LynkName>\n"
+		// So tmpArr[0] - X_Request | tmpArr[1] - <IP> | tmpArr[2] - <Port> | tmpArr[3] - <LynkName>
 		tmpArr := strings.Split(request, ":")
-		if len(tmpArr) != 3 {
+		if len(tmpArr) != 4 {
 			conn.Close()
 			return errors.New("Invalid Request Syntax")
 		}
 
 		fileToSend := ""
 		// Checks to see if we are dealing w/ a Swarm or Meta Request
+		swarmPath := homePath + tmpArr[3] + "/" + tmpArr[3] + "_Tracker/" + "swarm.info"
 		if tmpArr[0] == "Swarm_Request" {
-			fileToSend = "../resources/swarm.info"
+			fileToSend = swarmPath
 		} else if tmpArr[0] == "Meta_Request" {
-			fileToSend = "../resources/meta.info" // Should encrypt & compress when sending meta.info
+			fileToSend = homePath + tmpArr[3] + "/meta.info"
 		} else {
 			conn.Close()
 			return errors.New("Invalid Request Syntax")
@@ -231,16 +272,20 @@ func handleRequest(conn net.Conn) error {
 			return err
 		}
 
-		addToSwarminfo(tmpPeer, "../resources/swarm.info") // So we only add peer to swarmlist on success
+		addToSwarminfo(tmpPeer, swarmPath) // So we only add peer to swarmlist on success
 		fmt.Println("No Errors")
 	} else { // We are receiving a meta.info file
-		err := os.Remove("../resources/meta.info")
+		// Client syntax for push is "Meta_Push:<LynkName>\n"
+		// So tmpArr[0] - Meta_Push | tmpArr[1] - <LynkName>
+		tmpArr := strings.Split(request, ":")
+		metaPath := homePath + tmpArr[3] + "/" + tmpArr[3] + "_Tracker/" + "meta.info"
+		err := os.Remove(metaPath)
 		if err != nil {
 			fmt.Println(err)
 			return err
 		}
 
-		newMetainfo, err := os.Create("../resources/meta.info")
+		newMetainfo, err := os.Create(metaPath)
 		if err != nil {
 			fmt.Println(err)
 			return err
@@ -290,6 +335,7 @@ func handleRequest(conn net.Conn) error {
 	return conn.Close()
 }
 
+// NEED TO ENCRYPT / COMPRESS
 /**
  * Sends a file across the network to a peer.
  * @param string fileName - The name of the file to send to the peer
@@ -320,29 +366,26 @@ func sendFile(fileName string, conn net.Conn) error {
  * @param string downloadsdir - the directory where all files within it will be put into the lynk
  * @param string lynkname - the name of the lynk
  */
-func CreateSwarm(downloadsdir, lynkname string) {
+func CreateSwarm(name string) {
 	p1 := Peer{IP: "", Port: "8080"}
 
-	os.Create("temp_swarm.info")
+	//swarmFile, err := os.OpenFile("temp_swarm.info", os.O_APPEND|os.O_WRONLY, 0644)
 
-	swarmFile, err := os.OpenFile("temp_swarm.info", os.O_APPEND|os.O_WRONLY, 0644)
+	//swarmFile.WriteString("locationofdownloads:::" + downloadsdir + "\n")
+
+	currentuser, err := user.Current()
+	trackerDir := currentuser.HomeDir + "/Lynx/" + name + "/" + name + "_Tracker"
+	os.Mkdir(trackerDir, 0755)
+
+	_, err = os.Create(trackerDir + "/swarm.info")
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	swarmFile.WriteString("locationofdownloads:::" + downloadsdir + "\n")
+	p1.IP = findPCsIP()
+	addToSwarminfo(p1, trackerDir+"/swarm.info")
 
-	currentuser, err := user.Current()
-	trackerdir := lynkname + "_tracker"
-	os.Mkdir(currentuser.HomeDir+"/"+trackerdir, 0755)
-
-	ipstring := findPCsIP()
-	p1.IP = ipstring
-	addToSwarminfo(p1, "temp_swarm.info")
-
-	fileCopy("temp_swarm.info", currentuser.HomeDir+"/"+trackerdir+"/swarm.info")
-	fileCopy("temp_meta.info", currentuser.HomeDir+"/"+trackerdir+"/meta.info")
-
+	fileCopy(currentuser.HomeDir+"/Lynx/"+name+"/meta.info", trackerDir+"/meta.info")
 }
 
 /**
@@ -405,4 +448,62 @@ func findPCsIP() string {
 		fmt.Println(err)
 	}
 	return ipstring
+}
+
+/**
+ * Function which visits each tracker directory within the Lynx root
+ * @param path: the path where the root directory is located
+ * @param file: each file within the root or inner directories
+ * @param err: any error we way encoutner along the way
+ */
+func visitTrackers(path string, file os.FileInfo, err error) error {
+	base := strings.TrimPrefix(path, homePath)
+	split := strings.Split(base, "/")
+
+	// Checks that there is directory beneath another directory and has _tracker
+	if file.IsDir() && len(split) == 2 && strings.Contains(split[1], "_Tracker") {
+		fmt.Println(file.Name())
+		lynkName := strings.TrimSuffix(file.Name(), "_Tracker")
+		lynks = append(lynks, Lynk{Name: lynkName})
+	}
+
+	return nil
+}
+
+/**
+ * Function init runs before main and allows us to create an array of Lynks.
+ */
+func init() {
+	currentusr, _ := user.Current()
+	homePath = currentusr.HomeDir + "/Lynx/"
+	filepath.Walk(homePath, visitTrackers)
+	fmt.Println("CALLED IT")
+	//genLynks()
+	//lynk := getLynk(lynks, "Tests")
+	//fmt.Println(lynk.Files)
+}
+
+/**
+ * Simple helper method that checks lynks array for specific lynk.
+ * @param l []Lynk - The lynks array
+ * @param lynkName string - The lynk we are checking for
+ */
+func getLynk(l []Lynk, lynkName string) *Lynk {
+	for i, a := range l {
+		if a.Name == lynkName {
+			return &l[i]
+		}
+	}
+	return nil // Don't have Lynk
+}
+
+/**
+ * Helper function that returns a lynk's name give it's swarm.info filepath.
+ * @returns string - The lynk name
+ */
+func getLynkName(swarmPath string) string {
+	tmpStr := strings.TrimSuffix(strings.TrimPrefix(swarmPath, homePath), "/swarm.info")
+	split := strings.Split(tmpStr, "/")
+	fmt.Println(split[0])
+	return split[0]
 }

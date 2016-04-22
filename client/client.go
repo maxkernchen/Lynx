@@ -1,7 +1,6 @@
 /**
  *
- *	The client side of the Lynx application. Currently handles file copying, metainfo parsing,
- *	metainfo entry addition and deletion, and getting files from peers.
+ *	The client side of the Lynx application. It is responsible for receiving data and maintaining the lynx files.
  *
  *	 @author: Michael Bruce
  *	 @author: Max Kernchen
@@ -14,7 +13,7 @@ package client
 import (
 	"bufio"
 	"bytes"
-	"../mycrypt"
+	"capstone/mycrypt"
 	"compress/gzip"
 	"errors"
 	"fmt"
@@ -23,10 +22,10 @@ import (
 	"net"
 	"net/textproto"
 	"os"
+	"os/user"
 	"path/filepath"
 	"strconv"
 	"strings"
-	"os/user"
 )
 
 /**	A struct which represents a Peer of the client */
@@ -34,21 +33,22 @@ type Peer struct {
 	IP   string
 	Port string
 }
-/**
-   A struct which holds all the lynks within a connection
- */
-type Lynk struct{
-	Name string
-	Owner string
-	Synced string
-	DownloadDirectory string
+
+/** A struct which holds all the information about a specific Lynk. */
+type Lynk struct {
+	Name    string
+	Owner   string
+	Synced  string
+	Tracker string
+	Files   []File
+	Peers   []Peer
 }
 
-/** A struct based which represents a File in our Lynx directory. It is based
+/** A struct based which represents a File in a Lynk's directory. It is based
 upon BitTorrent protocol dictionaries */
 type File struct {
 	length      int
-	path        string
+	path        string // Might not need path
 	name        string
 	chunks      string
 	chunkLength int
@@ -57,14 +57,17 @@ type File struct {
 /** An array of the lynks found from parsing the lynks.txt file */
 var lynks []Lynk
 
+/** The location of the user's root directory */
+var homePath string
+
 /** An array of the files found from parsing the metainfo file */
-var files []File
+//var files []File
 
 /** The IP Address / Port of our tracker */
-var tracker string
+//var tracker string
 
 /** An array of all the client's peers */
-var peers []Peer
+//var peers []Peer
 
 /** A special symbol we use to denote the end of 1 entry in the metainfo file */
 const END_OF_ENTRY = ":#!"
@@ -75,17 +78,20 @@ const META_VALUE_INDEX = 1
 /**
  * Function that deletes an entry from our files array.
  * @param string nameToDelete - This is the name of the file we want to delete
+ * @param string lynkName - The lynk we want to delete it from
  */
-func deleteEntry(nameToDelete string) {
+func deleteEntry(nameToDelete, lynkName string) {
+	lynk := getLynk(lynks, lynkName)
 
 	i := 0
-	for i < len(files) {
-		if nameToDelete == files[i].name {
-			files = append(files[:i], files[i+1:]...)
+	for i < len(lynk.Files) {
+		if nameToDelete == lynk.Files[i].name {
+			lynk.Files = append(lynk.Files[:i], lynk.Files[i+1:]...)
 		}
 		i++
 	}
 
+	fmt.Println(lynk.Files)
 }
 
 /**
@@ -94,36 +100,38 @@ func deleteEntry(nameToDelete string) {
  * @return error - An error can be produced when issues arise from trying to create
  * or remove the meta file - otherwise error will be nil.
  */
-func updateMetainfo() error {
-	parseMetainfo("../resources/meta.info")
+func updateMetainfo(metaPath string) error {
+	parseMetainfo(metaPath)
+	lynkName := GetLynkName(metaPath)
+	lynk := getLynk(lynks, lynkName)
 
-	err := os.Remove("../resources/meta.info")
+	err := os.Remove(metaPath)
 	if err != nil {
 		fmt.Println(err)
 		return err
 	}
 
-	newMetainfo, err := os.Create("../resources/meta.info")
+	newMetainfo, err := os.Create(metaPath)
 	if err != nil {
 		fmt.Println(err)
 		return err
 	}
 
-	newMetainfo.WriteString("announce:::" + tracker + "\n") // Write tracker IP
+	newMetainfo.WriteString("announce:::" + lynk.Tracker + "\n") // Write tracker IP
+	newMetainfo.WriteString("lynkName:::" + lynk.Name + "\n")
+	newMetainfo.WriteString("owner:::" + lynk.Owner + "\n")
 	i := 0
-	for i < len(files) {
-		newMetainfo.WriteString("length:::" + strconv.Itoa(files[i].length) + "\n") //convert to str
-		newMetainfo.WriteString("path:::" + files[i].path + "\n")
-		newMetainfo.WriteString("name:::" + files[i].name + "\n")
-		newMetainfo.WriteString("chunkLength:::" + strconv.Itoa(files[i].chunkLength) + "\n")
-		newMetainfo.WriteString("chunks:::" + files[i].chunks + "\n")
+	for i < len(lynk.Files) {
+		newMetainfo.WriteString("length:::" + strconv.Itoa(lynk.Files[i].length) + "\n") //convert to str
+		newMetainfo.WriteString("path:::" + lynk.Files[i].path + "\n")
+		newMetainfo.WriteString("name:::" + lynk.Files[i].name + "\n")
+		newMetainfo.WriteString("chunkLength:::" + strconv.Itoa(lynk.Files[i].chunkLength) + "\n")
+		newMetainfo.WriteString("chunks:::" + lynk.Files[i].chunks + "\n")
 		newMetainfo.WriteString(END_OF_ENTRY + "\n")
-
 		i++
 	}
 
 	return newMetainfo.Close()
-
 }
 
 /**
@@ -134,17 +142,71 @@ func updateMetainfo() error {
  * the meta file or from an invalid meta file type - otherwise error will be nil.
  */
 func parseMetainfo(metaPath string) error {
-	files = nil // Resets files array
+	lynkName := GetLynkName(metaPath)
+	//fmt.Println(metaPath)
+	//fmt.Println(lynkName)
+
+	lynk := getLynk(lynks, lynkName)
+	if lynk == nil {
+		return errors.New("Lynk Not Found")
+	}
+
+	lynk.Files = nil // Resets files array
 
 	metaFile, err := os.Open(metaPath)
 	if err != nil {
 		return err
-	//} else if metaPath != "../resources/meta.info" {
-	//	return errors.New("Invalid File Type")
+	} else if !strings.Contains(metaPath, "meta.info") {
+		return errors.New("Invalid File Type")
 	}
 
 	scanner := bufio.NewScanner(metaFile)
 	tempFile := File{}
+
+	// Scan each line
+	for scanner.Scan() {
+
+		line := strings.TrimSpace(scanner.Text()) // Trim helps with errors in \n
+		split := strings.Split(line, ":::")
+
+		if split[0] == "announce" {
+			lynk.Tracker = split[META_VALUE_INDEX]
+		} else if split[0] == "owner" {
+			lynk.Owner = split[META_VALUE_INDEX]
+		} else if split[0] == "lynkName" {
+			lynk.Name = split[META_VALUE_INDEX]
+		} else if split[0] == "chunkLength" {
+			tempFile.chunkLength, _ = strconv.Atoi(split[META_VALUE_INDEX])
+		} else if split[0] == "length" {
+			tempFile.length, _ = strconv.Atoi(split[META_VALUE_INDEX])
+		} else if strings.Contains(line, "path") {
+			tempFile.path = split[META_VALUE_INDEX]
+		} else if split[0] == "name" {
+			tempFile.name = split[META_VALUE_INDEX]
+		} else if strings.Contains(line, "chunks") {
+			tempFile.chunks = split[META_VALUE_INDEX]
+		} else if strings.Contains(line, END_OF_ENTRY) {
+			lynk.Files = append(lynk.Files, tempFile) // Append the current file to the file array
+			tempFile = File{}                         // Empty the current file
+		}
+
+	}
+
+	//fmt.Println(lynk)
+	return metaFile.Close()
+
+	/////////////////////////////////////////////////
+	/*files = nil // Resets files array
+
+	metaFile, err = os.Open(metaPath)
+	if err != nil {
+		return err
+		//} else if metaPath != "../resources/meta.info" {
+		//	return errors.New("Invalid File Type")
+	}
+
+	scanner = bufio.NewScanner(metaFile)
+	tempFile = File{}
 
 	// Scan each line
 	for scanner.Scan() {
@@ -171,13 +233,13 @@ func parseMetainfo(metaPath string) error {
 
 	}
 
-	return metaFile.Close()
+	return metaFile.Close()*/
 }
 
 /**
  * Adds a file to the meta.info by parsing that file's information
  * @param string addPath - the path of the file to be added
- * @param string metaPath - the path of the metainfo file
+ * @param string metaPath - the path of the metainfo file - must be full path from root.
  * @return error - An error can be produced when issues arise from trying to access
  * the meta file or if the file to be added already exists in the meta file - otherwise
  * error will be nil.
@@ -194,16 +256,18 @@ func addToMetainfo(addPath, metaPath string) error {
 	}
 
 	parseMetainfo(metaPath)
+	lynkName := GetLynkName(metaPath)
+	lynk := getLynk(lynks, lynkName)
 
 	i := 0
-	for i < len(files) {
-		if files[i].name == addStat.Name() {
+	fmt.Println(lynk.Files)
+	for i < len(lynk.Files) {
+		if lynk.Files[i].name == addStat.Name() {
 			return errors.New("Can't Add Duplicates To Metainfo")
 		}
 		i++
 	}
 
-	//tempSize := addStat.Size()                 // Write length
 	lengthStr := strconv.FormatInt(addStat.Size(), 10) // Convert int64 to string
 	metaFile.WriteString("length:::" + lengthStr + "\n")
 
@@ -218,7 +282,6 @@ func addToMetainfo(addPath, metaPath string) error {
 	metaFile.WriteString("chunkLength:::-1\n")
 	metaFile.WriteString("chunks:::chunking not currently implemented\n")
 	metaFile.WriteString(END_OF_ENTRY + "\n")
-
 	return metaFile.Close()
 }
 
@@ -240,7 +303,6 @@ func FileCopy(src, dst string) error {
 	if err != nil {
 		return err
 	}
-	//defer out.Close()
 
 	_, err = io.Copy(out, in) // Copies the file contents
 	if err != nil {
@@ -266,7 +328,7 @@ func main() {
 	}*/
 
 	//parseMetainfo(os.Args[1])
-	addToMetainfo("test.txt", "../resources/meta.info")
+	/*addToMetainfo("test.txt", "../resources/meta.info")
 	addToMetainfo("test2.txt", "../resources/meta.info")
 	addToMetainfo("file1.txt", "../resources/meta.info")
 	parseMetainfo("../resources/meta.info")
@@ -278,25 +340,40 @@ func main() {
 
 		}
 		i++
-	}
+	}*/
 
 }
 
 /**
- * Checks to see if we have the passed in file. This function works based on
- * a filepath relative to where the executable using it is run.
- * @param string fileName - The name of the file to check for
+ * Checks to see if we have the passed in file.
+ * @param string filePath - The name of the file to check for - This includes the lynk name.
+ * E.G. - 'Cool_Lynk/coolFile.txt'
  * @return bool - A boolean indicating whether or not we have a file in our
  * files array.
  */
-func HaveFile(fileName string) bool {
+func HaveFile(filePath string) bool {
 	have := false
 
-	parseMetainfo("../resources/meta.info")
+	lynkInfo := strings.Split(filePath, "/")
+	if len(lynkInfo) != 2 {
+		fmt.Println(filePath + " is an invalid filepath")
+		return have
+	}
+	lynkName := lynkInfo[0]
+	fileName := lynkInfo[1]
+	metaPath := homePath + lynkName + "/meta.info"
+	//fmt.Println("META:::::::::::::" + metaPath)
+	//fmt.Println("FNAME:::::::::::::" + fileName)
+	//fmt.Println("LNAME:::::::::::::" + lynkName)
+	//parseMetainfo("../resources/meta.info")
+	//fmt.Println(lynks)
+	parseMetainfo(metaPath)
+	lynk := getLynk(lynks, lynkName)
+	fmt.Println(lynk.Files)
 
 	i := 0
-	for i < len(files) && !have {
-		if files[i].name == fileName {
+	for i < len(lynk.Files) && !have {
+		if lynk.Files[i].name == fileName {
 			have = true
 		}
 		i++
@@ -306,13 +383,14 @@ func HaveFile(fileName string) bool {
 }
 
 /**
- * Simply returns the tracker global variable after parsing the meta.info file
+ * Simply returns the tracker associated with the passed in Lynk
  * @return string - A string representing the tracker's IP address.
  */
-func GetTracker() string {
-	parseMetainfo("../resources/meta.info")
-
-	return tracker
+func GetTracker(metaPath string) string {
+	parseMetainfo(metaPath)
+	lynkName := GetLynkName(metaPath)
+	lynk := getLynk(lynks, lynkName)
+	return lynk.Tracker
 }
 
 /**
@@ -322,27 +400,28 @@ func GetTracker() string {
  * problems creating or writing to the file, or from not being able to get there
  * desired file - otherwise error will be nil.
  */
-func getFile(fileName string) error {
+func getFile(fileName, metaPath string) error {
 	// Will parseMetainfo file and then ask tracker for list of peers when tracker is implemented
-	parseMetainfo("temp_meta.info")
-	askTrackerForPeers()
-	//peers = append(peers, Peer{IP: "127.0.0.1", Port: "8080"}) // For testing ONLY - Hardcodes myself as a peer
+	parseMetainfo(metaPath)
+	lynkName := GetLynkName(metaPath)
+	lynk := getLynk(lynks, lynkName)
+	askTrackerForPeers(lynkName)
 
 	i := 0
 	gotFile := false
-	fmt.Println(peers)
+	fmt.Println(lynk.Peers)
 
-	for i < len(peers) && !gotFile {
-		conn, err := net.Dial("tcp", peers[i].IP+":"+peers[i].Port)
+	for i < len(lynk.Peers) && !gotFile {
+		conn, err := net.Dial("tcp", lynk.Peers[i].IP+":"+lynk.Peers[i].Port)
 		if err == nil {
-			fmt.Fprintf(conn, "Do_You_Have_FileName:"+fileName+"\n")
+			fmt.Fprintf(conn, "Do_You_Have_FileName:"+lynkName+"/"+fileName+"\n") //Can just append lynkName here
 
 			reply, err := bufio.NewReader(conn).ReadString('\n') // Waits for a String ending in newline
 			reply = strings.TrimSpace(reply)
 
 			// Has file and no errors
 			if reply != "NO" && err == nil {
-				file, err := os.Create(fileName + "_Network") // + "_Network" is for TESTING that this was a file sent over the network
+				file, err := os.Create(homePath + lynkName + "/" + fileName + "_Network") // + "_Network" is for TESTING that this was a file sent over the network
 				if err != nil {
 					return err
 				}
@@ -389,17 +468,19 @@ func getFile(fileName string) error {
 		return errors.New("Did not receive File")
 	}
 }
+
 /**
- * Asks the tracker for a list of peers and then places them into peers array
+ * Asks the tracker for a list of peers and then places them into a lynk's peers array
  */
-func askTrackerForPeers() {
+func askTrackerForPeers(lynkName string) {
+	lynk := getLynk(lynks, lynkName)
 	// Connects to tracker
-	conn, err := net.Dial("tcp", tracker)
+	conn, err := net.Dial("tcp", lynk.Tracker)
 	if err != nil {
 		return
 	}
 
-	fmt.Fprintf(conn, "Swarm_Request:127.0.0.1:8080\n") // Need to write function in server which let's us get its port/ip
+	fmt.Fprintf(conn, "Swarm_Request:"+findPCsIP()+":8080:"+lynkName+"\n") // Server runs on 8080 by default
 	reader := bufio.NewReader(conn)
 	tp := textproto.NewReader(reader)
 
@@ -410,14 +491,15 @@ func askTrackerForPeers() {
 	for err == nil {
 		peerArray := strings.Split(reply, ":::")
 		tmpPeer := Peer{IP: peerArray[0], Port: peerArray[1]}
-		if !contains(peers, tmpPeer) {
-			peers = append(peers, tmpPeer)
+		if !contains(lynk.Peers, tmpPeer) {
+			lynk.Peers = append(lynk.Peers, tmpPeer)
 		}
 		reply, err = tp.ReadLine()
 	}
 
 	//fmt.Println(peers)
 }
+
 /**
  * Simple helper method that checks peers array for specific peer.
  * @param s []peers - The peers array
@@ -431,79 +513,123 @@ func contains(s []Peer, e Peer) bool {
 	}
 	return false
 }
+
+/**
+ * Simple helper method that checks lynks array for specific lynk.
+ * @param l []Lynk - The lynks array
+ * @param lynkName string - The lynk we are checking for
+ */
+func getLynk(l []Lynk, lynkName string) *Lynk {
+	for i, a := range l {
+		if a.Name == lynkName {
+			return &l[i]
+		}
+	}
+	return nil // Don't have Lynk
+}
+
 /**
   Function which creates a new metainfo file for use within the gui server
+  @param dirPath string the directory to be added as a lynk
+  @param name string the name of the new lynk
+*/
+func CreateMeta(name string) error {
+	tDir, err := os.Stat(homePath + name) // Checks to see if the directory exists
+	fmt.Println(tDir.Name())
+	if err != nil || !tDir.IsDir() {
+		fmt.Println("ERROR!")
+		return errors.New("Directory " + name + "does not exist in the Lynx directory.")
+	}
 
-  @param:downloadsdir: the directory where the files exisit to be added to the lynk
-  @param:name: the name of the new lynk
- */
-func CreateMeta(downloadsdir, name string){
-	os.Create("temp_meta.info")
-
-	metaFile,err := os.OpenFile("temp_meta.info", os.O_APPEND|os.O_WRONLY, 0644)
+	metaFile, err := os.Create(homePath + name + "/meta.info")
+	//metaFile, err := os.OpenFile("temp_meta.info", os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
 		fmt.Println(err)
+		return err
 	}
 
 	currentUser, err := user.Current()
-	metaFile.WriteString("announce:::"+findPCsIP()+"\n") //add current ip
-	metaFile.WriteString("port:::4005\n");
-	metaFile.WriteString("lynkname:::" + name + "\n")
-	metaFile.WriteString("owner:::"+currentUser.Name +"\n")
-	metaFile.WriteString("downloadsdir:::"+downloadsdir +"\n")
+	metaFile.WriteString("announce:::" + findPCsIP() + ":9000\n") //add current ip and tracker is port 9000
+	//metaFile.WriteString("port:::4005\n")
+	metaFile.WriteString("lynkName:::" + name + "\n")
+	metaFile.WriteString("owner:::" + currentUser.Name + "\n")
+	//metaFile.WriteString("downloadsdir:::" + downloadsdir + "\n")
 
-	addLynk(name,currentUser.Name)
+	addLynk(name, currentUser.Name)
+	//startWalk(name)
+	filepath.Walk(homePath+name, visitFiles)
 
-	startWalk(downloadsdir)
-
-	FileCopy("temp_meta.info", downloadsdir + "meta.info")
+	//FileCopy("temp_meta.info", dirPath+"meta.info")
 
 	//err2 := os.Remove("temp_meta.info") move removal to shutdown process cannot remove
 	// due to in use by other proc?
+	return nil // Everything was fine if we reached this point
 }
+
 /**
- Function which visits each file within a directory
- @param:path:the path where the root directory is located
- @param:f:each file within the root or inner directories
- @param:err: any error we way encoutner along the way
- */
-func visit(path string, file os.FileInfo, err error) error {
+Function which visits each file within a directory
+@param:path:the path where the root directory is located
+@param:f:each file within the root or inner directories
+@param:err: any error we way encoutner along the way
+*/
+func visitFiles(path string, file os.FileInfo, err error) error {
 	//dont add directories to meta.info
-	if(!file.IsDir()){
-		addToMetainfo(path,"temp_meta.info")
+	if !file.IsDir() && !strings.Contains(path, "_Tracker") && file.Name() != "meta.info" {
+		fmt.Println(file.Name())
+		tmpStr := strings.TrimPrefix(path, homePath)
+		tmpArr := strings.Split(tmpStr, "/")
+		addToMetainfo(path, homePath+tmpArr[0]+"/meta.info")
 	}
 
 	return nil
 }
+
 /**
- Function which walks through all the files in the directory and calls visit
- @param:root: the root directory to start our walking procedure
+Function which visits each directory within a directory
+@param:path:the path where the root directory is located
+@param:f:each file within the root or inner directories
+@param:err: any error we way encoutner along the way
 */
-func startWalk(root string) {
-	filepath.Walk(root, visit)
+func visitDirectories(path string, file os.FileInfo, err error) error {
+	base := strings.TrimPrefix(path, homePath)
+	//fmt.Println(base)
+
+	if file.IsDir() && !strings.Contains(base, "/") && base != "" {
+		fmt.Println(file.Name())
+		lynks = append(lynks, Lynk{Name: file.Name()})
+	}
+
+	return nil
 }
+
+/**
+Function which walks through all the files in the directory and calls visit
+@param:root: the root directory to start our walking procedure
+*/
+/*func startWalk(root string) {
+	filepath.Walk(root, visitFiles)
+}*/
 
 /**
 * Finds the ip of the current pc
 * @return error - The single string ip
-*/
+ */
 func findPCsIP() string {
 	var onlyfirstip = false //only need first ip address
 	var ipstring = ""
 	ifaces, err := net.Interfaces()
 	for _, i := range ifaces {
 		addrs, err := i.Addrs()
-		if err != nil{
+		if err != nil {
 			fmt.Println(err)
 		}
 		for _, addrs := range addrs {
 			if ipnet, ok := addrs.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
 				if ipnet.IP.To4() != nil {
-					if(!onlyfirstip){
+					if !onlyfirstip {
 						onlyfirstip = true
-						ipstring=ipnet.IP.String()
+						ipstring = ipnet.IP.String()
 					}
-
 
 				}
 			}
@@ -511,22 +637,20 @@ func findPCsIP() string {
 		}
 
 	}
-	if err != nil{
+	if err != nil {
 		fmt.Println(err)
 	}
 	return ipstring
 }
 
-
 /**
-   Function which adds a lynk to list of lynks and also will added it to lynks.txt file as well
+  Function which adds a lynk to list of lynks and also will added it to lynks.txt file as well
+  @param: name - the name of the lynk
+  @param: owner- the owner of the lynk
+*/
+func addLynk(name, owner string) error {
 
-   @param: name - the name of the lynk
-   @param: owner- the owner of the lynk
- */
-func addLynk(name, owner string) error{
-
-	lynkFile,err := os.OpenFile("resources/lynks.txt", os.O_APPEND|os.O_WRONLY, 0644)
+	lynkFile, err := os.OpenFile(homePath+"lynks.txt", os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
 		fmt.Println(err)
 		// create file if not real
@@ -538,9 +662,9 @@ func addLynk(name, owner string) error{
 		}
 		i++
 	}
-	lynkFile.WriteString(name + ":::" +"unsynced:::" + owner + "\n")
+	lynkFile.WriteString(name + ":::unsynced:::" + owner + "\n")
 
-	ParseLynks("resources/lynks.txt")
+	ParseLynks(homePath + "lynks.txt")
 	fmt.Println(lynks)
 
 	return lynkFile.Close()
@@ -575,16 +699,15 @@ func ParseLynks(lynksFilePath string) error {
 		tempLynk.Owner = split[2]
 
 		lynks = append(lynks, tempLynk) // Append the current file to the file array
-		tempLynk = Lynk{}           // Empty the current file
+		tempLynk = Lynk{}               // Empty the current file
 	}
-
 
 	return lynksFile.Close()
 }
-/**
-   Function which deletes a Lynk based upon its name from the list of lynks
 
-   @param:nameToDelete - the lynk we want to remove
+/**
+ * Function which deletes a Lynk based upon its name from the list of lynks
+ * @param nameToDelete string - the lynk we want to remove
  */
 func DeleteLynk(nameToDelete string) {
 
@@ -597,12 +720,14 @@ func DeleteLynk(nameToDelete string) {
 	}
 	updateLynksFile()
 }
+
 /**
-   Function which parses the list of lynks and updates the lynks.txt file
+ *  Function which parses the list of lynks and updates the lynks.txt file
+ * 	@returns error - will produce an error if we cannot open the lynks.txt file.
  */
 func updateLynksFile() error {
 
-	newLynks, err := os.Create("resources/lynks.txt")
+	newLynks, err := os.Create(homePath + "lynks.txt")
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -610,23 +735,23 @@ func updateLynksFile() error {
 
 	i := 0
 	for i < len(lynks) {
-		newLynks.WriteString(lynks[i].Name+":::" +lynks[i].Synced+":::" +
-		lynks[i].Owner + "\n")
+		newLynks.WriteString(lynks[i].Name + ":::" + lynks[i].Synced + ":::" +
+			lynks[i].Owner + "\n")
 
 		i++
 	}
 
 	return newLynks.Close()
 }
-/**
-   Function which will allow a user to join an existing link by way of its meta.info file
 
-   @param:metaPath - the path to the meta.info file which will be used to find the information
-   		    about the lynk
-   @param:downloadsdir - the place where all the files will be downloaded after they have been found
-   			in the meta.ifno file
+/**
+ * Function which will allow a user to join an existing link by way of its meta.info file
+ * @param metaPath string - the path to the meta.info file which will be used to find the information
+ *  		    about the lynk
+ * @param downloadsdir string - the place where all the files will be downloaded after they have been found
+ *			in the meta.ifno file
  */
-func JoinLynk(metaPath, downloadsdir string){
+func JoinLynk(metaPath, downloadsdir string) {
 	metaFile, err := os.Open(metaPath)
 	if err != nil {
 		fmt.Println(err)
@@ -634,7 +759,7 @@ func JoinLynk(metaPath, downloadsdir string){
 		//	return errors.New("Invalid File Type")
 	}
 	lynkName := ""
-	owner    := ""
+	owner := ""
 	scanner := bufio.NewScanner(metaFile)
 	tempPeer := Peer{}
 	// Scan each line
@@ -647,17 +772,49 @@ func JoinLynk(metaPath, downloadsdir string){
 			tempPeer.IP = split[META_VALUE_INDEX]
 		} else if split[0] == "port" {
 			tempPeer.Port = split[META_VALUE_INDEX]
-		} else if split[0] == "lynkname"{
+		} else if split[0] == "lynkname" {
 			lynkName = split[META_VALUE_INDEX]
-		} else if split[0] == "owner"{
+		} else if split[0] == "owner" {
 			owner = split[META_VALUE_INDEX]
 		}
 	}
 
-	peers = append(peers,tempPeer)
-	fmt.Println(peers)
+	//peers = append(peers, tempPeer)
+	//fmt.Println(peers)
 
 	addLynk(lynkName, owner)
 	// getFile("3HLxd.jpg", lynkName)
 
+}
+
+/**
+ * Function init runs before main and allows us to create an array of Lynks.
+ */
+func init() {
+	currentusr, _ := user.Current()
+	homePath = currentusr.HomeDir + "/Lynx/"
+	filepath.Walk(homePath, visitDirectories)
+	genLynks()
+	fmt.Println(lynks)
+	//lynk := getLynk(lynks, "Tests")
+	//fmt.Println(lynk.Files)
+}
+
+/**
+ * Helper function that generates all the data for our lynx array by parsing each corresponding meta.info file.
+ */
+func genLynks() {
+	i := 0
+	for i < len(lynks) {
+		parseMetainfo(homePath + lynks[i].Name + "/meta.info")
+		i++
+	}
+}
+
+/**
+ * Helper function that returns our Lynk name if we pass in its metaPath.
+ * @returns string - The lynk name
+ */
+func GetLynkName(metaPath string) string {
+	return strings.TrimSuffix(strings.TrimPrefix(metaPath, homePath), "/meta.info")
 }
