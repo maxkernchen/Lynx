@@ -42,6 +42,8 @@ type Lynk struct {
 	Tracker string
 	Files   []File
 	Peers   []Peer
+	FileNames []string
+	FileSize []int
 }
 
 /** A struct based which represents a File in a Lynk's directory. It is based
@@ -596,8 +598,9 @@ Function which visits each directory within a directory
 @param:err: any error we way encoutner along the way
 */
 func visitDirectories(path string, file os.FileInfo, err error) error {
-	base := strings.TrimPrefix(path, homePath)
-	fmt.Println(base)
+	slashes := strings.Replace(path, "\\", "/", -1)
+	base := strings.TrimPrefix(slashes, homePath)
+
 
 	if file.IsDir() && !strings.Contains(base, "/") && base != "" {
 		fmt.Println(file.Name())
@@ -660,16 +663,25 @@ func addLynk(name, owner string) error {
 		fmt.Println(err)
 		// create file if not real
 	}
+
 	i := 0
+	// look here
+	ParseLynks(homePath + "lynks.txt")
+
 	for i < len(lynks) {
 		if lynks[i].Name == name {
 			return errors.New("Can't Add Duplicate Lynk")
 		}
 		i++
 	}
+
 	lynkFile.WriteString(name + ":::unsynced:::" + owner + "\n")
 
-	ParseLynks(homePath + "lynks.txt")
+	//look here
+	filepath.Walk(homePath, visitDirectories)
+	// look here
+	genLynks()
+
 	fmt.Println(lynks)
 
 	return lynkFile.Close()
@@ -724,6 +736,7 @@ func DeleteLynk(nameToDelete string) {
 		i++
 	}
 	updateLynksFile()
+
 }
 
 /**
@@ -824,3 +837,51 @@ func genLynks() {
 func GetLynkName(metaPath string) string {
 	return strings.TrimSuffix(strings.TrimPrefix(metaPath, homePath), "/meta.info")
 }
+
+func GetLynks() []Lynk{
+	return lynks
+}
+func GetLynksLen() int{
+	return len(lynks)
+}
+func PopulateFilesAndSize() {
+	i := 0
+	for i < len(lynks) {
+		files := lynks[i].Files
+		j := 0
+		if (len(lynks[i].FileNames) == 0 && len(lynks[i].FileSize) == 0) {
+		for j < len(files) {
+
+			lynks[i].FileNames = append(lynks[i].FileNames, files[j].name)
+			lynks[i].FileSize = append(lynks[i].FileSize, files[j].length)
+			j++
+			}
+		}
+		i++
+	}
+
+}
+
+func reorderLynks() error {
+
+	newLynks, err := os.Create(homePath + "lynks.txt")
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	i := 0
+	for i < len(lynks) {
+		newLynks.WriteString(lynks[i].Name + ":::" + lynks[i].Synced + ":::" +
+		lynks[i].Owner + "\n")
+
+		i++
+	}
+
+	return newLynks.Close()
+}
+
+
+
+
+

@@ -12,9 +12,9 @@ package main
 
 import (
 	"bufio"
-	"capstone/client"
-	"capstone/server"
-	"capstone/tracker"
+	"../client"
+	"../server"
+	"../tracker"
 	"fmt"
 	"html/template"
 	"io/ioutil"
@@ -23,6 +23,7 @@ import (
 	"os"
 	"os/user"
 	"strings"
+	"strconv"
 )
 
 /** Holds our uploads html page */
@@ -41,6 +42,13 @@ var homePath string
 type UserInput struct {
 	Name   string
 	FavNum string
+}
+type File struct {
+	length      int
+	path        string // Might not need path
+	name        string
+	chunks      string
+	chunkLength int
 }
 
 /** Struct specifically for adding html resources like css */
@@ -118,8 +126,23 @@ func IndexHandler(rw http.ResponseWriter, req *http.Request) {
 	tableTemplate := template.HTML(tableEntries)
 	removalEntries := RemoveListPopulate(homePath + "/lynks.txt")
 	removalTemplate := template.HTML(removalEntries)
+        var fileTemplates []string
+	numOfLynks := client.GetLynksLen()
+	i := 0
+	for i < numOfLynks {
+		fileTemplates = append(fileTemplates,FilePopulate(i))
+		i++
+	}
+	i = 0
+	for i < 10{
+		fileTemplates = append(fileTemplates,"empty files")
+		i++
+	}
 	t.ExecuteTemplate(rw, "index.html", map[string]template.HTML{"Entries": tableTemplate,
-		"RemovalList": removalTemplate})
+		"RemovalList": removalTemplate, "row0Data":template.HTML(fileTemplates[0]),
+		"row1Data":template.HTML(fileTemplates[1])})
+	fmt.Println("that was the files")
+
 
 }
 
@@ -140,6 +163,7 @@ func CreateHandler(rw http.ResponseWriter, req *http.Request) {
 
 	//tracker.CreateSwarm(dir[0], name[0])
 	tracker.CreateSwarm(name[0])
+
 
 	IndexHandler(rw, req)
 }
@@ -237,20 +261,21 @@ func TablePopulate(pathToTable string) string {
 		fmt.Println(err)
 	}
 	scanner := bufio.NewScanner(lynksFile)
-
+	i := 0
 	// Scan each line
 	for scanner.Scan() {
 
+		rowStringNum := strconv.Itoa(i)
 		line := strings.TrimSpace(scanner.Text()) // Trim helps with errors in \n
 		split := strings.Split(line, ":::")
-		tableEntries += "<tr class = settingrow > \n"
+		tableEntries += "<tr id= row"+ rowStringNum +" > \n"
 		tableEntries += "<td>" + split[0] + "</td>\n"
 		tableEntries += "<td>" + split[1] + "</td>\n"
 		tableEntries += "<td>" + split[2] + "</td>\n"
 		tableEntries += "</tr>\n"
-
+		i++
 	}
-	client.ParseLynks(pathToTable)
+	//client.ParseLynks(pathToTable)
 	return tableEntries
 }
 
@@ -281,6 +306,27 @@ func RemoveListPopulate(pathToTable string) string {
 	}
 	return tableEntries
 }
+func FilePopulate(index int) string {
+
+	client.PopulateFilesAndSize()
+	lynks := client.GetLynks()
+	fileEntries := ""
+	tempLynk := lynks[index]
+	fmt.Println(tempLynk.Name)
+	fileNames := tempLynk.FileNames
+	fileSizes := tempLynk.FileSize
+	i := 0
+	for i < len(fileNames){
+		fileEntries += "<tr> \n"
+		fileEntries += "<td>" + fileNames[i] +  "</td>\n"
+		fileEntries += "<td>" + strconv.Itoa(fileSizes[i]) + "</td>\n"
+		fileEntries += "</tr>\n"
+		i++
+	}
+
+	return fileEntries
+}
+
 
 /** Function INIT runs before main and allows us to load the index html before any operations
   are done on it and find the root directory on the user's computer

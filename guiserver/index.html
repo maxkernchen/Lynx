@@ -63,15 +63,28 @@
  });
   // opens the settings dialog which appears after any row is pressed in the table
   $(document).ready(function(){
-  var dlg =  $("#settingsdialog").dialog({
+  var dlg =  $("#row0dialog").dialog({
    autoOpen: false,
-     modal: true, title: 'Settings', draggable: true, width: 230
+     modal: true, title: 'Files', draggable: true, width: 300
   });
   //append its info to the settings form
-    dlg.parent().appendTo($("#settings"));
+    dlg.parent().appendTo($("#row0form"));
   // if a setting row is clicked open up the setting dialog
-  $(".settingrow").click(function(){
-   $("#settingsdialog").dialog('open');
+  $("#row0").click(function(){
+   $("#row0dialog").dialog('open');
+  });
+ });
+ // opens the settings dialog which appears after any row is pressed in the table
+  $(document).ready(function(){
+  var dlg =  $("#row1dialog").dialog({
+   autoOpen: false,
+     modal: true, title: 'Files', draggable: true, width: 300
+  });
+  //append its info to the settings form
+    dlg.parent().appendTo($("#row1form"));
+  // if a setting row is clicked open up the setting dialog
+  $("#row1").click(function(){
+   $("#row1dialog").dialog('open');
   });
  });
 
@@ -129,20 +142,46 @@
     </div>
 </form>
 <!-- the settings dialog form which appears after any row click on the home screen -->
-<form id="settings" method="POST" action="/settings">
-    <div id="settingsdialog">
-        Location
-        <input type="text" name="MetaPath">
-        <br>
-        Owner
-        <input type ="text" name="owner">
-        <br>
-        Sync Interval(mins)
-        <input type="number" min=".5" max="60" step=".5" value=".5" name="interval">
-        <br>
-        <input type="submit" name="confirmsettings" value="Confirm">
+<form id="row0form" method="POST" action="/settings">
+    <div id ="row0dialog">
+        <div class="container">
+            <table class="table table-hover" id="row0table">
+                <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Size</th>
+                </tr>
+                </thead>
+                <tbody>
+                {{.row0Data}}
+                </tbody>
+            </table>
+        </div>
+
     </div>
 </form>
+
+<form id="row1form" method="POST" action="/settings">
+    <div id ="row1dialog">
+        <div class="container">
+            <table class="table table-hover" id="row1table">
+                <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Size</th>
+                </tr>
+                </thead>
+                <tbody>
+                {{.row1Data}}
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</form>
+
+
+
 <!-- the uploads form which is used to switch pages to uploads -->
 <form id="uploads" method="POST" action="/uploads">
 
