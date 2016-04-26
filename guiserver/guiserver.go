@@ -140,9 +140,14 @@ func IndexHandler(rw http.ResponseWriter, req *http.Request) {
 	}
 	t.ExecuteTemplate(rw, "index.html", map[string]template.HTML{"Entries": tableTemplate,
 		"RemovalList": removalTemplate, "row0Data":template.HTML(fileTemplates[0]),
-		"row1Data":template.HTML(fileTemplates[1])})
-	fmt.Println("that was the files")
-
+		"row1Data":template.HTML(fileTemplates[1]),"row2Data":template.HTML(
+			fileTemplates[2]), "row3Data":template.HTML(fileTemplates[3]),
+		"row4Data":template.HTML(fileTemplates[4]),
+		"row5Data":template.HTML(fileTemplates[5]),
+		"row6Data":template.HTML(fileTemplates[6]),
+		"row7Data":template.HTML(fileTemplates[7]),
+		"row8Data":template.HTML(fileTemplates[8]),
+		"row9Data":template.HTML(fileTemplates[9])})
 
 }
 

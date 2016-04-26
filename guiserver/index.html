@@ -65,7 +65,7 @@
   $(document).ready(function(){
   var dlg =  $("#row0dialog").dialog({
    autoOpen: false,
-     modal: true, title: 'Files', draggable: true, width: 300
+     modal: true, title: 'Files', draggable: true, width: 'auto'
   });
   //append its info to the settings form
     dlg.parent().appendTo($("#row0form"));
@@ -78,13 +78,126 @@
   $(document).ready(function(){
   var dlg =  $("#row1dialog").dialog({
    autoOpen: false,
-     modal: true, title: 'Files', draggable: true, width: 300
+     modal: true, title: 'Files', draggable: true, width: 'auto'
+
   });
   //append its info to the settings form
     dlg.parent().appendTo($("#row1form"));
   // if a setting row is clicked open up the setting dialog
   $("#row1").click(function(){
    $("#row1dialog").dialog('open');
+  });
+ });
+ // opens the settings dialog which appears after any row is pressed in the table
+  $(document).ready(function(){
+  var dlg =  $("#row2dialog").dialog({
+   autoOpen: false,
+     modal: true, title: 'Files', draggable: true, width: 'auto'
+
+  });
+  //append its info to the settings form
+    dlg.parent().appendTo($("#row2form"));
+  // if a setting row is clicked open up the setting dialog
+  $("#row2").click(function(){
+   $("#row2dialog").dialog('open');
+  });
+ });
+ // opens the settings dialog which appears after any row is pressed in the table
+  $(document).ready(function(){
+  var dlg =  $("#row3dialog").dialog({
+   autoOpen: false,
+     modal: true, title: 'Files', draggable: true, width: 'auto'
+
+  });
+  //append its info to the settings form
+    dlg.parent().appendTo($("#row3form"));
+  // if a setting row is clicked open up the setting dialog
+  $("#row3").click(function(){
+   $("#row3dialog").dialog('open');
+  });
+ });
+  // opens the settings dialog which appears after any row is pressed in the table
+  $(document).ready(function(){
+  var dlg =  $("#row4dialog").dialog({
+   autoOpen: false,
+     modal: true, title: 'Files', draggable: true, width: 'auto'
+
+  });
+  //append its info to the settings form
+    dlg.parent().appendTo($("#row3form"));
+  // if a setting row is clicked open up the setting dialog
+  $("#row4").click(function(){
+   $("#row4dialog").dialog('open');
+  });
+ });
+// opens the settings dialog which appears after any row is pressed in the table
+  $(document).ready(function(){
+  var dlg =  $("#row5dialog").dialog({
+   autoOpen: false,
+     modal: true, title: 'Files', draggable: true, width: 'auto'
+
+  });
+  //append its info to the settings form
+    dlg.parent().appendTo($("#row5form"));
+  // if a setting row is clicked open up the setting dialog
+  $("#row5").click(function(){
+   $("#row5dialog").dialog('open');
+  });
+ });
+ // opens the settings dialog which appears after any row is pressed in the table
+  $(document).ready(function(){
+  var dlg =  $("#row6dialog").dialog({
+   autoOpen: false,
+     modal: true, title: 'Files', draggable: true, width: 'auto'
+
+  });
+  //append its info to the settings form
+    dlg.parent().appendTo($("#row6form"));
+  // if a setting row is clicked open up the setting dialog
+  $("#row6").click(function(){
+   $("#row6dialog").dialog('open');
+  });
+ });
+ // opens the settings dialog which appears after any row is pressed in the table
+  $(document).ready(function(){
+  var dlg =  $("#row7dialog").dialog({
+   autoOpen: false,
+     modal: true, title: 'Files', draggable: true, width: 'auto'
+
+  });
+  //append its info to the settings form
+    dlg.parent().appendTo($("#row7form"));
+  // if a setting row is clicked open up the setting dialog
+  $("#row7").click(function(){
+   $("#row7dialog").dialog('open');
+  });
+ });
+ // opens the settings dialog which appears after any row is pressed in the table
+  $(document).ready(function(){
+  var dlg =  $("#row8dialog").dialog({
+   autoOpen: false,
+     modal: true, title: 'Files', draggable: true, width: 'auto'
+
+  });
+  //append its info to the settings form
+    dlg.parent().appendTo($("#row8form"));
+  // if a setting row is clicked open up the setting dialog
+  $("#row8").click(function(){
+   $("#row8dialog").dialog('open');
+  });
+ });
+ // opens the settings dialog which appears after any row is pressed in the table
+  $(document).ready(function(){
+  var dlg =  $("#row9dialog").dialog({
+   autoOpen: false,
+     modal: true, title: 'Files', draggable: true, width: 'auto'
+
+  });
+  //append its info to the settings form
+    dlg.parent().appendTo($("#row9form"));
+  // if a setting row is clicked open up the setting dialog
+  $("#row9").click(function(){
+   $("#row9dialog").dialog('open');
   });
  });
 
@@ -98,9 +211,6 @@
         bottom:3%;left:9%;"
                id="createlynk" value="Create Lynk">
         <div id="dialog">
-            Directory Path
-            <input type="text" name="DirectoryPath" required >
-            <br>
             Name
             <input type="text" name="Name" required>
             <br>
@@ -179,9 +289,151 @@
 
     </div>
 </form>
+<form id="row2form" method="POST" action="/settings">
+    <div id ="row2dialog">
+        <div class="container">
+            <table class="table table-hover" id="row2table">
+                <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Size</th>
+                </tr>
+                </thead>
+                <tbody>
+                {{.row2Data}}
+                </tbody>
+            </table>
+        </div>
 
+    </div>
+</form>
+<form id="row3form" method="POST" action="/settings">
+    <div id ="row3dialog">
+        <div class="container">
+            <table class="table table-hover" id="row3table">
+                <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Size</th>
+                </tr>
+                </thead>
+                <tbody>
+                {{.row3Data}}
+                </tbody>
+            </table>
+        </div>
 
+    </div>
+</form>
+<form id="row4form" method="POST" action="/settings">
+    <div id ="row4dialog">
+        <div class="container">
+            <table class="table table-hover" id="row4table">
+                <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Size</th>
+                </tr>
+                </thead>
+                <tbody>
+                {{.row4Data}}
+                </tbody>
+            </table>
+        </div>
 
+    </div>
+</form>
+<form id="row5form" method="POST" action="/settings">
+    <div id ="row5dialog">
+        <div class="container">
+            <table class="table table-hover" id="row5table">
+                <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Size</th>
+                </tr>
+                </thead>
+                <tbody>
+                {{.row5Data}}
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</form>
+<form id="row6form" method="POST" action="/settings">
+    <div id ="row6dialog">
+        <div class="container">
+            <table class="table table-hover" id="row6table">
+                <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Size</th>
+                </tr>
+                </thead>
+                <tbody>
+                {{.row6Data}}
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</form>
+<form id="row7form" method="POST" action="/settings">
+    <div id ="row7dialog">
+        <div class="container">
+            <table class="table table-hover" id="row7table">
+                <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Size</th>
+                </tr>
+                </thead>
+                <tbody>
+                {{.row7Data}}
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</form>
+<form id="row8form" method="POST" action="/settings">
+    <div id ="row8dialog">
+        <div class="container">
+            <table class="table table-hover" id="row8table">
+                <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Size</th>
+                </tr>
+                </thead>
+                <tbody>
+                {{.row8Data}}
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</form>
+
+<form id="row9form" method="POST" action="/settings">
+    <div id ="row9dialog">
+        <div class="container">
+            <table class="table table-hover" id="row9table">
+                <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Size</th>
+                </tr>
+                </thead>
+                <tbody>
+                {{.row9Data}}
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</form>
 <!-- the uploads form which is used to switch pages to uploads -->
 <form id="uploads" method="POST" action="/uploads">
 

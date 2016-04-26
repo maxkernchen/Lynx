@@ -540,7 +540,6 @@ func getLynk(l []Lynk, lynkName string) *Lynk {
 */
 func CreateMeta(name string) error {
 	tDir, err := os.Stat(homePath + name) // Checks to see if the directory exists
-	fmt.Println(tDir.Name())
 	if err != nil || !tDir.IsDir() {
 		fmt.Println("ERROR!")
 		return errors.New("Directory " + name + "does not exist in the Lynx directory.")
@@ -665,8 +664,7 @@ func addLynk(name, owner string) error {
 	}
 
 	i := 0
-	// look here
-	ParseLynks(homePath + "lynks.txt")
+
 
 	for i < len(lynks) {
 		if lynks[i].Name == name {
@@ -678,7 +676,7 @@ func addLynk(name, owner string) error {
 	lynkFile.WriteString(name + ":::unsynced:::" + owner + "\n")
 
 	//look here
-	filepath.Walk(homePath, visitDirectories)
+	ParseLynks(homePath + "lynks.txt")
 	// look here
 	genLynks()
 
@@ -812,7 +810,7 @@ func init() {
 	currentusr, _ := user.Current()
 	homePath = currentusr.HomeDir + "/Lynx/"
 	homePath = strings.Replace(homePath, "\\", "/", -1)
-	filepath.Walk(homePath, visitDirectories)
+	ParseLynks(homePath + "lynks.txt")
 	genLynks()
 	fmt.Println(lynks)
 	//lynk := getLynk(lynks, "Tests")
@@ -860,25 +858,6 @@ func PopulateFilesAndSize() {
 		i++
 	}
 
-}
-
-func reorderLynks() error {
-
-	newLynks, err := os.Create(homePath + "lynks.txt")
-	if err != nil {
-		fmt.Println(err)
-		return err
-	}
-
-	i := 0
-	for i < len(lynks) {
-		newLynks.WriteString(lynks[i].Name + ":::" + lynks[i].Synced + ":::" +
-		lynks[i].Owner + "\n")
-
-		i++
-	}
-
-	return newLynks.Close()
 }
 
 
