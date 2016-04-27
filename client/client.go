@@ -410,6 +410,7 @@ func getFile(fileName, metaPath string) error {
 	parseMetainfo(metaPath)
 	lynkName := GetLynkName(metaPath)
 	lynk := getLynk(lynks, lynkName)
+	fmt.Println("Asking For File From: " + metaPath)
 	askTrackerForPeers(lynkName)
 
 	i := 0
@@ -784,7 +785,7 @@ func JoinLynk(metaPath string) {
 			tempPeer.IP = split[META_VALUE_INDEX]
 		} else if split[0] == "port" {
 			tempPeer.Port = split[META_VALUE_INDEX]
-		} else if split[0] == "lynkname" {
+		} else if split[0] == "lynkName" {
 			lynkName = split[META_VALUE_INDEX]
 		} else if split[0] == "owner" {
 			owner = split[META_VALUE_INDEX]
@@ -798,10 +799,10 @@ func JoinLynk(metaPath string) {
 	addLynk(lynkName, owner)
 
 	// This should work to get files
-	/*lynk := getLynk(lynks, lynkName)
+	lynk := getLynk(lynks, lynkName)
 	for _, file := range lynk.Files {
-		getFile(file.name, metaPath)
-	}*/
+		getFile(file.name, homePath+lynkName+"/meta.info")
+	}
 
 	// getFile("3HLxd.jpg", lynkName)
 
