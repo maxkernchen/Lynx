@@ -12,9 +12,9 @@ package main
 
 import (
 	"bufio"
-	"../client"
-	"../server"
-	"../tracker"
+	"capstone/client"
+	"capstone/server"
+	"capstone/tracker"
 	"fmt"
 	"html/template"
 	"io/ioutil"
@@ -22,8 +22,8 @@ import (
 	"net/url"
 	"os"
 	"os/user"
-	"strings"
 	"strconv"
+	"strings"
 )
 
 /** Holds our uploads html page */
@@ -126,28 +126,28 @@ func IndexHandler(rw http.ResponseWriter, req *http.Request) {
 	tableTemplate := template.HTML(tableEntries)
 	removalEntries := RemoveListPopulate(homePath + "/lynks.txt")
 	removalTemplate := template.HTML(removalEntries)
-        var fileTemplates []string
+	var fileTemplates []string
 	numOfLynks := client.GetLynksLen()
 	i := 0
 	for i < numOfLynks {
-		fileTemplates = append(fileTemplates,FilePopulate(i))
+		fileTemplates = append(fileTemplates, FilePopulate(i))
 		i++
 	}
 	i = 0
-	for i < 10{
-		fileTemplates = append(fileTemplates,"empty files")
+	for i < 10 {
+		fileTemplates = append(fileTemplates, "empty files")
 		i++
 	}
 	t.ExecuteTemplate(rw, "index.html", map[string]template.HTML{"Entries": tableTemplate,
-		"RemovalList": removalTemplate, "row0Data":template.HTML(fileTemplates[0]),
-		"row1Data":template.HTML(fileTemplates[1]),"row2Data":template.HTML(
-			fileTemplates[2]), "row3Data":template.HTML(fileTemplates[3]),
-		"row4Data":template.HTML(fileTemplates[4]),
-		"row5Data":template.HTML(fileTemplates[5]),
-		"row6Data":template.HTML(fileTemplates[6]),
-		"row7Data":template.HTML(fileTemplates[7]),
-		"row8Data":template.HTML(fileTemplates[8]),
-		"row9Data":template.HTML(fileTemplates[9])})
+		"RemovalList": removalTemplate, "row0Data": template.HTML(fileTemplates[0]),
+		"row1Data": template.HTML(fileTemplates[1]), "row2Data": template.HTML(
+			fileTemplates[2]), "row3Data": template.HTML(fileTemplates[3]),
+		"row4Data": template.HTML(fileTemplates[4]),
+		"row5Data": template.HTML(fileTemplates[5]),
+		"row6Data": template.HTML(fileTemplates[6]),
+		"row7Data": template.HTML(fileTemplates[7]),
+		"row8Data": template.HTML(fileTemplates[8]),
+		"row9Data": template.HTML(fileTemplates[9])})
 
 }
 
@@ -169,7 +169,6 @@ func CreateHandler(rw http.ResponseWriter, req *http.Request) {
 	//tracker.CreateSwarm(dir[0], name[0])
 	tracker.CreateSwarm(name[0])
 
-
 	IndexHandler(rw, req)
 }
 
@@ -183,8 +182,9 @@ func JoinHandler(rw http.ResponseWriter, req *http.Request) {
 	req.ParseForm()
 	form = req.Form
 	var metapath []string = form["MetaPath"]
-	var downloads []string = form["downloadlocation"]
-	client.JoinLynk(metapath[0], downloads[0])
+	//var downloads []string = form["downloadlocation"]
+	//client.JoinLynk(metapath[0], downloads[0])
+	client.JoinLynk(metapath[0])
 
 	IndexHandler(rw, req)
 
@@ -273,7 +273,7 @@ func TablePopulate(pathToTable string) string {
 		rowStringNum := strconv.Itoa(i)
 		line := strings.TrimSpace(scanner.Text()) // Trim helps with errors in \n
 		split := strings.Split(line, ":::")
-		tableEntries += "<tr id= row"+ rowStringNum +" > \n"
+		tableEntries += "<tr id= row" + rowStringNum + " > \n"
 		tableEntries += "<td>" + split[0] + "</td>\n"
 		tableEntries += "<td>" + split[1] + "</td>\n"
 		tableEntries += "<td>" + split[2] + "</td>\n"
@@ -321,9 +321,9 @@ func FilePopulate(index int) string {
 	fileNames := tempLynk.FileNames
 	fileSizes := tempLynk.FileSize
 	i := 0
-	for i < len(fileNames){
+	for i < len(fileNames) {
 		fileEntries += "<tr> \n"
-		fileEntries += "<td>" + fileNames[i] +  "</td>\n"
+		fileEntries += "<td>" + fileNames[i] + "</td>\n"
 		fileEntries += "<td>" + strconv.Itoa(fileSizes[i]) + "</td>\n"
 		fileEntries += "</tr>\n"
 		i++
@@ -331,7 +331,6 @@ func FilePopulate(index int) string {
 
 	return fileEntries
 }
-
 
 /** Function INIT runs before main and allows us to load the index html before any operations
   are done on it and find the root directory on the user's computer

@@ -13,7 +13,7 @@ package client
 import (
 	"bufio"
 	"bytes"
-	"../mycrypt"
+	"capstone/mycrypt"
 	"compress/gzip"
 	"errors"
 	"fmt"
@@ -36,14 +36,14 @@ type Peer struct {
 
 /** A struct which holds all the information about a specific Lynk. */
 type Lynk struct {
-	Name    string
-	Owner   string
-	Synced  string
-	Tracker string
-	Files   []File
-	Peers   []Peer
+	Name      string
+	Owner     string
+	Synced    string
+	Tracker   string
+	Files     []File
+	Peers     []Peer
 	FileNames []string
-	FileSize []int
+	FileSize  []int
 }
 
 /** A struct based which represents a File in a Lynk's directory. It is based
@@ -600,7 +600,6 @@ func visitDirectories(path string, file os.FileInfo, err error) error {
 	slashes := strings.Replace(path, "\\", "/", -1)
 	base := strings.TrimPrefix(slashes, homePath)
 
-
 	if file.IsDir() && !strings.Contains(base, "/") && base != "" {
 		fmt.Println(file.Name())
 		lynks = append(lynks, Lynk{Name: file.Name()})
@@ -665,7 +664,6 @@ func addLynk(name, owner string) error {
 
 	i := 0
 
-
 	for i < len(lynks) {
 		if lynks[i].Name == name {
 			return errors.New("Can't Add Duplicate Lynk")
@@ -687,7 +685,7 @@ func addLynk(name, owner string) error {
 }
 
 /**
- * Parses the information in meta.info file and places each entry into a File
+ * Parses the information in lynks file and places each entry into a File
  * struct and appends that struct to the array of structs
  * @param string metaPath - The path to the metainfo file
  * @return error - An error can be produced when issues arise from trying to access
@@ -764,10 +762,8 @@ func updateLynksFile() error {
  * Function which will allow a user to join an existing link by way of its meta.info file
  * @param metaPath string - the path to the meta.info file which will be used to find the information
  *  		    about the lynk
- * @param downloadsdir string - the place where all the files will be downloaded after they have been found
- *			in the meta.ifno file
  */
-func JoinLynk(metaPath, downloadsdir string) {
+func JoinLynk(metaPath string) {
 	metaFile, err := os.Open(metaPath)
 	if err != nil {
 		fmt.Println(err)
@@ -798,9 +794,41 @@ func JoinLynk(metaPath, downloadsdir string) {
 	//peers = append(peers, tempPeer)
 	//fmt.Println(peers)
 
+	createJoin(lynkName, metaPath)
 	addLynk(lynkName, owner)
+
+	// This should work to get files
+	/*lynk := getLynk(lynks, lynkName)
+	for _, file := range lynk.Files {
+		getFile(file.name, metaPath)
+	}*/
+
 	// getFile("3HLxd.jpg", lynkName)
 
+}
+
+/**
+ * Function which creates the directory for a newly joined lynk.
+ * @params name string the name of the new lynk
+ */
+func createJoin(name, oldMetaPath string) error {
+	tDir, err := os.Stat(homePath + name)
+	// Checks to see if the directory exists so we don't overwrite
+	if err == nil && tDir.IsDir() {
+		fmt.Println("ERROR!" + tDir.Name() + " Already Exists")
+		return errors.New("Directory " + name + " Already Exists")
+	}
+
+	newLynkDir := homePath + name
+	os.Mkdir(newLynkDir, 0755)
+
+	err = FileCopy(oldMetaPath, newLynkDir+"/meta.info")
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	return nil // Everything was fine if we reached this point
 }
 
 /**
@@ -836,10 +864,10 @@ func GetLynkName(metaPath string) string {
 	return strings.TrimSuffix(strings.TrimPrefix(metaPath, homePath), "/meta.info")
 }
 
-func GetLynks() []Lynk{
+func GetLynks() []Lynk {
 	return lynks
 }
-func GetLynksLen() int{
+func GetLynksLen() int {
 	return len(lynks)
 }
 func PopulateFilesAndSize() {
@@ -847,20 +875,15 @@ func PopulateFilesAndSize() {
 	for i < len(lynks) {
 		files := lynks[i].Files
 		j := 0
-		if (len(lynks[i].FileNames) == 0 && len(lynks[i].FileSize) == 0) {
-		for j < len(files) {
+		if len(lynks[i].FileNames) == 0 && len(lynks[i].FileSize) == 0 {
+			for j < len(files) {
 
-			lynks[i].FileNames = append(lynks[i].FileNames, files[j].name)
-			lynks[i].FileSize = append(lynks[i].FileSize, files[j].length)
-			j++
+				lynks[i].FileNames = append(lynks[i].FileNames, files[j].name)
+				lynks[i].FileSize = append(lynks[i].FileSize, files[j].length)
+				j++
 			}
 		}
 		i++
 	}
 
 }
-
-
-
-
-

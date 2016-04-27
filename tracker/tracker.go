@@ -1,6 +1,6 @@
 /**
  *
- *	 The tracker for the Lynx application. Currently handles
+ *	 The tracker for the Lynx application.
  *
  *	 @author: Michael Bruce
  *	 @author: Max Kernchen
@@ -13,7 +13,7 @@ package tracker
 import (
 	"bufio"
 	"bytes"
-	"../mycrypt"
+	"capstone/mycrypt"
 	"compress/gzip"
 	"errors"
 	"fmt"
@@ -165,12 +165,11 @@ func addToSwarminfo(addPeer Peer, swarmPath string) error {
 	lynkName := getLynkName(swarmPath)
 	lynk := getLynk(lynks, lynkName)
 	if lynk == nil {
-		lynks = append(lynks, Lynk {Name: lynkName})
+		lynks = append(lynks, Lynk{Name: lynkName})
 		lynk = getLynk(lynks, lynkName)
 	}
 
 	parseSwarminfo(swarmPath)
-
 
 	i := 0
 	for i < len(lynk.Peers) {
