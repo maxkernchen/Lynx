@@ -18,6 +18,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"net"
 	"net/textproto"
@@ -437,8 +438,9 @@ func getFile(fileName, metaPath string) error {
 				reply = strings.TrimSpace(reply)
 				length, _ := strconv.Atoi(reply)*/
 
-				bufIn := make([]byte, 512) // Will later set this to chunk length instead of 512
-				n, err := conn.Read(bufIn)
+				//bufIn := make([]byte, 512) // Will later set this to chunk length instead of 512
+				//n, err := conn.Read(bufIn)
+				bufIn, err := ioutil.ReadAll(conn)
 
 				// Decrypt
 				key := []byte("abcdefghijklmnopqrstuvwxyz123456")
@@ -450,12 +452,14 @@ func getFile(fileName, metaPath string) error {
 				// Decompress
 				//tempBuf := bytes.NewBuffer(bufIn)
 				r, err := gzip.NewReader(bytes.NewBuffer(plainFile))
-				bufOut := make([]byte, 512) // Will later set this to chunk length instead of 512
+				//bufOut := make([]byte, 512) // Will later set this to chunk length instead of 512
+				//bufOut := make([]byte, len(plainFile)) // Will later set this to chunk length instead of 512
+				bufOut, err := ioutil.ReadAll(r) // Will later set this to chunk length instead of 512
 				r.Read(bufOut)
 				//io.Copy(os.Stdout, r)
 				r.Close()
 
-				fmt.Println(n, "bytes received")
+				fmt.Println(len(bufIn), "bytes received")
 				file.Write(bufOut)
 				/*_, err = io.Copy(file, conn)
 				if err != nil {
