@@ -1,13 +1,7 @@
-/**
- *
- *	 The unit tests for our mycrypt helper functions
- *
- *	 @author: Michael Bruce
- *	 @author: Max Kernchen
- *
- *	 @verison: 2/17/2016
- */
-
+// The unit tests for our mycrypt helper functions
+// @author: Michael Bruce
+// @author: Max Kernchen
+// @verison: 2/17/2016
 package mycrypt
 
 import (
@@ -15,16 +9,14 @@ import (
 	"testing"
 )
 
-/** Count of the # of successful tests. */
+// Count of the # of successful tests.
 var successful = 0
 
-/** Total # of the tests. */
+// Total # of the tests.
 const total = 3
 
-/**
- * Unit tests for our Encrypt and Decrypt functions.
- * @param *testing.T t - The wrapper for the test
- */
+// Unit tests for our Encrypt and Decrypt functions.
+// @param *testing.T t - The wrapper for the test
 func TestFileCopy(t *testing.T) {
 	fmt.Println("\n----------------TestEncrypt----------------")
 

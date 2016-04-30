@@ -1,17 +1,12 @@
-/**
- *
- *	 The unit tests for our server
- *
- *	 @author: Michael Bruce
- *	 @author: Max Kernchen
- *
- *	 @verison: 2/17/2016
- */
-
+// The unit tests for our tracker
+// @author: Michael Bruce
+// @author: Max Kernchen
+// @verison: 2/17/2016
 package tracker
 
 import (
 	"bufio"
+	"capstone/lynxutil"
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -20,28 +15,26 @@ import (
 	"testing"
 )
 
-/** Count of the # of successful tests. */
+// Count of the # of successful tests.
 var successful = 0
 
-/** Total # of the tests. */
+// Total # of the tests.
 const total = 7
 
-/** Gets user's home directory */
+// Gets user's home directory */
 var cU, _ = user.Current()
 
-/** Adds "Lynx" to home directory string */
+// Adds "Lynx" to home directory string */
 var hPath = cU.HomeDir + "/Lynx/"
 
-/** Uses homePath and our Tests Lynk to create swarm path */
+// Uses homePath and our Tests Lynk to create swarm path */
 var sPath = hPath + "Tests/Tests_Tracker/swarm.info"
 
-/** Uses homePath and our Tests Lynk to create meta path */
+// Uses homePath and our Tests Lynk to create meta path */
 var mPath = hPath + "Tests/Tests_Tracker/meta.info"
 
-/**
- * Unit tests for listen, handle, and send functions
- * @param *testing.T t - The wrapper for the test
- */
+// Unit tests for listen, handle, and send functions
+// @param *testing.T t - The wrapper for the test
 func TestListenHandleSend(t *testing.T) {
 	fmt.Println("\n----------------TestListen----------------")
 
@@ -107,10 +100,8 @@ func TestListenHandleSend(t *testing.T) {
 
 }
 
-/**
- * Unit tests for parsing, updating, and adding to swarm.info
- * @param *testing.T t - The wrapper for the test
- */
+// Unit tests for parsing, updating, and adding to swarm.info
+// @param *testing.T t - The wrapper for the test
 func TestSwarminfo(t *testing.T) {
 	fmt.Println("\n----------------TestParseSwarminfo----------------")
 
@@ -125,7 +116,7 @@ func TestSwarminfo(t *testing.T) {
 
 	fmt.Println("\n----------------TestAddToSwarminfo----------------")
 
-	p1 := Peer{IP: "124.123.563.186", Port: "4500"}
+	p1 := lynxutil.Peer{IP: "124.123.563.186", Port: "4500"}
 	result = addToSwarminfo(p1, sPath)
 
 	if result == nil {

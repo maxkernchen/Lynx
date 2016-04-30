@@ -1,13 +1,7 @@
-/**
- *
- *	 The unit tests for our server
- *
- *	 @author: Michael Bruce
- *	 @author: Max Kernchen
- *
- *	 @verison: 2/17/2016
- */
-
+// The unit tests for our server
+// @author: Michael Bruce
+// @author: Max Kernchen
+// @verison: 2/17/2016
 package server
 
 import (
@@ -24,16 +18,14 @@ import (
 	"testing"
 )
 
-/** Count of the # of successful tests. */
+// Count of the # of successful tests.
 var successful = 0
 
-/** Total # of the tests. */
+// Total # of the tests.
 const total = 6
 
-/**
- * Unit tests for listen, handle, and send functions as well as push meta
- * @param *testing.T t - The wrapper for the test
- */
+// Unit tests for listen, handle, and send functions as well as push meta
+// @param *testing.T t - The wrapper for the test
 func TestListenHandleSend(t *testing.T) {
 	fmt.Println("\n----------------TestListen----------------")
 
@@ -83,8 +75,7 @@ func TestListenHandleSend(t *testing.T) {
 	}
 	defer file.Close()
 
-	//_, err = io.Copy(file, conn)
-	bufIn := make([]byte, 512) // Will later set this to chunk length instead of 512
+	bufIn := make([]byte, 512) // Set to 512 because we know this file is small
 	_, err = conn.Read(bufIn)
 	// Decrypt
 	key := []byte("abcdefghijklmnopqrstuvwxyz123456")
@@ -94,7 +85,7 @@ func TestListenHandleSend(t *testing.T) {
 	}
 	// Decompress
 	r, err := gzip.NewReader(bytes.NewBuffer(plainFile))
-	bufOut := make([]byte, 512) // Will later set this to chunk length instead of 512
+	bufOut := make([]byte, 512) // Set to 512 because we know this file is small
 	r.Read(bufOut)
 	file.Write(bufOut)
 	r.Close()
@@ -126,5 +117,4 @@ func TestListenHandleSend(t *testing.T) {
 	}
 
 	fmt.Println("\nSuccess on ", successful, "/", total, " tests.")
-
 }

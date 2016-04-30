@@ -30,4 +30,14 @@ go install
 echo GUIServer Installed
 cd ..
 
+cd lynxutil
+go install
+echo Lynxutil Installed
+cd ..
+
+cd mycrypt
+go install
+echo Mycrypt Installed
+cd ..
+
 exit

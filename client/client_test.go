@@ -1,16 +1,11 @@
-/**
- *
- *	 The unit tests for our client
- *
- *	 @author: Michael Bruce
- *	 @author: Max Kernchen
- *
- *	 @verison: 2/17/2016
- */
-
+// The unit tests for our client
+// @author: Michael Bruce
+// @author: Max Kernchen
+// @verison: 2/17/2016
 package client
 
 import (
+	"capstone/lynxutil"
 	"fmt"
 	"io/ioutil"
 	"os/user"
@@ -18,32 +13,30 @@ import (
 	"testing"
 )
 
-/** Count of the # of successful tests. */
+// Count of the # of successful tests.
 var successful = 0
 
-/** Total # of the tests. */
+// Total # of the tests.
 const total = 19
 
-/** Gets user's home directory */
+// Gets user's home directory
 var cU, _ = user.Current()
 
-/** Adds "Lynx" to home directory string */
+// Adds "Lynx" to home directory string
 var hPath = cU.HomeDir + "/Lynx/"
 
-/** Uses homePath and our Tests Lynk to create mPath */
+// Uses homePath and our Tests Lynk to create mPath
 var mPath = hPath + "Tests/meta.info"
 
-/**
- * Unit tests for our FileCopy function.
- * @param *testing.T t - The wrapper for the test
- */
+// Unit tests for our FileCopy function.
+// @param *testing.T t - The wrapper for the test
 func TestFileCopy(t *testing.T) {
 	fmt.Println("\n----------------TestFileCopy----------------")
 	fmt.Println(mPath)
 	fmt.Println(mPath)
 	fmt.Println(mPath)
 
-	result := FileCopy("test.txt", "test2.txt")
+	result := lynxutil.FileCopy("test.txt", "test2.txt")
 
 	if result != nil {
 		t.Error("Test failed, expected no errors. Got ", result)
@@ -53,7 +46,7 @@ func TestFileCopy(t *testing.T) {
 	}
 
 	// Tests that overwriting a file is fine
-	result = FileCopy("test.txt", "test2.txt")
+	result = lynxutil.FileCopy("test.txt", "test2.txt")
 
 	if result != nil {
 		t.Error("Test failed, expected no errors. Got ", result)
@@ -62,7 +55,7 @@ func TestFileCopy(t *testing.T) {
 		successful++
 	}
 
-	result = FileCopy("fake.txt", "test2.txt")
+	result = lynxutil.FileCopy("fake.txt", "test2.txt")
 
 	if result == nil {
 		t.Error("Test failed, expected failure due to non-existent file fake.txt. Got ", result)
@@ -71,7 +64,7 @@ func TestFileCopy(t *testing.T) {
 		successful++
 	}
 
-	result = FileCopy("nopermission.txt", "test2.txt")
+	result = lynxutil.FileCopy("nopermission.txt", "test2.txt")
 
 	if result == nil {
 		t.Error("Test failed, expected failure due to permissions on nopermission.txt. Got ", result)
@@ -81,22 +74,19 @@ func TestFileCopy(t *testing.T) {
 	}
 }
 
-/**
- * Unit tests for addToMetainfo function
- * @param *testing.T t - The wrapper for the test
- */
+// Unit tests for addToMetainfo function
+// @param *testing.T t - The wrapper for the test
 func TestAddToMetainfo(t *testing.T) {
 	fmt.Println("\n----------------TestAddToMetainfo----------------")
 
-	//parseMetainfo("../resources/meta.info")
 	parseMetainfo(mPath)
 	hasTest := false
-	tLynk := getLynk(lynks, "Tests")
+	tLynk := lynxutil.GetLynk(lynks, "Tests")
 
 	i := 0
 	for i < len(tLynk.Files) {
 		//fmt.Print(files[i].name)
-		if tLynk.Files[i].name == "test.txt" {
+		if tLynk.Files[i].Name == "test.txt" {
 			//fmt.Print(files[i].name)
 			hasTest = true
 		}
@@ -118,7 +108,7 @@ func TestAddToMetainfo(t *testing.T) {
 	// check that test.txt is in the File struct list
 	i = 0
 	for i < len(tLynk.Files) {
-		if tLynk.Files[i].name == "test.txt" {
+		if tLynk.Files[i].Name == "test.txt" {
 			hasTest = true
 		}
 		i++
@@ -141,10 +131,8 @@ func TestAddToMetainfo(t *testing.T) {
 	}
 }
 
-/**
- * Unit tests for parseMetainfo function
- * @param *testing.T t - The wrapper for the test
- */
+// Unit tests for parseMetainfo function
+// @param *testing.T t - The wrapper for the test
 func TestParseMetainfo(t *testing.T) {
 	fmt.Println("\n----------------TestParseMetainfo----------------")
 
@@ -176,10 +164,8 @@ func TestParseMetainfo(t *testing.T) {
 	}
 }
 
-/**
- * Unit tests for updateMetainfo function
- * @param *testing.T t - The wrapper for the test
- */
+// Unit tests for updateMetainfo function
+// @param *testing.T t - The wrapper for the test
 func TestUpdateMetainfo(t *testing.T) {
 	fmt.Println("\n----------------TestUpdateMetainfo----------------")
 
@@ -196,23 +182,21 @@ func TestUpdateMetainfo(t *testing.T) {
 
 }
 
-/**
- * Unit tests for deleteEntry function
- * @param *testing.T t - The wrapper for the test
- */
-func TestDeleteEntry(t *testing.T) {
-	fmt.Println("\n----------------TestDeleteEntry----------------")
+// Unit tests for deleteEntry function
+// @param *testing.T t - The wrapper for the test
+func TestDeleteFile(t *testing.T) {
+	fmt.Println("\n----------------TestDeleteFiley----------------")
 	failed := false
 
 	parseMetainfo(mPath)
 	lynkName := GetLynkName(mPath)
-	deleteEntry("test.txt", lynkName)
+	deleteFile("test.txt", lynkName)
 
-	tLynk := getLynk(lynks, lynkName)
+	tLynk := lynxutil.GetLynk(lynks, lynkName)
 
 	i := 0
 	for i < len(tLynk.Files) {
-		if tLynk.Files[i].name == "test.txt" {
+		if tLynk.Files[i].Name == "test.txt" {
 			t.Error("Error, test.txt is still in files")
 			failed = true
 		}
@@ -226,11 +210,11 @@ func TestDeleteEntry(t *testing.T) {
 		failed = false
 	}
 
-	deleteEntry("test11.txt", lynkName)
+	deleteFile("test11.txt", lynkName)
 
 	i = 0
 	for i < len(tLynk.Files) {
-		if tLynk.Files[i].name == "test11.txt" {
+		if tLynk.Files[i].Name == "test11.txt" {
 			t.Error("Error, test11.txt is still in files")
 			failed = true
 		}
@@ -240,20 +224,15 @@ func TestDeleteEntry(t *testing.T) {
 	if !failed {
 		fmt.Println("Successfully Removed The test11.txt File")
 		successful++
-	} else {
-		failed = false
 	}
-
 }
 
-/**
- * Unit tests for getFile function
- * @param *testing.T t - The wrapper for the test
- */
+// Unit tests for getFile function
+// @param *testing.T t - The wrapper for the test
 func TestGetFile(t *testing.T) {
 	fmt.Println("\n----------------TestGetFile----------------")
 
-	err := getFile("test.txt", "Tests")
+	err := getFile("test.txt", mPath)
 
 	if err != nil {
 		t.Error(err.Error())
@@ -262,7 +241,7 @@ func TestGetFile(t *testing.T) {
 		successful++
 	}
 
-	err = getFile("non-existent.txt", "Tests")
+	err = getFile("non-existent.txt", mPath)
 
 	if err != nil {
 		fmt.Println("Successfully Produced Non-Existent File Error")
@@ -273,10 +252,8 @@ func TestGetFile(t *testing.T) {
 
 }
 
-/**
- * Unit tests for HaveFile function
- * @param *testing.T t - The wrapper for the test
- */
+// Unit tests for HaveFile function
+// @param *testing.T t - The wrapper for the test
 func TestHaveFile(t *testing.T) {
 	fmt.Println("\n----------------TestHaveFile----------------")
 
@@ -300,10 +277,8 @@ func TestHaveFile(t *testing.T) {
 
 }
 
-/**
- * Unit tests for GetTrackerIP function
- * @param *testing.T t - The wrapper for the test
- */
+// Unit tests for GetTrackerIP function
+// @param *testing.T t - The wrapper for the test
 func TestGetTracker(t *testing.T) {
 	fmt.Println("\n----------------TestGetTracker----------------")
 
@@ -319,15 +294,13 @@ func TestGetTracker(t *testing.T) {
 	}
 }
 
-/**
- * Unit tests for GetTrackerIP function
- * @param *testing.T t - The wrapper for the test
- */
+// Unit tests for GetTrackerIP function
+// @param *testing.T t - The wrapper for the test
 func TestAskTrackerForPeers(t *testing.T) {
 	fmt.Println("\n----------------TestAskTracker----------------")
 
 	lynkName := GetLynkName(mPath)
-	lynk := getLynk(lynks, lynkName)
+	lynk := lynxutil.GetLynk(lynks, lynkName)
 	askTrackerForPeers(lynkName)
 
 	if len(lynk.Peers) <= 0 {
