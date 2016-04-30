@@ -13,7 +13,7 @@ package client
 import (
 	"bufio"
 	"bytes"
-	"capstone/mycrypt"
+	"../mycrypt"
 	"compress/gzip"
 	"errors"
 	"fmt"
@@ -568,6 +568,8 @@ func CreateMeta(name string) error {
 	//startWalk(name)
 	filepath.Walk(homePath+name, visitFiles)
 
+
+	parseMetainfo(homePath+name+"/meta.info")
 	//FileCopy("temp_meta.info", dirPath+"meta.info")
 
 	//err2 := os.Remove("temp_meta.info") move removal to shutdown process cannot remove
