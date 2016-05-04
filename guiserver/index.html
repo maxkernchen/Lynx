@@ -211,10 +211,8 @@
         bottom:3%;left:9%;"
                id="createlynk" value="Create Lynk">
         <div id="dialog">
-            Name
+            Directory Name
             <input type="text" name="Name" required>
-            <br>
-            <input type ="checkbox" name="extraoptions"> Extra Options
             <br>
             <input type="submit" class="btn btn-success " name="createnewlynk" value="Create">
         </div>
@@ -226,13 +224,10 @@
             bottom:3%;left:40%;"
                id="joinlynk" value="Join Lynk">
         <div id="joindialog">
-            Metainfo Path
+            Meta.info Path
             <input type="text" name="MetaPath" required>
             <br>
-            Download Location
-            <input type="text" name="downloadlocation" required>
-            <br>
-            <input type="submit" class="btn btn-success " name="joincurrentlynk" value="Join">
+            <input type="submit" class="btn btn-info " name="joincurrentlynk" value="Join">
         </div>
     </form>
 <!-- form for removing a lynx connection -->
@@ -246,7 +241,7 @@
            {{.RemovalList}}
         </select>
         <br>
-        <input type ="checkbox" name="extraoptions"> Extra Options
+        <input type ="checkbox" name="deletelocal"> Delete Local Content
         <br>
         <input type="submit" class="btn btn-danger" name="removeselectedlynk" value="Remove">
     </div>

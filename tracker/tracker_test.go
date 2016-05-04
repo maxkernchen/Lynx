@@ -120,7 +120,8 @@ func TestSwarminfo(t *testing.T) {
 	result = addToSwarminfo(p1, sPath)
 
 	if result == nil {
-		t.Error("*Run Test Twice If This Is First Time* Test failed, expected duplicate error. Got ", result)
+		t.Error("*Run Test Twice If This Is First Time* Test failed, expected duplicate error. Got ",
+			result)
 	} else {
 		fmt.Println("Successfully Avoided Duplicate")
 		successful++

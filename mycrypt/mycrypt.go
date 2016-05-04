@@ -12,7 +12,7 @@ import (
 	"io"
 )
 
-// Encrypt - This function takes a key and a plain text byte slice and encrypts that slice using AES.
+// Encrypt - This function takes a key and a plain text byte slice and encrypts that slice using AES
 // @param []byte key - The key to be used for the encryption (AES requires only a single key
 // for encryption / decryption)
 // @param []byte text - The data that we would like encrypted.
@@ -40,7 +40,7 @@ func Encrypt(key, text []byte) (ciphertext []byte, err error) {
 	return
 }
 
-// Decrypt - This function takes a key and an encrypted byte slice and decrypts that slice using AES.
+// Decrypt - This function takes a key and an encrypted byte slice and decrypts that slice using AES
 // @param []byte key - The key to be used for the encryption (AES requires only a single key
 // for encryption / decryption)
 // @param []byte ciphertext - The data that we would like decrypted.

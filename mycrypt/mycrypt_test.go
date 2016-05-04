@@ -44,7 +44,8 @@ func TestFileCopy(t *testing.T) {
 	}
 
 	if string(plaintext) != "This is the unecrypted data. Referring to it as plain text." {
-		t.Error("Test failed, expected 'This is the unecrypted data. Referring to it as plain text.' Got '" + string(plaintext) + "'")
+		t.Error("Test failed, expected 'This is the unecrypted data. Referring to it as plain text.'" +
+			"Got '" + string(plaintext) + "'")
 	} else {
 		fmt.Println("Decrypted File Contents Valid")
 		successful++

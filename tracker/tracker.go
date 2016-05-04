@@ -176,11 +176,9 @@ func handleRequest(conn net.Conn) error {
 	if err != nil {
 		return err
 	}
-
 	request = strings.TrimSpace(request)
-	fmt.Println("REQUEST:" + request)
-	// Makes sure we are dealing with a request and not a push
-	if !strings.Contains(request, "Meta_Push:") {
+
+	if !strings.Contains(request, "Meta_Push:") { // Verifies we are getting request - not a push
 		// Client syntax for request is "X_Request:<IP>:<Port>:<LynkName>\n"
 		// So tmpArr[0] - X_Request | tmpArr[1] - <IP> | tmpArr[2] - <Port> | tmpArr[3] - <LynkName>
 		tmpArr := strings.Split(request, ":")
@@ -202,8 +200,6 @@ func handleRequest(conn net.Conn) error {
 		}
 
 		tmpPeer := lynxutil.Peer{IP: strings.TrimSpace(tmpArr[1]), Port: strings.TrimSpace(tmpArr[2])}
-		fmt.Println("New Peer: ", tmpPeer)
-
 		err = sendFile(fileToSend, conn) // Sending The file
 		if err != nil {
 			conn.Close()
@@ -211,44 +207,53 @@ func handleRequest(conn net.Conn) error {
 		}
 
 		addToSwarminfo(tmpPeer, swarmPath) // So we only add peer to swarmlist on success
-		fmt.Println("No Errors")
 	} else { // We are receiving a meta.info file
-		// Client syntax for push is "Meta_Push:<LynkName>\n"
-		// So tmpArr[0] - Meta_Push | tmpArr[1] - <LynkName>
-		tmpArr := strings.Split(request, ":")
-		metaPath := lynxutil.HomePath + tmpArr[3] + "/" + tmpArr[3] + "_Tracker/" + "meta.info"
-		err := os.Remove(metaPath)
-		if err != nil {
-			fmt.Println(err)
-			return err
-		}
+		handleMeta(request, conn)
+	}
+	return conn.Close()
+}
 
-		newMetainfo, err := os.Create(metaPath)
-		if err != nil {
-			fmt.Println(err)
-			return err
-		}
-
-		bufIn, err := ioutil.ReadAll(conn)
-
-		// Decrypt
-		key := []byte("abcdefghijklmnopqrstuvwxyz123456")
-		var plainFile []byte
-		if plainFile, err = mycrypt.Decrypt(key, bufIn); err != nil {
-			log.Fatal(err)
-		}
-
-		// Decompress
-		r, _ := gzip.NewReader(bytes.NewBuffer(plainFile))
-		bufOut, _ := ioutil.ReadAll(r)
-		r.Read(bufOut)
-		r.Close()
-
-		fmt.Println(len(bufIn), "Bytes Received")
-		newMetainfo.Write(bufOut)
+// Helper function for handleRequest - handles the case where we are received meta.info file.
+// @param net.Conn conn - The socket which the client is asking on
+// @param string request - The request sent to tracker
+// @return error - An error can be produced when trying to send a file or if there is incorrect
+// syntax in the request - otherwise error will be nil.
+func handleMeta(request string, conn net.Conn) error {
+	// Client syntax for push is "Meta_Push:<LynkName>\n"
+	// So tmpArr[0] - Meta_Push | tmpArr[1] - <LynkName>
+	tmpArr := strings.Split(request, ":")
+	metaPath := lynxutil.HomePath + tmpArr[3] + "/" + tmpArr[3] + "_Tracker/" + "meta.info"
+	err := os.Remove(metaPath)
+	if err != nil {
+		fmt.Println(err)
+		return err
 	}
 
-	return conn.Close()
+	newMetainfo, err := os.Create(metaPath)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	bufIn, err := ioutil.ReadAll(conn)
+
+	// Decrypt
+	key := []byte("abcdefghijklmnopqrstuvwxyz123456")
+	var plainFile []byte
+	if plainFile, err = mycrypt.Decrypt(key, bufIn); err != nil {
+		log.Fatal(err)
+	}
+
+	// Decompress
+	r, _ := gzip.NewReader(bytes.NewBuffer(plainFile))
+	bufOut, _ := ioutil.ReadAll(r)
+	r.Read(bufOut)
+	r.Close()
+
+	fmt.Println(len(bufIn), "Bytes Received")
+	newMetainfo.Write(bufOut)
+
+	return nil // No errors if we reached this point
 }
 
 // Sends a file to a peer.
@@ -299,6 +304,7 @@ func CreateSwarm(name string) {
 // @param file: each file within the root or inner directories
 // @param err: any error we way encoutner along the way
 func visitTrackers(path string, file os.FileInfo, err error) error {
+	path = strings.Replace(path, "\\", "/", -1) // Switches windows \ to unix /
 	base := strings.TrimPrefix(path, lynxutil.HomePath)
 	split := strings.Split(base, "/")
 
@@ -323,6 +329,6 @@ func init() {
 func getTLynkName(swarmPath string) string {
 	tmpStr := strings.TrimSuffix(strings.TrimPrefix(swarmPath, lynxutil.HomePath), "/swarm.info")
 	split := strings.Split(tmpStr, "/")
-	fmt.Println(split[0])
+	//fmt.Println(split[0])
 	return split[0]
 }

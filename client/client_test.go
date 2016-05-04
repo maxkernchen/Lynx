@@ -32,9 +32,6 @@ var mPath = hPath + "Tests/meta.info"
 // @param *testing.T t - The wrapper for the test
 func TestFileCopy(t *testing.T) {
 	fmt.Println("\n----------------TestFileCopy----------------")
-	fmt.Println(mPath)
-	fmt.Println(mPath)
-	fmt.Println(mPath)
 
 	result := lynxutil.FileCopy("test.txt", "test2.txt")
 

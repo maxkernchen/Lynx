@@ -94,14 +94,10 @@ func updateMetainfo(metaPath string) error {
 // @return error - An error can be produced when issues arise from trying to access
 // the meta file or from an invalid meta file type - otherwise error will be nil.
 func parseMetainfo(metaPath string) error {
-	lynkName := GetLynkName(metaPath)
-	//fmt.Println(metaPath)
-
-	lynk := lynxutil.GetLynk(lynks, lynkName)
+	lynk := lynxutil.GetLynk(lynks, GetLynkName(metaPath))
 	if lynk == nil {
 		return errors.New("Lynk Not Found")
 	}
-
 	lynk.Files = nil // Resets files array
 
 	metaFile, err := os.Open(metaPath)
@@ -113,13 +109,8 @@ func parseMetainfo(metaPath string) error {
 
 	scanner := bufio.NewScanner(metaFile)
 	tempFile := lynxutil.File{}
-
-	// Scan each line
-	for scanner.Scan() {
-
-		line := strings.TrimSpace(scanner.Text()) // Trim helps with errors in \n
-		split := strings.Split(line, ":::")
-
+	for scanner.Scan() { // Scan each line
+		split := strings.Split(strings.TrimSpace(scanner.Text()), ":::")
 		if split[0] == "announce" {
 			lynk.Tracker = split[metaValueIndex]
 		} else if split[0] == "owner" {
@@ -130,20 +121,17 @@ func parseMetainfo(metaPath string) error {
 			tempFile.ChunkLength, _ = strconv.Atoi(split[metaValueIndex])
 		} else if split[0] == "length" {
 			tempFile.Length, _ = strconv.Atoi(split[metaValueIndex])
-		} else if strings.Contains(line, "path") {
+		} else if split[0] == "path" {
 			tempFile.Path = split[metaValueIndex]
 		} else if split[0] == "name" {
 			tempFile.Name = split[metaValueIndex]
-		} else if strings.Contains(line, "chunks") {
+		} else if split[0] == "chunks" {
 			tempFile.Chunks = split[metaValueIndex]
-		} else if strings.Contains(line, endOfEntry) {
+		} else if split[0] == endOfEntry {
 			lynk.Files = append(lynk.Files, tempFile) // Append the current file to the file array
 			tempFile = lynxutil.File{}                // Empty the current file
 		}
-
 	}
-
-	//fmt.Println(lynk)
 	return metaFile.Close()
 }
 
@@ -166,12 +154,10 @@ func addToMetainfo(addPath, metaPath string) error {
 		return err
 	}
 
-	//fmt.Println(addStat.Name() + " this is addstat")
 	parseMetainfo(metaPath)
 	lynkName := GetLynkName(metaPath)
 	lynk := lynxutil.GetLynk(lynks, lynkName)
 
-	//fmt.Println(lynk.Files)
 	i := 0
 	for i < len(lynk.Files) {
 		if lynk.Files[i].Name == addStat.Name() {
@@ -258,38 +244,7 @@ func getFile(fileName, metaPath string) error {
 	for i < len(lynk.Peers) && !gotFile {
 		conn, err := net.Dial("tcp", lynk.Peers[i].IP+":"+lynk.Peers[i].Port)
 		if err == nil {
-			fmt.Fprintf(conn, "Do_You_Have_FileName:"+lynkName+"/"+fileName+"\n")
-
-			reply, err := bufio.NewReader(conn).ReadString('\n') // Waits for a String ending in newline
-			reply = strings.TrimSpace(reply)
-
-			// Has file and no errors
-			if reply != "NO" && err == nil {
-				file, err := os.Create(lynxutil.HomePath + lynkName + "/" + fileName)
-				if err != nil {
-					return err
-				}
-				defer file.Close()
-
-				bufIn, err := ioutil.ReadAll(conn)
-
-				// Decrypt
-				key := []byte("abcdefghijklmnopqrstuvwxyz123456")
-				var plainFile []byte
-				if plainFile, err = mycrypt.Decrypt(key, bufIn); err != nil {
-					log.Fatal(err)
-				}
-
-				// Decompress
-				r, _ := gzip.NewReader(bytes.NewBuffer(plainFile))
-				bufOut, _ := ioutil.ReadAll(r)
-				r.Read(bufOut)
-				r.Close()
-
-				fmt.Println(len(bufIn), "Bytes Received")
-				file.Write(bufOut)
-				gotFile = true
-			}
+			gotFile = askForFile(lynkName, fileName, conn)
 		}
 		//fmt.Println(i)
 		i++
@@ -300,6 +255,47 @@ func getFile(fileName, metaPath string) error {
 	}
 
 	return errors.New("Did not receive File") // If we got here - we didn't have the file.
+}
+
+func askForFile(lynkName, fileName string, conn net.Conn) bool {
+	fmt.Fprintf(conn, "Do_You_Have_FileName:"+lynkName+"/"+fileName+"\n")
+
+	reply, err := bufio.NewReader(conn).ReadString('\n') // Waits for a String ending in newline
+	reply = strings.TrimSpace(reply)
+	gotFile := false
+
+	// Has file and no errors
+	if reply != "NO" && err == nil {
+		file, err := os.Create(lynxutil.HomePath + lynkName + "/" + fileName)
+		if err != nil {
+			return gotFile
+		}
+		defer file.Close()
+
+		bufIn, err := ioutil.ReadAll(conn)
+		if err != nil {
+			return gotFile
+		}
+
+		// Decrypt
+		key := []byte("abcdefghijklmnopqrstuvwxyz123456")
+		var plainFile []byte
+		if plainFile, err = mycrypt.Decrypt(key, bufIn); err != nil {
+			log.Fatal(err)
+		}
+
+		// Decompress
+		r, _ := gzip.NewReader(bytes.NewBuffer(plainFile))
+		bufOut, _ := ioutil.ReadAll(r)
+		r.Read(bufOut)
+		r.Close()
+
+		fmt.Println(len(bufIn), "Bytes Received")
+		file.Write(bufOut)
+		gotFile = true
+	}
+
+	return gotFile
 }
 
 // Asks the tracker for a list of peers and then places them into a lynk's peers array
@@ -320,7 +316,7 @@ func askTrackerForPeers(lynkName string) {
 	reply, err := tp.ReadLine()
 	//fmt.Println(reply)
 
-	// Tracker will close connection when finished - which will produce error and break us out of this loop
+	// Tracker will close connection when finished - which will break us out of this loop
 	for err == nil {
 		peerArray := strings.Split(reply, ":::")
 		tmpPeer := lynxutil.Peer{IP: peerArray[0], Port: peerArray[1]}
@@ -359,7 +355,7 @@ func CreateMeta(name string) error {
 	}
 
 	currentUser, _ := user.Current()
-	metaFile.WriteString("announce:::" + lynxutil.GetIP() + ":9000\n") //add current ip and tracker is port 9000
+	metaFile.WriteString("announce:::" + lynxutil.GetIP() + ":" + lynxutil.TrackerPort + "\n")
 	metaFile.WriteString("lynkName:::" + name + "\n")
 	metaFile.WriteString("owner:::" + currentUser.Name + "\n")
 
@@ -551,7 +547,7 @@ func createJoin(name, oldMetaPath string) error {
 func init() {
 	ParseLynks(lynxutil.HomePath + "lynks.txt")
 	genLynks()
-	fmt.Println(lynks)
+	//fmt.Println(lynks)
 	//lynk := lynxutil.GetLynk(lynks, "Tests")
 	//fmt.Println(lynk.Files)
 }

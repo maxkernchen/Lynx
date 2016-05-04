@@ -47,6 +47,11 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Checks to see if lynks.txt exists - if it doesn't it is created.
+	if _, err := os.Stat(lynxutil.HomePath + "/lynks.txt"); os.IsNotExist(err) {
+		os.Create(lynxutil.HomePath + "lynks.txt")
+	}
+
 	port := os.Args[1]
 	fmt.Println("Starting server on http://localhost:" + port)
 
@@ -263,7 +268,7 @@ func FilePopulate(index int) string {
 	lynks := client.GetLynks()
 	fileEntries := ""
 	tempLynk := lynks[index]
-	fmt.Println(tempLynk.Name)
+	//fmt.Println(tempLynk.Name)
 	fileNames := tempLynk.FileNames
 	fileSizes := tempLynk.FileSize
 	i := 0
