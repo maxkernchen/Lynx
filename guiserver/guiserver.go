@@ -70,7 +70,7 @@ func main() {
 	http.HandleFunc("/downloads", DownloadHandler)
 	http.HandleFunc("/home", HomeHandler)
 
-	go server.Listen(server.HandleFileRequest)
+	go server.Listen()
 
 	go tracker.Listen()
 

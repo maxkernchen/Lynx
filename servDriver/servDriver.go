@@ -8,5 +8,5 @@ import "capstone/server"
 
 // Function used to drive and test our server's functions
 func main() {
-	server.Listen(server.HandleFileRequest)
+	server.Listen()
 }

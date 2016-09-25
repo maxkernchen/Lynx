@@ -15,42 +15,21 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net"
-	"os"
 	"strings"
 )
 
-// Listen - Creates a welcomeSocket that listens for TCP connections - once someone connects a
-// goroutine is spawned to handle the request
-// @param handler func(net.Conn) err - This is the function we want to use to handle a new
-// connection
-// @param func(net.Conn) error handler - This is the function we use to handle the requests we get
-func Listen(handler func(net.Conn) error) {
-	fmt.Println("Starting Server on Port " + lynxutil.ServerPort)
-
-	welcomeSocket, wErr := net.Listen("tcp", ":"+lynxutil.ServerPort)
-	if wErr != nil {
-		fmt.Println("Could Not Create Server Welcome Socket - Aborting.")
-		os.Exit(lynxutil.SockErr) // Cannot recover from not being able to generate welcomeSocket
-	}
-
-	var cErr error
-	for cErr == nil {
-		conn, cErr := welcomeSocket.Accept()
-		if cErr != nil {
-			// If a connection error occurs
-			continue // To avoid calling handler
-		}
-		go handler(conn)
-	}
-
+// Listen - Calls lynxutil to create a welcomeSocket that listens for TCP connections - once
+// someone connects a goroutine is spawned to handle the request
+func Listen() {
+	lynxutil.Listen(handleFileRequest, lynxutil.ServerPort)
 }
 
-// HandleFileRequest - Handles a file request sent by another peer - this involves checking to see
+// handleFileRequest - Handles a file request sent by another peer - this involves checking to see
 // if we have the file and, if so, sending the file.
 // @param net.Conn conn - The socket which the client is asking on
 // @return error - An error can be produced when trying to send a file or if there is incorrect
 // syntax in the request - otherwise error will be nil.
-func HandleFileRequest(conn net.Conn) error {
+func handleFileRequest(conn net.Conn) error {
 	request, err := bufio.NewReader(conn).ReadString('\n') // Waits for a String ending in newline
 	if err != nil {
 		return err

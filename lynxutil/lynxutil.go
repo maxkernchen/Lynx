@@ -121,6 +121,33 @@ func GetLynk(l []Lynk, lynkName string) *Lynk {
 	return nil // Don't have Lynk
 }
 
+// Listen - Creates a welcomeSocket that listens for TCP connections - once someone connects a
+// goroutine is spawned to handle the request
+// @param handler func(net.Conn) err - This is the function we want to use to handle a new
+// connection
+// @param func(net.Conn) error handler - This is the function we use to handle the requests we get
+// @param func(net.Conn) error handler - This is the port we will listen on.
+func Listen(handler func(net.Conn) error, port string) {
+	fmt.Println("Listening on Port: " + port)
+
+	welcomeSocket, wErr := net.Listen("tcp", ":"+port)
+	if wErr != nil {
+		fmt.Println("Could Not Create Server Welcome Socket - Aborting.")
+		os.Exit(SockErr) // Cannot recover from not being able to generate welcomeSocket
+	}
+
+	var cErr error
+	for cErr == nil {
+		conn, cErr := welcomeSocket.Accept()
+		if cErr != nil {
+			// If a connection error occurs
+			continue // To avoid calling handler
+		}
+		go handler(conn)
+	}
+
+}
+
 // Function init runs as soon as this class is imported and allows us to setup our HomePath
 func init() {
 	currentusr, _ := user.Current()

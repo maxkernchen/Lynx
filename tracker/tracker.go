@@ -143,27 +143,10 @@ func addToSwarminfo(addPeer lynxutil.Peer, swarmPath string) error {
 	return swarmFile.Close()
 }
 
-// Listen - Creates a welcomeSocket that listens for TCP connections - once someone connects a
-// goroutine is spawned to handle the request
+// Listen - Calls lynxutil to create a welcomeSocket that listens for TCP connections - once
+// someone connects a goroutine is spawned to handle the request
 func Listen() {
-	fmt.Println("Starting Tracker on Port " + lynxutil.TrackerPort)
-
-	welcomeSocket, wErr := net.Listen("tcp", ":"+lynxutil.TrackerPort)
-
-	if wErr != nil {
-		fmt.Println("Could Not Create Server Welcome Socket - Aborting.")
-		os.Exit(lynxutil.SockErr) // Cannot recover from not being able to generate welcomeSocket
-	}
-
-	var cErr error
-	for cErr == nil {
-		conn, cErr := welcomeSocket.Accept()
-		if cErr != nil {
-			// handle error
-			continue // To avoid calling handleRequest
-		}
-		go handleRequest(conn)
-	}
+	lynxutil.Listen(handleRequest, lynxutil.TrackerPort)
 }
 
 // Handles a request / push sent by a client, can either be a swarm or meta request or a push
