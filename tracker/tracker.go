@@ -162,38 +162,49 @@ func handleRequest(conn net.Conn) error {
 	request = strings.TrimSpace(request)
 
 	if !strings.Contains(request, "Meta_Push:") { // Verifies we are getting request - not a push
-		// Client syntax for request is "X_Request:<IP>:<Port>:<LynkName>\n"
-		// So tmpArr[0] - X_Request | tmpArr[1] - <IP> | tmpArr[2] - <Port> | tmpArr[3] - <LynkName>
-		tmpArr := strings.Split(request, ":")
-		if len(tmpArr) != 4 {
-			conn.Close()
-			return errors.New("Invalid Request Syntax")
-		}
-
-		fileToSend := ""
-		// Checks to see if we are dealing w/ a Swarm or Meta Request
-		swarmPath := lynxutil.HomePath + tmpArr[3] + "/" + tmpArr[3] + "_Tracker/" + "swarm.info"
-		if tmpArr[0] == "Swarm_Request" {
-			fileToSend = swarmPath
-		} else if tmpArr[0] == "Meta_Request" {
-			fileToSend = lynxutil.HomePath + tmpArr[3] + "/meta.info"
-		} else {
-			conn.Close()
-			return errors.New("Invalid Request Syntax")
-		}
-
-		tmpPeer := lynxutil.Peer{IP: strings.TrimSpace(tmpArr[1]), Port: strings.TrimSpace(tmpArr[2])}
-		err = sendFile(fileToSend, conn) // Sending The file
-		if err != nil {
-			conn.Close()
-			return err
-		}
-
-		addToSwarminfo(tmpPeer, swarmPath) // So we only add peer to swarmlist on success
+		handlePull(request, conn)
 	} else { // We are receiving a meta.info file
-		handleMeta(request, conn)
+		handlePush(request, conn)
 	}
 	return conn.Close()
+}
+
+// Helper function for handleRequest - handles the case where a client is requesting a meta.info
+// or swarm.info file.
+// @param net.Conn conn - The socket which the client is asking on
+// @param string request - The request sent to tracker
+// @return error - An error can be produced when trying to send a file or if there is incorrect
+// syntax in the request - otherwise error will be nil.
+func handlePull(request string, conn net.Conn) error {
+	// Client syntax for request is "X_Request:<IP>:<Port>:<LynkName>\n"
+	// So tmpArr[0] - X_Request | tmpArr[1] - <IP> | tmpArr[2] - <Port> | tmpArr[3] - <LynkName>
+	tmpArr := strings.Split(request, ":")
+	if len(tmpArr) != 4 {
+		conn.Close()
+		return errors.New("Invalid Request Syntax")
+	}
+
+	fileToSend := ""
+	// Checks to see if we are dealing w/ a Swarm or Meta Request
+	swarmPath := lynxutil.HomePath + tmpArr[3] + "/" + tmpArr[3] + "_Tracker/" + "swarm.info"
+	if tmpArr[0] == "Swarm_Request" {
+		fileToSend = swarmPath
+	} else if tmpArr[0] == "Meta_Request" {
+		fileToSend = lynxutil.HomePath + tmpArr[3] + "/meta.info"
+	} else {
+		conn.Close()
+		return errors.New("Invalid Request Syntax")
+	}
+
+	tmpPeer := lynxutil.Peer{IP: strings.TrimSpace(tmpArr[1]), Port: strings.TrimSpace(tmpArr[2])}
+	err := sendFile(fileToSend, conn) // Sending The file
+	if err != nil {
+		conn.Close()
+		return err
+	}
+
+	addToSwarminfo(tmpPeer, swarmPath) // So we only add peer to swarmlist on success
+	return nil                         // No errors if we reached this point
 }
 
 // Helper function for handleRequest - handles the case where we are received meta.info file.
@@ -201,7 +212,7 @@ func handleRequest(conn net.Conn) error {
 // @param string request - The request sent to tracker
 // @return error - An error can be produced when trying to send a file or if there is incorrect
 // syntax in the request - otherwise error will be nil.
-func handleMeta(request string, conn net.Conn) error {
+func handlePush(request string, conn net.Conn) error {
 	// Client syntax for push is "Meta_Push:<LynkName>\n"
 	// So tmpArr[0] - Meta_Push | tmpArr[1] - <LynkName>
 	tmpArr := strings.Split(request, ":")
