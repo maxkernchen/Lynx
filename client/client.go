@@ -243,6 +243,7 @@ func getFile(fileName, metaPath string) error {
 	gotFile := false
 	for i < len(lynk.Peers) && !gotFile {
 		conn, err := net.Dial("tcp", lynk.Peers[i].IP+":"+lynk.Peers[i].Port)
+		// We don't want to return on err because we might be able to connect to next peer.
 		if err == nil {
 			gotFile = askForFile(lynkName, fileName, conn)
 		}
@@ -254,7 +255,7 @@ func getFile(fileName, metaPath string) error {
 		return nil
 	}
 
-	return errors.New("Did not receive File") // If we got here - we didn't have the file.
+	return errors.New("Did not receive file") // If we got here - we didn't have the file.
 }
 
 func askForFile(lynkName, fileName string, conn net.Conn) bool {
@@ -305,6 +306,7 @@ func askTrackerForPeers(lynkName string) {
 	// Connects to tracker
 	conn, err := net.Dial("tcp", lynk.Tracker)
 	if err != nil {
+		// This is where I need to ask peers for their tracker info.
 		return
 	}
 
@@ -513,10 +515,22 @@ func JoinLynk(metaPath string) {
 	createJoin(lynkName, metaPath)
 	addLynk(lynkName, owner)
 
+	UpdateLynk(lynkName)
+}
+
+// UpdateLynk - Function which will update the files of a Lynk with the current versions.
+// @param lynkName string - the name of the Lynk we want to update
+func UpdateLynk(lynkName string) {
 	// We actually get the files we need over the network.
 	lynk := lynxutil.GetLynk(lynks, lynkName)
 	for _, file := range lynk.Files {
-		getFile(file.Name, lynxutil.HomePath+lynkName+"/meta.info")
+		err := getFile(file.Name, lynxutil.HomePath+lynkName+"/meta.info")
+		// If we fail to get the file the first time, we attempt again.
+		if err.Error() == "Did not receive file" {
+			for i := 0; i < lynxutil.ReconnAttempts; i++ {
+				getFile(file.Name, lynxutil.HomePath+lynkName+"/meta.info")
+			}
+		}
 	}
 }
 

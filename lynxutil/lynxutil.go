@@ -22,6 +22,9 @@ const TrackerPort = "9000"
 // SockErr - Represents A Welcome Socket Error
 const SockErr = -1
 
+// ReconnAttempts - Represents The Maximum Numbers Of Reconnections Attempts Lynx Will Make
+const ReconnAttempts = 3
+
 // HomePath - The absolute path of the user's Lynx directory
 var HomePath string
 
