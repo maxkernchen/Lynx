@@ -15,6 +15,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net"
+	"os"
 	"strings"
 )
 
@@ -35,6 +36,8 @@ func handleFileRequest(conn net.Conn) error {
 		return err
 	}
 
+	// Will handle tracker request too
+	// *Will handle receiving Meta as well
 	tmpArr := strings.Split(request, ":")
 	if len(tmpArr) != 2 {
 		conn.Close()
@@ -61,6 +64,30 @@ func handleFileRequest(conn net.Conn) error {
 	}
 	fmt.Println("No Errors")
 	return conn.Close()
+}
+
+// handleTrackerRequest - Handles a tracker request sent by another peer - this involves opening
+// the meta.info file and passing the requesting peer the IP address stored inside.
+// @param string request - The request the client made
+// @param net.Conn conn - The socket which the client is asking on
+// @return error - An error can be produced when trying to send a file or if there is incorrect
+// syntax in the request - otherwise error will be nil.
+func handleTrackerRequest(request string, conn net.Conn) error {
+	tmpArr := strings.Split(request, ":")
+	if len(tmpArr) != 2 {
+		conn.Close()
+		return errors.New("Invalid Request Syntax")
+	}
+
+	mPath := lynxutil.HomePath + tmpArr[1] + "meta.info"
+	mPath = strings.TrimSpace(mPath)
+
+	mFile, _ := os.Open(mPath)
+	scanner := bufio.NewScanner(mFile)
+	ip := (strings.Split(scanner.Text(), ":::"))[1] // Gets first line of metainfo and gets the IP
+	fmt.Fprintf(conn, ip+"\n")
+
+	return nil
 }
 
 // Sends a file across the network to a peer.

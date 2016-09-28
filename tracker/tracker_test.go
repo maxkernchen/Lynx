@@ -19,7 +19,7 @@ import (
 var successful = 0
 
 // Total # of the tests.
-const total = 7
+const total = 8
 
 // Gets user's home directory */
 var cU, _ = user.Current()
@@ -135,6 +135,17 @@ func TestSwarminfo(t *testing.T) {
 		t.Error("Test failed, expected no error. Got ", result)
 	} else {
 		fmt.Println("Successfully Updated Swarm Info")
+		successful++
+	}
+
+	fmt.Println("\n----------------TestBroadcastIP----------------")
+
+	BroadcastNewIP(sPath)
+
+	if result != nil {
+		t.Error("Test failed, expected no error. Got ", result)
+	} else {
+		fmt.Println("Successfully Broadcast New IP")
 		successful++
 	}
 

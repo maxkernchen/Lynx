@@ -306,7 +306,7 @@ func askTrackerForPeers(lynkName string) {
 	// Connects to tracker
 	conn, err := net.Dial("tcp", lynk.Tracker)
 	if err != nil {
-		// This is where I need to ask peers for their tracker info.
+		// This is where I ask for peer tracker IP
 		return
 	}
 
@@ -450,15 +450,23 @@ func ParseLynks(lynksFilePath string) error {
 
 // DeleteLynk - This function deletes a Lynk based upon its name from the list of lynks
 // @param nameToDelete string - the lynk we want to remove
-func DeleteLynk(nameToDelete string) {
+func DeleteLynk(nameToDelete string, deleteLocal bool) {
 	i := 0
 	for i < len(lynks) {
 		if nameToDelete == lynks[i].Name {
+			// Removes this peer from swarm.info file
+			conn, _ := net.Dial("tcp", lynks[i].Tracker)
+			fmt.Fprintf(conn, "Disconnect:"+lynxutil.GetIP()+":"+lynks[i].Name+"\n")
+
 			lynks = append(lynks[:i], lynks[i+1:]...)
 		}
 		i++
 	}
 	updateLynksFile()
+
+	if deleteLocal {
+		os.RemoveAll(lynxutil.HomePath + nameToDelete)
+	}
 }
 
 // Function which removes the lynks.txt file and creates a new one based on the current lynks array

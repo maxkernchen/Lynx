@@ -26,17 +26,28 @@ import (
 // An array of tLynks this tracker presides over
 var tLynks []lynxutil.Lynk
 
-// Function that deletes an entry from a lynk's peers array.
-// @param Peer peerToDelete - This is the peer struct we want to delete
+// Function that deletes an entry from a lynk's peers array and the swarm.info file.
+// @param string peerToDelete - This is the peer struct we want to delete - uses the IP address
 // @param string lynkName - The lynk we want to delete it from
-func deletePeer(peerToDelete lynxutil.Peer, lynkName string) {
+func deletePeer(peerToDelete, lynkName string) {
 	lynk := lynxutil.GetLynk(tLynks, lynkName)
 
 	i := 0
 	for i < len(lynk.Peers) {
-		if peerToDelete.IP == lynk.Peers[i].IP && peerToDelete.Port == lynk.Peers[i].Port {
+		if peerToDelete == lynk.Peers[i].IP {
 			lynk.Peers = append(lynk.Peers[:i], lynk.Peers[i+1:]...)
 		}
+		i++
+	}
+
+	swarmPath := lynxutil.HomePath + lynkName + "/" + lynkName + "_Tracker/" + "swarm.info"
+
+	os.Remove(swarmPath)
+	newSwarmInfo, _ := os.Create(swarmPath)
+
+	i = 0
+	for i < len(lynk.Peers) {
+		newSwarmInfo.WriteString(lynk.Peers[i].IP + ":::" + lynk.Peers[i].Port + "\n")
 		i++
 	}
 }
@@ -161,10 +172,14 @@ func handleRequest(conn net.Conn) error {
 	}
 	request = strings.TrimSpace(request)
 
-	if !strings.Contains(request, "Meta_Push:") { // Verifies we are getting request - not a push
-		handlePull(request, conn)
-	} else { // We are receiving a meta.info file
+	if strings.Contains(request, "Meta_Push:") { // We are receiving a meta.info file
 		handlePush(request, conn)
+	} else if strings.Contains(request, "Disconnect:") {
+		// tmpArr[0] - Disconnect | tmpArr[1] - <IP> | tmpArr[2] - <LynkName>
+		tmpArr := strings.Split(request, ":")
+		deletePeer(tmpArr[1], tmpArr[2])
+	} else { // We are receiving a pull request
+		handlePull(request, conn)
 	}
 	return conn.Close()
 }
@@ -307,6 +322,7 @@ func visitTrackers(path string, file os.FileInfo, err error) error {
 		fmt.Println(file.Name())
 		lynkName := strings.TrimSuffix(file.Name(), "_Tracker")
 		tLynks = append(tLynks, lynxutil.Lynk{Name: lynkName})
+		// Need to populate Peers here.
 	}
 
 	return nil
@@ -318,11 +334,30 @@ func init() {
 }
 
 // Helper function that returns a lynk's name give it's swarm.info filepath.
-// @param string metaPath - The meta.info path associated with the lynk we're interested in
+// @param string swarmPath - The swarm.info path associated with the lynk we're interested in
 // @returns string - The lynk name
 func getTLynkName(swarmPath string) string {
 	tmpStr := strings.TrimSuffix(strings.TrimPrefix(swarmPath, lynxutil.HomePath), "/swarm.info")
 	split := strings.Split(tmpStr, "/")
 	//fmt.Println(split[0])
 	return split[0]
+}
+
+// BroadcastNewIP - This function broadcasts a tracker's new IP address to all of its peers
+// @param string swarmPath - The swarm.info path associated with the lynk we're interested in
+func BroadcastNewIP(swarmPath string) {
+	// Can update Meta here if needed
+	lynkName := getTLynkName(swarmPath)
+	lynk := lynxutil.GetLynk(tLynks, lynkName)
+
+	i := 0
+	for i < len(lynk.Peers) {
+		//fmt.Println(i)
+		conn, err := net.Dial("tcp", lynk.Peers[i].IP+":"+lynk.Peers[i].Port)
+		if err == nil {
+			sendFile(lynxutil.HomePath+lynk.Name+"/meta.info", conn)
+		}
+		//fmt.Println(lynk.Peers[i].IP)
+		i++
+	}
 }

@@ -166,7 +166,7 @@ func RemoveHandler(rw http.ResponseWriter, req *http.Request) {
 	form = req.Form
 	name := form["Lynks"]
 	if name != nil {
-		client.DeleteLynk(name[0])
+		client.DeleteLynk(name[0], false)
 		TablePopulate(lynxutil.HomePath + "/lynks.txt")
 	}
 	IndexHandler(rw, req)
