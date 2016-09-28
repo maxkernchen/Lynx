@@ -361,3 +361,46 @@ func BroadcastNewIP(swarmPath string) {
 		i++
 	}
 }
+
+// PurgeOldIPs - This function tries to connect to every peer in the swarm.info file and removes
+// them if unable to connect.
+func PurgeOldIPs() {
+	// Loops through all tracker lynks.
+	for _, lynk := range tLynks {
+
+		// Loops through all peers of a given lynk
+		i := 0
+		for i < len(lynk.Peers) {
+			conn, err := net.Dial("tcp", lynk.Peers[i].IP+":"+lynk.Peers[i].Port)
+
+			// If we cannot connect, remove the peer
+			if err != nil {
+				deletePeer(lynk.Peers[i].IP, lynk.Name)
+			}
+			conn.Close()
+			i++
+		}
+	}
+}
+
+// TransferTracker - This function transfers the needed tracker files (swarm/meta.info) to the
+// specified IP and then deletes the local copies of these files.
+func TransferTracker(lynkName, owner, IP string) error {
+	conn, _ := net.Dial("tcp", IP+":"+lynxutil.TrackerPort)
+
+	// Sends the new peer the needed tracker files
+	err := sendFile(lynxutil.HomePath+lynkName+"/"+lynkName+"_Tracker/swarm.info", conn)
+	if err != nil {
+		return err
+	}
+
+	err = sendFile(lynxutil.HomePath+lynkName+"/"+lynkName+"_Tracker/meta.info", conn)
+	if err != nil {
+		return err
+	}
+
+	// Removes the tracker directory from this computer
+	os.RemoveAll(lynxutil.HomePath + lynkName + "/" + lynkName + "_Tracker/")
+
+	return nil // No errors if we reach this point
+}

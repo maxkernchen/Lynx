@@ -402,7 +402,8 @@ func addLynk(name, owner string) error {
 
 	i := 0
 	for i < len(lynks) {
-		if lynks[i].Name == name {
+		// Will have to validate directory names
+		if lynks[i].Name+lynks[i].Owner == name+owner {
 			return errors.New("Can't Add Duplicate Lynk")
 		}
 		i++
@@ -492,10 +493,10 @@ func updateLynksFile() error {
 // JoinLynk - Function which will allow a user to join an existing link by way of its meta.info file
 // @param metaPath string - the path to the meta.info file which will be used to find the
 // information about the lynk
-func JoinLynk(metaPath string) {
+func JoinLynk(metaPath string) error {
 	metaFile, err := os.Open(metaPath)
 	if err != nil {
-		fmt.Println(err)
+		return err
 	}
 	lynkName := ""
 	owner := ""
@@ -516,6 +517,8 @@ func JoinLynk(metaPath string) {
 			lynkName = split[metaValueIndex]
 		} else if split[0] == "owner" {
 			owner = split[metaValueIndex]
+		} else {
+			return errors.New("Invalid Meta")
 		}
 
 	}
@@ -523,23 +526,26 @@ func JoinLynk(metaPath string) {
 	createJoin(lynkName, metaPath)
 	addLynk(lynkName, owner)
 
-	UpdateLynk(lynkName)
+	return UpdateLynk(lynkName) // Gets all of the files for the lynk over the network
 }
 
 // UpdateLynk - Function which will update the files of a Lynk with the current versions.
 // @param lynkName string - the name of the Lynk we want to update
-func UpdateLynk(lynkName string) {
+func UpdateLynk(lynkName string) error {
 	// We actually get the files we need over the network.
 	lynk := lynxutil.GetLynk(lynks, lynkName)
+	var err error // Creates nil error
 	for _, file := range lynk.Files {
-		err := getFile(file.Name, lynxutil.HomePath+lynkName+"/meta.info")
+		err = getFile(file.Name, lynxutil.HomePath+lynkName+"/meta.info")
 		// If we fail to get the file the first time, we attempt again.
 		if err.Error() == "Did not receive file" {
 			for i := 0; i < lynxutil.ReconnAttempts; i++ {
-				getFile(file.Name, lynxutil.HomePath+lynkName+"/meta.info")
+				err = getFile(file.Name, lynxutil.HomePath+lynkName+"/meta.info")
 			}
 		}
 	}
+
+	return err
 }
 
 // Function which creates the directory for a newly joined lynk.
