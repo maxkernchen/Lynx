@@ -151,7 +151,10 @@ func JoinHandler(rw http.ResponseWriter, req *http.Request) {
 	req.ParseForm()
 	form = req.Form
 	metapath := form["MetaPath"]
-	client.JoinLynk(metapath[0])
+	err := client.JoinLynk(metapath[0])
+	if err != nil {
+		// Display meta.info error to user here
+	}
 
 	IndexHandler(rw, req)
 

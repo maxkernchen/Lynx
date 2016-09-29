@@ -44,6 +44,7 @@ type Lynk struct {
 	Peers     []Peer
 	FileNames []string
 	FileSize  []int
+	DLing     bool
 }
 
 // File - A struct based which represents a File in a Lynk's directory. It is based

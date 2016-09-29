@@ -14,6 +14,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net"
 	"os"
 	"strings"
@@ -84,10 +85,62 @@ func handleTrackerRequest(request string, conn net.Conn) error {
 
 	mFile, _ := os.Open(mPath)
 	scanner := bufio.NewScanner(mFile)
-	ip := (strings.Split(scanner.Text(), ":::"))[1] // Gets first line of metainfo and gets the IP
+	ip := (strings.Split(scanner.Text(), ":::"))[1] // Splits first line of metainfo and gets the IP
 	fmt.Fprintf(conn, ip+"\n")
 
 	return nil
+}
+
+// Helper function for handleRequest - handles the case where we are received meta.info file.
+// @param net.Conn conn - The socket which the client is asking on
+// @param string request - The request sent to tracker
+// @return error - An error can be produced when trying to send a file or if there is incorrect
+// syntax in the request - otherwise error will be nil.
+func handlePush(request string, conn net.Conn) error {
+	// Client syntax for push is "Meta_Push:<LynkName>\n"
+	// So tmpArr[0] - Meta_Push | tmpArr[1] - <LynkName>
+	tmpArr := strings.Split(request, ":")
+	if len(tmpArr) != 2 {
+		conn.Close()
+		return errors.New("Invalid Request Syntax")
+	}
+
+	if client.IsDownloading(tmpArr[1]) {
+		client.StopDownload(tmpArr[1])
+	}
+
+	metaPath := lynxutil.HomePath + tmpArr[1] + "/"
+	err := os.Remove(metaPath)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	newMetainfo, err := os.Create(metaPath)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	bufIn, err := ioutil.ReadAll(conn)
+
+	// Decrypt
+	key := []byte("abcdefghijklmnopqrstuvwxyz123456")
+	var plainFile []byte
+	if plainFile, err = mycrypt.Decrypt(key, bufIn); err != nil {
+		log.Fatal(err)
+	}
+
+	// Decompress
+	r, _ := gzip.NewReader(bytes.NewBuffer(plainFile))
+	bufOut, _ := ioutil.ReadAll(r)
+	r.Read(bufOut)
+	r.Close()
+
+	fmt.Println(len(bufIn), "Bytes Received")
+	newMetainfo.Write(bufOut)
+
+	return nil // No errors if we reached this point
 }
 
 // Sends a file across the network to a peer.

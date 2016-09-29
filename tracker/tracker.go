@@ -231,7 +231,7 @@ func handlePush(request string, conn net.Conn) error {
 	// Client syntax for push is "Meta_Push:<LynkName>\n"
 	// So tmpArr[0] - Meta_Push | tmpArr[1] - <LynkName>
 	tmpArr := strings.Split(request, ":")
-	metaPath := lynxutil.HomePath + tmpArr[3] + "/" + tmpArr[3] + "_Tracker/" + "meta.info"
+	metaPath := lynxutil.HomePath + tmpArr[1] + "/" + tmpArr[1] + "_Tracker/" + "meta.info"
 	err := os.Remove(metaPath)
 	if err != nil {
 		fmt.Println(err)
@@ -352,12 +352,12 @@ func BroadcastNewIP(swarmPath string) {
 
 	i := 0
 	for i < len(lynk.Peers) {
-		//fmt.Println(i)
+		fmt.Println(i)
 		conn, err := net.Dial("tcp", lynk.Peers[i].IP+":"+lynk.Peers[i].Port)
 		if err == nil {
 			sendFile(lynxutil.HomePath+lynk.Name+"/meta.info", conn)
 		}
-		//fmt.Println(lynk.Peers[i].IP)
+		fmt.Println(lynk.Peers[i].IP)
 		i++
 	}
 }

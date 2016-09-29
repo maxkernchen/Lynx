@@ -64,7 +64,7 @@ func TestListenHandleSend(t *testing.T) {
 
 	conn, err = net.Dial("tcp", "127.0.0.1:9000")
 
-	fmt.Fprintf(conn, "Swarm_Request:813.444.555.111:7500:Tests\n")
+	fmt.Fprintf(conn, "Swarm_Request:111.111.111.111:0000:Tests\n")
 
 	reply, err = bufio.NewReader(conn).ReadString('\n') // Waits for a String ending in newline
 	reply = strings.TrimSpace(reply)
@@ -84,7 +84,7 @@ func TestListenHandleSend(t *testing.T) {
 
 	conn, err = net.Dial("tcp", "127.0.0.1:9000")
 
-	fmt.Fprintf(conn, "Meta_Request:813.444.555.111:7500:Tests\n")
+	fmt.Fprintf(conn, "Meta_Request:111.111.111.111:0000:Tests\n")
 
 	reply, err = bufio.NewReader(conn).ReadString('\n') // Waits for a String ending in newline
 	reply = strings.TrimSpace(reply)
@@ -116,7 +116,7 @@ func TestSwarminfo(t *testing.T) {
 
 	fmt.Println("\n----------------TestAddToSwarminfo----------------")
 
-	p1 := lynxutil.Peer{IP: "124.123.563.186", Port: "4500"}
+	p1 := lynxutil.Peer{IP: "000.000.000.000", Port: "4500"}
 	result = addToSwarminfo(p1, sPath)
 
 	if result == nil {

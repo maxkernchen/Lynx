@@ -258,6 +258,11 @@ func getFile(fileName, metaPath string) error {
 	return errors.New("Did not receive file") // If we got here - we didn't have the file.
 }
 
+// The function responsible for actually asking for a file from a peer
+// @param string lynkName - The name of the lynk we're asking about
+// @param string fileName - The name of the file to find in the peers
+// @param net.Conn conn - The connection to the peer
+// @return bool - True or false is returned based on whether or not we successfully received a file
 func askForFile(lynkName, fileName string, conn net.Conn) bool {
 	fmt.Fprintf(conn, "Do_You_Have_FileName:"+lynkName+"/"+fileName+"\n")
 
@@ -301,13 +306,27 @@ func askForFile(lynkName, fileName string, conn net.Conn) bool {
 
 // Asks the tracker for a list of peers and then places them into a lynk's peers array
 // @param string lynkName - The name of the lynk we're interested in
-func askTrackerForPeers(lynkName string) {
+func askTrackerForPeers(lynkName string) error {
 	lynk := lynxutil.GetLynk(lynks, lynkName)
 	// Connects to tracker
 	conn, err := net.Dial("tcp", lynk.Tracker)
 	if err != nil {
-		// This is where I ask for peer tracker IP
-		return
+		i := 0
+		for i < len(lynk.Peers) && err != nil {
+			pConn, _ := net.Dial("tcp", lynk.Peers[i].IP+":"+lynk.Peers[i].Port)
+			fmt.Fprintf(pConn, "Tracker_Request:"+lynkName+"/\n")
+			reply := ""
+			reply, err = bufio.NewReader(pConn).ReadString('\n') // Waits for a String ending in newline
+			reply = strings.TrimSpace(reply)
+
+			conn, err = net.Dial("tcp", reply)
+			i++
+		}
+
+		// We could not connect to the tracker
+		if err != nil {
+			return err
+		}
 	}
 
 	// Gives IP and ServerPort So It Can Be Added To swarm.info
@@ -327,6 +346,8 @@ func askTrackerForPeers(lynkName string) {
 		}
 		reply, err = tp.ReadLine()
 	}
+
+	return nil // Did not have an error if we reached this point
 }
 
 // Simple helper method that checks peers array for specific peer.
@@ -626,4 +647,19 @@ func PopulateFilesAndSize() {
 		i++
 	}
 
+}
+
+// IsDownloading - Returns whether or not the client associated the specified lynk is downloading
+// @param lynkName
+// @returns - Returns whether or not the client associated the specified lynk is downloading
+func IsDownloading(lynkName string) bool {
+	lynk := lynxutil.GetLynk(lynks, lynkName)
+
+	return lynk.DLing
+}
+
+// StopDownload - Sets a boolean to stop the lynk from downloading
+func StopDownload(lynkName string) {
+	lynk := lynxutil.GetLynk(lynks, lynkName)
+	lynk.DLing = false
 }
