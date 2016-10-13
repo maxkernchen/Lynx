@@ -284,7 +284,8 @@ func askForFile(lynkName, fileName string, conn net.Conn) bool {
 		}
 
 		// Decrypt
-		key := []byte("abcdefghijklmnopqrstuvwxyz123456")
+		//key := []byte("abcdefghijklmnopqrstuvwxyz123456")
+		key := []byte(lynxutil.PrivateKey)
 		var plainFile []byte
 		if plainFile, err = mycrypt.Decrypt(key, bufIn); err != nil {
 			log.Fatal(err)

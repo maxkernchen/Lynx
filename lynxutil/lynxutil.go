@@ -5,12 +5,14 @@
 package lynxutil
 
 import (
+	"capstone/mypgp"
 	"fmt"
 	"io"
 	"net"
 	"os"
 	"os/user"
 	"strings"
+	"time"
 )
 
 // ServerPort - The Default Port For The Lynx Server
@@ -28,10 +30,17 @@ const ReconnAttempts = 3
 // HomePath - The absolute path of the user's Lynx directory
 var HomePath string
 
+// PrivateKey - This is the armored string that represents our private OpenPGP Key.
+var PrivateKey string
+
+// PublicKey - This is the armored string that represents our public OpenPGP Key.
+var PublicKey string
+
 // Peer - A struct which represents a Peer of the client
 type Peer struct {
 	IP   string
 	Port string
+	Key  string
 }
 
 // Lynk - A struct which holds all the information about a specific Lynk.
@@ -157,4 +166,8 @@ func init() {
 	currentusr, _ := user.Current()
 	HomePath = currentusr.HomeDir + "/Lynx/"
 	HomePath = strings.Replace(HomePath, "\\", "/", -1) // Replaces Windows "\" With Unix "/" in path
+	config := mypgp.Config{Expiry: 365 * 24 * time.Hour}
+	key, _ := mypgp.CreateKey(currentusr.Name, "openpgp:lynxkeys", currentusr.Name+"@lynx.com", &config)
+	PublicKey = key.Public
+	PrivateKey = key.Private
 }

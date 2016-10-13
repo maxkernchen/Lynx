@@ -40,4 +40,9 @@ go install
 echo Mycrypt Installed
 cd ..
 
+cd mypgp
+go install
+echo Mypgp Installed
+cd ..
+
 exit

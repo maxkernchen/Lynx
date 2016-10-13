@@ -125,7 +125,8 @@ func handlePush(request string, conn net.Conn) error {
 	bufIn, err := ioutil.ReadAll(conn)
 
 	// Decrypt
-	key := []byte("abcdefghijklmnopqrstuvwxyz123456")
+	//key := []byte("abcdefghijklmnopqrstuvwxyz123456")
+	key := []byte(lynxutil.PrivateKey)
 	var plainFile []byte
 	if plainFile, err = mycrypt.Decrypt(key, bufIn); err != nil {
 		log.Fatal(err)
@@ -165,7 +166,10 @@ func sendFile(fileName string, conn net.Conn) error {
 	// Begin Encryption
 	var cipherFile []byte
 	// The key length can be 32, 24, 16  bytes (OR in bits: 128, 192 or 256)
-	key := []byte("abcdefghijklmnopqrstuvwxyz123456")
+	//key := []byte("abcdefghijklmnopqrstuvwxyz123456")
+	publicKey := lynxutil.Peer{IP: conn.LocalAddr().String()}.Key + lynxutil.PrivateKey
+	key := []byte(publicKey)
+	fmt.Println(publicKey)
 	if cipherFile, err = mycrypt.Encrypt(key, b.Bytes()); err != nil {
 		return err
 	}

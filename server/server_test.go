@@ -7,6 +7,7 @@ package server
 import (
 	"bufio"
 	"bytes"
+	"capstone/lynxutil"
 	"capstone/mycrypt"
 	"compress/gzip"
 	"fmt"
@@ -78,7 +79,8 @@ func TestListenHandleSend(t *testing.T) {
 	bufIn := make([]byte, 512) // Set to 512 because we know this file is small
 	_, err = conn.Read(bufIn)
 	// Decrypt
-	key := []byte("abcdefghijklmnopqrstuvwxyz123456")
+	//key := []byte("abcdefghijklmnopqrstuvwxyz123456")
+	key := []byte(lynxutil.PrivateKey)
 	var plainFile []byte
 	if plainFile, err = mycrypt.Decrypt(key, bufIn); err != nil {
 		log.Fatal(err)
