@@ -91,7 +91,7 @@ func TestAddToMetainfo(t *testing.T) {
 	}
 
 	// add test.txt to the metainfo
-	result := addToMetainfo("test.txt", mPath)
+	result := AddToMetainfo("test.txt", mPath)
 
 	if result != nil && !hasTest {
 		t.Error("Test failed, expected no errors. Got ", result)
@@ -118,7 +118,7 @@ func TestAddToMetainfo(t *testing.T) {
 		successful++
 	}
 
-	result = addToMetainfo("test.txt", mPath)
+	result = AddToMetainfo("test.txt", mPath)
 
 	if result == nil {
 		t.Error("Test failed, expected failure due to duplicates. Got ", result)
@@ -168,7 +168,7 @@ func TestUpdateMetainfo(t *testing.T) {
 
 	parseMetainfo(mPath)
 
-	result := updateMetainfo(mPath)
+	result := UpdateMetainfo(mPath)
 
 	if result != nil {
 		t.Error("Test failed, expected no errors. Got ", result)
@@ -187,7 +187,7 @@ func TestDeleteFile(t *testing.T) {
 
 	parseMetainfo(mPath)
 	lynkName := GetLynkName(mPath)
-	deleteFile("test.txt", lynkName)
+	DeleteFile("test.txt", lynkName)
 
 	tLynk := lynxutil.GetLynk(lynks, lynkName)
 
@@ -207,7 +207,7 @@ func TestDeleteFile(t *testing.T) {
 		failed = false
 	}
 
-	deleteFile("test11.txt", lynkName)
+	DeleteFile("test11.txt", lynkName)
 
 	i = 0
 	for i < len(tLynk.Files) {

@@ -21,6 +21,9 @@ const ServerPort = "8080"
 // TrackerPort - The Default Port For The Lynx Tracker
 const TrackerPort = "9000"
 
+// GUIPort - The Default Port For The Lynx GUI
+const GUIPort = "5000"
+
 // SockErr - Represents A Welcome Socket Error
 const SockErr = -1
 

@@ -3,7 +3,6 @@ package mypgp
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	"io"
 	"strings"
 	"time"
@@ -153,7 +152,6 @@ func CreateKey(name, comment, email string, config *Config) (*Key, error) {
 	// Set expiry and algorithms. Self-sign the identity.
 	dur := uint32(config.Expiry.Seconds())
 	s = strings.Replace(s, s, comment, -1)
-	fmt.Println(s)
 	for _, id := range key.Identities {
 		id.SelfSignature.KeyLifetimeSecs = &dur
 

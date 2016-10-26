@@ -33,10 +33,11 @@ const endOfEntry = ":#!"
 // The array index of our metainfo values
 const metaValueIndex = 1
 
-// Function that deletes an entry from a lynk's files array.
+// DeleteFile - Function that deletes an entry from a lynk's files array.
 // @param string nameToDelete - This is the name of the file we want to delete
 // @param string lynkName - The lynk we want to delete it from
-func deleteFile(nameToDelete, lynkName string) {
+func DeleteFile(nameToDelete, lynkName string) {
+	// Need to delete the local file too - so parseMeta properly picks it up
 	lynk := lynxutil.GetLynk(lynks, lynkName)
 
 	i := 0
@@ -50,11 +51,11 @@ func deleteFile(nameToDelete, lynkName string) {
 	fmt.Println(lynk.Files)
 }
 
-// Deletes the current meta.info and replaces it with a new version that
+// UpdateMetainfo - Deletes the current meta.info and replaces it with a new version that
 // accurately reflects the array of Files after they have been modified.
 // @return error - An error can be produced when issues arise from trying to create
 // or remove the meta file - otherwise error will be nil.
-func updateMetainfo(metaPath string) error {
+func UpdateMetainfo(metaPath string) error {
 	parseMetainfo(metaPath)
 	lynkName := GetLynkName(metaPath)
 	lynk := lynxutil.GetLynk(lynks, lynkName)
@@ -135,13 +136,13 @@ func parseMetainfo(metaPath string) error {
 	return metaFile.Close()
 }
 
-// Adds a file to the meta.info by parsing that file's information
+// AddToMetainfo - Adds a file to the meta.info by parsing that file's information
 // @param string addPath - the path of the file to be added
 // @param string metaPath - the path of the metainfo file - must be full path from root.
 // @return error - An error can be produced when issues arise from trying to access
 // the meta file or if the file to be added already exists in the meta file - otherwise
 // error will be nil.
-func addToMetainfo(addPath, metaPath string) error {
+func AddToMetainfo(addPath, metaPath string) error {
 	metaFile, err := os.OpenFile(metaPath, os.O_APPEND|os.O_WRONLY, 0644) // Opens for appending
 	if err != nil {
 		fmt.Println(err)
@@ -404,7 +405,7 @@ func visitFiles(path string, file os.FileInfo, err error) error {
 		//fmt.Println(slashes)
 		tmpStr := strings.TrimPrefix(slashes, lynxutil.HomePath)
 		tmpArr := strings.Split(tmpStr, "/")
-		addToMetainfo(path, lynxutil.HomePath+tmpArr[0]+"/meta.info")
+		AddToMetainfo(path, lynxutil.HomePath+tmpArr[0]+"/meta.info")
 	}
 
 	return nil

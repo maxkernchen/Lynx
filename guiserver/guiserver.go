@@ -40,20 +40,19 @@ type HTMLFiles struct {
 	fs http.FileSystem
 }
 
-// Launches our web server using the port specified by commandline argument 1.
+// Main simply calls our launch method which inits our web server
 func main() {
-	if len(os.Args) != 2 {
-		fmt.Println("Usage: ", os.Args[0], " <port>")
-		os.Exit(1)
-	}
+	launch()
+}
 
+// Launches our web server
+func launch() {
 	// Checks to see if lynks.txt exists - if it doesn't it is created.
 	if _, err := os.Stat(lynxutil.HomePath + "/lynks.txt"); os.IsNotExist(err) {
 		os.Create(lynxutil.HomePath + "lynks.txt")
 	}
 
-	port := os.Args[1]
-	fmt.Println("Starting server on http://localhost:" + port)
+	fmt.Println("Starting server on http://localhost:" + lynxutil.GUIPort)
 
 	fs := HTMLFiles{http.Dir("js/")}
 	http.Handle("/js/", http.StripPrefix("/js/", http.FileServer(fs)))
@@ -74,7 +73,7 @@ func main() {
 
 	go tracker.Listen()
 
-	http.ListenAndServe(":"+port, nil)
+	http.ListenAndServe(":"+lynxutil.GUIPort, nil)
 }
 
 // Open - Method which is called when a new HTMLFiles struct is created it simply opens the

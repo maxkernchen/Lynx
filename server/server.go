@@ -169,7 +169,6 @@ func sendFile(fileName string, conn net.Conn) error {
 	//key := []byte("abcdefghijklmnopqrstuvwxyz123456")
 	publicKey := lynxutil.Peer{IP: conn.LocalAddr().String()}.Key + lynxutil.PrivateKey
 	key := []byte(publicKey)
-	fmt.Println(publicKey)
 	if cipherFile, err = mycrypt.Encrypt(key, b.Bytes()); err != nil {
 		return err
 	}
