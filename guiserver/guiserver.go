@@ -156,7 +156,6 @@ func JoinHandler(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	IndexHandler(rw, req)
-
 }
 
 // RemoveHandler - Function that handles requests on the index page: "/removelynx".

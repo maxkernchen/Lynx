@@ -36,9 +36,14 @@ const metaValueIndex = 1
 // DeleteFile - Function that deletes an entry from a lynk's files array.
 // @param string nameToDelete - This is the name of the file we want to delete
 // @param string lynkName - The lynk we want to delete it from
-func DeleteFile(nameToDelete, lynkName string) {
+func DeleteFile(nameToDelete, lynkName string) error {
 	// Need to delete the local file too - so parseMeta properly picks it up
 	lynk := lynxutil.GetLynk(lynks, lynkName)
+	var err error
+
+	if lynk == nil {
+		err = errors.New("Could not delete file")
+	}
 
 	i := 0
 	for i < len(lynk.Files) {
@@ -49,6 +54,7 @@ func DeleteFile(nameToDelete, lynkName string) {
 	}
 
 	fmt.Println(lynk.Files)
+	return err
 }
 
 // UpdateMetainfo - Deletes the current meta.info and replaces it with a new version that
