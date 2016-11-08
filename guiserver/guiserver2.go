@@ -4,12 +4,13 @@
 //@verison: 2/17/2016
 package main
 
+/*
 import (
 	"bufio"
-	"../client"
-	"../lynxutil"
-	"../server"
-	"../tracker"
+	"capstone/client"
+	"capstone/lynxutil"
+	"capstone/server"
+	"capstone/tracker"
 	"fmt"
 	"html/template"
 	"io/ioutil"
@@ -107,8 +108,6 @@ func IndexHandler(rw http.ResponseWriter, req *http.Request) {
 	t.ExecuteTemplate(rw, "index2.html", map[string]template.HTML{"Entries": tableTemplate})
 }
 
-
-
 // CreateHandler - Function that handles requests on the index page: "/createlynx".
 // @param http.ResponseWriter rw - This is what we use to write our html back to
 // the web page.
@@ -147,7 +146,7 @@ func RemoveHandler(rw http.ResponseWriter, req *http.Request) {
 	form = req.Form
 	name := form["index"]
 	if name != nil {
-		index,_ := strconv.Atoi(name[0])
+		index, _ := strconv.Atoi(name[0])
 		client.DeleteLynk(client.GetLynkNameFromIndex(index))
 		TablePopulate(lynxutil.HomePath + "/lynks.txt")
 	}
@@ -265,6 +264,7 @@ func FilePopulate(index int) string {
 
 	return fileEntries
 }
+
 func FileHandler(rw http.ResponseWriter, req *http.Request) {
 	req.ParseForm()
 	form = req.Form
@@ -277,19 +277,17 @@ func FileHandler(rw http.ResponseWriter, req *http.Request) {
 	}
 	tableEntries := TablePopulate(lynxutil.HomePath + "/lynks.txt")
 	tableTemplate := template.HTML(tableEntries)
-	indexInt,err := strconv.Atoi(index[0]);
+	indexInt, err := strconv.Atoi(index[0])
 	fileEntry := FilePopulate(indexInt)
 
 	t.ExecuteTemplate(rw, "index2.html", map[string]template.HTML{"Entries": tableTemplate,
 		"Files": template.HTML(fileEntry)})
 
-
 }
-
 
 // Function INIT runs before main and allows us to load the index html before any operations
 // are done on it and find the root directory on the user's computer
 func init() {
-	uploads,_  = ioutil.ReadFile("uploads.html")
+	uploads, _ = ioutil.ReadFile("uploads.html")
 	downloads, _ = ioutil.ReadFile("downloads.html")
-}
+}*/

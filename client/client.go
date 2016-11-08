@@ -184,8 +184,8 @@ func AddToMetainfo(addPath, metaPath string) error {
 	// Write to metainfo file using ::: to separate keys and values
 	metaFile.WriteString("path:::" + tempPath + "\n")
 	metaFile.WriteString("name:::" + addStat.Name() + "\n")
-	metaFile.WriteString("chunkLength:::-1\n")
-	metaFile.WriteString("chunks:::chunking not currently implemented\n")
+	metaFile.WriteString("chunkLength:::32\n")
+	metaFile.WriteString("chunks:::256\n")
 	metaFile.WriteString(endOfEntry + "\n")
 	return metaFile.Close()
 }
