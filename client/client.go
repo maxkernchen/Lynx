@@ -33,6 +33,10 @@ const endOfEntry = ":#!"
 // The array index of our metainfo values
 const metaValueIndex = 1
 
+
+//holds the variable for the table lynk index
+var fileTableIndex int = -1;
+
 // DeleteFile - Function that deletes an entry from a lynk's files array.
 // @param string nameToDelete - This is the name of the file we want to delete
 // @param string lynkName - The lynk we want to delete it from
@@ -55,6 +59,30 @@ func DeleteFile(nameToDelete, lynkName string) error {
 
 	fmt.Println(lynk.Files)
 	return err
+}
+// Deletes a file from a lynk
+// fileDelete - the index of the file in the array
+// lynkIndex - the lynk which the file corresponds to
+func DeleteFileIndex(fileDelete, lynkIndex int) {
+	lynk := lynks[lynkIndex]
+
+	err := os.Remove(lynk.Files[fileDelete].Path);
+	fmt.Println(err)
+	lynk.Files = append(lynk.Files[:fileDelete], lynk.Files[fileDelete+1:]...)
+
+
+	fmt.Println(lynks[lynkIndex].Files)
+	fmt.Println(lynk.Files)
+	lynks[lynkIndex].Files = lynk.Files;
+	fmt.Println(lynks[lynkIndex].Files)
+	fmt.Println(lynxutil.HomePath+lynks[lynkIndex].Name+"/")
+	//err1 := updateMetainfo(lynxutil.HomePath+lynks[lynkIndex].Name+"/meta.info")
+	//fmt.Println(err1.Error())
+
+
+
+
+
 }
 
 // UpdateMetainfo - Deletes the current meta.info and replaces it with a new version that
@@ -485,9 +513,7 @@ func DeleteLynk(nameToDelete string, deleteLocal bool) {
 	for i < len(lynks) {
 		if nameToDelete == lynks[i].Name {
 			// Removes this peer from swarm.info file
-			conn, _ := net.Dial("tcp", lynks[i].Tracker)
-			fmt.Fprintf(conn, "Disconnect:"+lynxutil.GetIP()+":"+lynks[i].Name+"\n")
-
+			fmt.Println("deleted lynk");	
 			lynks = append(lynks[:i], lynks[i+1:]...)
 		}
 		i++
@@ -670,4 +696,16 @@ func IsDownloading(lynkName string) bool {
 func StopDownload(lynkName string) {
 	lynk := lynxutil.GetLynk(lynks, lynkName)
 	lynk.DLing = false
+}
+
+func GetFileTableIndex() int{
+	return fileTableIndex;
+}
+
+func SetFileTableIndex(index int){
+	fileTableIndex = index;
+}
+
+func GetLynkNameFromIndex(index int) string{
+	return lynks[index].Name;
 }

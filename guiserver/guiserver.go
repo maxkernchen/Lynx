@@ -60,6 +60,9 @@ func launch() {
 	css := HTMLFiles{http.Dir("css/")}
 	http.Handle("/css/", http.StripPrefix("/css/", http.FileServer(css)))
 
+	http.Handle("/images/", http.StripPrefix("/images/",
+		http.FileServer(http.Dir("images/"))))
+
 	http.HandleFunc("/", IndexHandler)
 	http.HandleFunc("/joinlynx", JoinHandler)
 	http.HandleFunc("/createlynx", CreateHandler)
@@ -68,6 +71,8 @@ func launch() {
 	http.HandleFunc("/uploads", UploadHandler)
 	http.HandleFunc("/downloads", DownloadHandler)
 	http.HandleFunc("/home", HomeHandler)
+	http.HandleFunc("/files", FileHandler)
+	http.HandleFunc("/removefile", RemoveFileHandler)
 
 	go server.Listen()
 
@@ -100,31 +105,18 @@ func IndexHandler(rw http.ResponseWriter, req *http.Request) {
 	}
 	//t,_ = t.ParseFiles("index.html")
 	tableEntries := TablePopulate(lynxutil.HomePath + "/lynks.txt")
-	tableTemplate := template.HTML(tableEntries)
-	removalEntries := RemoveListPopulate(lynxutil.HomePath + "/lynks.txt")
-	removalTemplate := template.HTML(removalEntries)
-	var fileTemplates []string
-	numOfLynks := client.GetLynksLen()
-	i := 0
-	for i < numOfLynks {
-		fileTemplates = append(fileTemplates, FilePopulate(i))
-		i++
+	fmt.Println(client.GetFileTableIndex())
+
+	if client.GetFileTableIndex() > -1 {
+		fileEntry := FilePopulate(client.GetFileTableIndex())
+		t.ExecuteTemplate(rw, "index.html", map[string]template.HTML{"Entries": template.HTML(tableEntries),
+			"Files": template.HTML(fileEntry)})
+
+	} else {
+		t.ExecuteTemplate(rw, "index.html", map[string]template.HTML{"Entries": template.HTML(tableEntries)})
+
 	}
-	i = 0
-	for i < 10 {
-		fileTemplates = append(fileTemplates, "empty files")
-		i++
-	}
-	t.ExecuteTemplate(rw, "index.html", map[string]template.HTML{"Entries": tableTemplate,
-		"RemovalList": removalTemplate, "row0Data": template.HTML(fileTemplates[0]),
-		"row1Data": template.HTML(fileTemplates[1]), "row2Data": template.HTML(
-			fileTemplates[2]), "row3Data": template.HTML(fileTemplates[3]),
-		"row4Data": template.HTML(fileTemplates[4]),
-		"row5Data": template.HTML(fileTemplates[5]),
-		"row6Data": template.HTML(fileTemplates[6]),
-		"row7Data": template.HTML(fileTemplates[7]),
-		"row8Data": template.HTML(fileTemplates[8]),
-		"row9Data": template.HTML(fileTemplates[9])})
+
 }
 
 // CreateHandler - Function that handles requests on the index page: "/createlynx".
@@ -165,9 +157,11 @@ func JoinHandler(rw http.ResponseWriter, req *http.Request) {
 func RemoveHandler(rw http.ResponseWriter, req *http.Request) {
 	req.ParseForm()
 	form = req.Form
-	name := form["Lynks"]
+	name := form["index"]
 	if name != nil {
-		client.DeleteLynk(name[0], false)
+		index, _ := strconv.Atoi(name[0])
+		fmt.Println("in here" + name[0])
+		client.DeleteLynk(client.GetLynkNameFromIndex(index), false)
 		TablePopulate(lynxutil.HomePath + "/lynks.txt")
 	}
 	IndexHandler(rw, req)
@@ -227,9 +221,16 @@ func TablePopulate(pathToTable string) string {
 		line := strings.TrimSpace(scanner.Text()) // Trim helps with errors in \n
 		split := strings.Split(line, ":::")
 		tableEntries += "<tr id= row" + rowStringNum + " > \n"
-		tableEntries += "<td>" + split[0] + "</td>\n"
-		tableEntries += "<td>" + split[1] + "</td>\n"
-		tableEntries += "<td>" + split[2] + "</td>\n"
+		if i == client.GetFileTableIndex() {
+			tableEntries += "<td><b style= \"color:blue;\">" + split[0] + "</b></td>\n"
+		} else {
+			tableEntries += "<td>" + split[0] + "</td>\n"
+		}
+		tableEntries += "<td><form id=\"remove\" method=\"POST\" action=\"/removelynx\"><button " +
+			"type=\"submit\" class=\"transparent\" data-toggle=\"tooltip\" data-placement = \"bottom\" title = \"Delete this Lynk\" id=\"removelynk\"\n " +
+			"input type=\"hidden\" name=\"index\" value=\"" + rowStringNum + "\"><img src=\"images/file-ex-red.png\"></button></form></td>\n"
+		tableEntries += "<form name=\"row" + rowStringNum + "form\" id=\"row" + rowStringNum + "formid\" " +
+			"method=\"POST\" action=\"/files\"><input type=\"hidden\" name=\"index\" value=\"" + rowStringNum + "\"></form>"
 		tableEntries += "</tr>\n"
 		i++
 	}
@@ -265,23 +266,74 @@ func RemoveListPopulate(pathToTable string) string {
 // @param pathToTable - the lynk whose files we want to populate
 // @returns - a string containing all the file entries
 func FilePopulate(index int) string {
-	client.PopulateFilesAndSize()
-	lynks := client.GetLynks()
-	fileEntries := ""
-	tempLynk := lynks[index]
-	//fmt.Println(tempLynk.Name)
-	fileNames := tempLynk.FileNames
-	fileSizes := tempLynk.FileSize
-	i := 0
-	for i < len(fileNames) {
-		fileEntries += "<tr> \n"
-		fileEntries += "<td>" + fileNames[i] + "</td>\n"
-		fileEntries += "<td>" + strconv.Itoa(fileSizes[i]) + "</td>\n"
-		fileEntries += "</tr>\n"
-		i++
+	if index < client.GetLynksLen() {
+
+		client.PopulateFilesAndSize()
+		lynks := client.GetLynks()
+		fileEntries := ""
+		tempLynk := lynks[index]
+		fmt.Println(tempLynk.Files)
+		fmt.Println("file pop")
+		fileNames := tempLynk.Files
+		client.SetFileTableIndex(index)
+		i := 0
+
+		for i < len(fileNames) {
+			fileEntries += "<tr> \n"
+			fileEntries += "<td>" + fileNames[i].Name + "</td>\n"
+			fileEntries += "<td>" + strconv.Itoa(fileNames[i].Length) + "</td>\n"
+			fileEntries += "<td><form id=\"remove\" method=\"POST\" action=\"removefile\"> \n" +
+				"<button type=\"submit\" class=\"transparent\" data-toggle=\"tooltip\" data-placement=\"bottom\" \n" +
+				"title=\"Delete this file\" input type=\"hidden\" name=\"index\" value=\"" + strconv.Itoa(i) + "\" ><img src=\"images/file-ex.png\"></button></form>"
+			fileEntries += "</tr>\n"
+			i++
+		}
+		fmt.Println(fileEntries)
+
+		return fileEntries
+	}
+	return ""
+
+}
+
+func FileHandler(rw http.ResponseWriter, req *http.Request) {
+	req.ParseForm()
+	form = req.Form
+	index := form["index"]
+
+	t := template.New("cool template")
+	t, err := t.ParseFiles("index.html")
+	if err != nil {
+		fmt.Println(err)
 	}
 
-	return fileEntries
+	indexInt, err := strconv.Atoi(index[0])
+	fileEntry := FilePopulate(indexInt)
+	tableEntries := TablePopulate(lynxutil.HomePath + "/lynks.txt")
+	tableTemplate := template.HTML(tableEntries)
+	t.ExecuteTemplate(rw, "index.html", map[string]template.HTML{"Entries": tableTemplate,
+		"Files": template.HTML(fileEntry)})
+
+}
+
+func RemoveFileHandler(rw http.ResponseWriter, req *http.Request) {
+
+	req.ParseForm()
+	form = req.Form
+	name := form["index"]
+	if name != nil {
+		index, _ := strconv.Atoi(name[0])
+		fmt.Println(index)
+		client.DeleteFileIndex(index, client.GetFileTableIndex())
+		lynk := client.GetLynkNameFromIndex(client.GetFileTableIndex())
+		//client.DeleteLynk(client.GetLynkNameFromIndex(client.GetFileTableIndex()))
+		client.CreateMeta(lynk)
+		//tracker.CreateSwarm(lynk)
+		//TablePopulate(lynxutil.HomePath + "/lynks.txt")
+	}
+
+	IndexHandler(rw, req)
+
 }
 
 // Function INIT runs before main and allows us to load the index html before any operations

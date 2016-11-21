@@ -16,7 +16,7 @@
     <title>LYNX File Sharing</title>
     <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
     <link rel="stylesheet" href="js/jquery-ui.css">
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="import" href="images/">
     <script src="js/jquery-1.12.2.min.js"></script>
     <script src="js/jquery-ui.js"></script>
 
@@ -63,7 +63,7 @@
  });
   // opens the settings dialog which appears after any row is pressed in the table
   $(document).ready(function(){
-  var dlg =  $("#row0dialog").dialog({
+  var dlg =  $("").dialog({
    autoOpen: false,
      modal: true, title: 'Files', draggable: true, width: 'auto'
   });
@@ -71,407 +71,123 @@
     dlg.parent().appendTo($("#row0form"));
   // if a setting row is clicked open up the setting dialog
   $("#row0").click(function(){
-   $("#row0dialog").dialog('open');
+    $(this).addClass('highlight').siblings().removeClass("highlight");
+
+    document.row0form.submit();
   });
  });
- // opens the settings dialog which appears after any row is pressed in the table
+
+  // opens the settings dialog which appears after any row is pressed in the table
   $(document).ready(function(){
-  var dlg =  $("#row1dialog").dialog({
+  var dlg =  $("").dialog({
    autoOpen: false,
      modal: true, title: 'Files', draggable: true, width: 'auto'
-
   });
   //append its info to the settings form
     dlg.parent().appendTo($("#row1form"));
   // if a setting row is clicked open up the setting dialog
   $("#row1").click(function(){
-   $("#row1dialog").dialog('open');
-  });
- });
- // opens the settings dialog which appears after any row is pressed in the table
-  $(document).ready(function(){
-  var dlg =  $("#row2dialog").dialog({
-   autoOpen: false,
-     modal: true, title: 'Files', draggable: true, width: 'auto'
+    $(this).addClass('highlight').siblings().removeClass("highlight");
 
-  });
-  //append its info to the settings form
-    dlg.parent().appendTo($("#row2form"));
-  // if a setting row is clicked open up the setting dialog
-  $("#row2").click(function(){
-   $("#row2dialog").dialog('open');
+    document.row1form.submit();
   });
  });
- // opens the settings dialog which appears after any row is pressed in the table
-  $(document).ready(function(){
-  var dlg =  $("#row3dialog").dialog({
-   autoOpen: false,
-     modal: true, title: 'Files', draggable: true, width: 'auto'
 
-  });
-  //append its info to the settings form
-    dlg.parent().appendTo($("#row3form"));
-  // if a setting row is clicked open up the setting dialog
-  $("#row3").click(function(){
-   $("#row3dialog").dialog('open');
-  });
- });
-  // opens the settings dialog which appears after any row is pressed in the table
-  $(document).ready(function(){
-  var dlg =  $("#row4dialog").dialog({
-   autoOpen: false,
-     modal: true, title: 'Files', draggable: true, width: 'auto'
-
-  });
-  //append its info to the settings form
-    dlg.parent().appendTo($("#row3form"));
-  // if a setting row is clicked open up the setting dialog
-  $("#row4").click(function(){
-   $("#row4dialog").dialog('open');
-  });
- });
-// opens the settings dialog which appears after any row is pressed in the table
-  $(document).ready(function(){
-  var dlg =  $("#row5dialog").dialog({
-   autoOpen: false,
-     modal: true, title: 'Files', draggable: true, width: 'auto'
-
-  });
-  //append its info to the settings form
-    dlg.parent().appendTo($("#row5form"));
-  // if a setting row is clicked open up the setting dialog
-  $("#row5").click(function(){
-   $("#row5dialog").dialog('open');
-  });
- });
- // opens the settings dialog which appears after any row is pressed in the table
-  $(document).ready(function(){
-  var dlg =  $("#row6dialog").dialog({
-   autoOpen: false,
-     modal: true, title: 'Files', draggable: true, width: 'auto'
-
-  });
-  //append its info to the settings form
-    dlg.parent().appendTo($("#row6form"));
-  // if a setting row is clicked open up the setting dialog
-  $("#row6").click(function(){
-   $("#row6dialog").dialog('open');
-  });
- });
- // opens the settings dialog which appears after any row is pressed in the table
-  $(document).ready(function(){
-  var dlg =  $("#row7dialog").dialog({
-   autoOpen: false,
-     modal: true, title: 'Files', draggable: true, width: 'auto'
-
-  });
-  //append its info to the settings form
-    dlg.parent().appendTo($("#row7form"));
-  // if a setting row is clicked open up the setting dialog
-  $("#row7").click(function(){
-   $("#row7dialog").dialog('open');
-  });
- });
- // opens the settings dialog which appears after any row is pressed in the table
-  $(document).ready(function(){
-  var dlg =  $("#row8dialog").dialog({
-   autoOpen: false,
-     modal: true, title: 'Files', draggable: true, width: 'auto'
-
-  });
-  //append its info to the settings form
-    dlg.parent().appendTo($("#row8form"));
-  // if a setting row is clicked open up the setting dialog
-  $("#row8").click(function(){
-   $("#row8dialog").dialog('open');
-  });
- });
- // opens the settings dialog which appears after any row is pressed in the table
-  $(document).ready(function(){
-  var dlg =  $("#row9dialog").dialog({
-   autoOpen: false,
-     modal: true, title: 'Files', draggable: true, width: 'auto'
-
-  });
-  //append its info to the settings form
-    dlg.parent().appendTo($("#row9form"));
-  // if a setting row is clicked open up the setting dialog
-  $("#row9").click(function(){
-   $("#row9dialog").dialog('open');
-  });
- });
 
 
 </script>
 </head>
 
+<style>
+    #tableCont {float:left; width:500px; position:relative}
+    #tableFiles{width:800px}
+    .highlight { background: CornflowerBlue ; }
+    .transparent{ border: none; background-color: transparent;outline: none;}
+    .icon {background: url('file-ex.png') no-repeat top left;}
+    .icon-accessibility{ background-position: 0 0; width: 32px; height: 32px; }
+
+
+</style>
+
 <!-- form for creating a lynk connection -->
-<form id="create" method="POST" action="/createlynx" >
-        <input type="button" class="btn btn-success btn-lg" style="position:absolute;
-        bottom:3%;left:9%;"
-               id="createlynk" value="Create Lynk">
-        <div id="dialog">
-            Directory Name
-            <input type="text" name="Name" required>
-            <br>
-            <input type="submit" class="btn btn-success " name="createnewlynk" value="Create">
-        </div>
-        </form>
+
 
 <!-- form for joining a lynx connectiong -->
-    <form id="join" method="POST" action="/joinlynx">
-        <input type="button" class="btn btn-info btn-lg" style="position:absolute;
-            bottom:3%;left:40%;"
-               id="joinlynk" value="Join Lynk">
-        <div id="joindialog">
-            Meta.info Path
-            <input type="text" name="MetaPath" required>
-            <br>
-            <input type="submit" class="btn btn-info " name="joincurrentlynk" value="Join">
-        </div>
-    </form>
+
 <!-- form for removing a lynx connection -->
-<form id="remove" method="POST" action="/removelynx">
-    <input type="button" class="btn btn-danger btn-lg" style="position:absolute;
-            bottom:3%;left:70%;"
-           id="removelynk" value="Remove Lynk">
-    <div id="removedialog">
-        Lynks
-        <select name="Lynks">  <!-- drop down list -->
-           {{.RemovalList}}
-        </select>
-        <br>
-        <input type ="checkbox" name="deletelocal"> Delete Local Content
-        <br>
-        <input type="submit" class="btn btn-danger" name="removeselectedlynk" value="Remove">
-    </div>
-</form>
+
 <!-- the settings dialog form which appears after any row click on the home screen -->
-<form id="row0form" method="POST" action="/settings">
-    <div id ="row0dialog">
-        <div class="container">
-            <table class="table table-hover" id="row0table">
-                <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Size</th>
-                </tr>
-                </thead>
-                <tbody>
-                {{.row0Data}}
-                </tbody>
-            </table>
-        </div>
 
-    </div>
-</form>
-
-<form id="row1form" method="POST" action="/settings">
-    <div id ="row1dialog">
-        <div class="container">
-            <table class="table table-hover" id="row1table">
-                <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Size</th>
-                </tr>
-                </thead>
-                <tbody>
-                {{.row1Data}}
-                </tbody>
-            </table>
-        </div>
-
-    </div>
-</form>
-<form id="row2form" method="POST" action="/settings">
-    <div id ="row2dialog">
-        <div class="container">
-            <table class="table table-hover" id="row2table">
-                <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Size</th>
-                </tr>
-                </thead>
-                <tbody>
-                {{.row2Data}}
-                </tbody>
-            </table>
-        </div>
-
-    </div>
-</form>
-<form id="row3form" method="POST" action="/settings">
-    <div id ="row3dialog">
-        <div class="container">
-            <table class="table table-hover" id="row3table">
-                <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Size</th>
-                </tr>
-                </thead>
-                <tbody>
-                {{.row3Data}}
-                </tbody>
-            </table>
-        </div>
-
-    </div>
-</form>
-<form id="row4form" method="POST" action="/settings">
-    <div id ="row4dialog">
-        <div class="container">
-            <table class="table table-hover" id="row4table">
-                <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Size</th>
-                </tr>
-                </thead>
-                <tbody>
-                {{.row4Data}}
-                </tbody>
-            </table>
-        </div>
-
-    </div>
-</form>
-<form id="row5form" method="POST" action="/settings">
-    <div id ="row5dialog">
-        <div class="container">
-            <table class="table table-hover" id="row5table">
-                <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Size</th>
-                </tr>
-                </thead>
-                <tbody>
-                {{.row5Data}}
-                </tbody>
-            </table>
-        </div>
-
-    </div>
-</form>
-<form id="row6form" method="POST" action="/settings">
-    <div id ="row6dialog">
-        <div class="container">
-            <table class="table table-hover" id="row6table">
-                <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Size</th>
-                </tr>
-                </thead>
-                <tbody>
-                {{.row6Data}}
-                </tbody>
-            </table>
-        </div>
-
-    </div>
-</form>
-<form id="row7form" method="POST" action="/settings">
-    <div id ="row7dialog">
-        <div class="container">
-            <table class="table table-hover" id="row7table">
-                <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Size</th>
-                </tr>
-                </thead>
-                <tbody>
-                {{.row7Data}}
-                </tbody>
-            </table>
-        </div>
-
-    </div>
-</form>
-<form id="row8form" method="POST" action="/settings">
-    <div id ="row8dialog">
-        <div class="container">
-            <table class="table table-hover" id="row8table">
-                <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Size</th>
-                </tr>
-                </thead>
-                <tbody>
-                {{.row8Data}}
-                </tbody>
-            </table>
-        </div>
-
-    </div>
-</form>
-
-<form id="row9form" method="POST" action="/settings">
-    <div id ="row9dialog">
-        <div class="container">
-            <table class="table table-hover" id="row9table">
-                <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Size</th>
-                </tr>
-                </thead>
-                <tbody>
-                {{.row9Data}}
-                </tbody>
-            </table>
-        </div>
-
-    </div>
-</form>
 <!-- the uploads form which is used to switch pages to uploads -->
-<form id="uploads" method="POST" action="/uploads">
 
-        <input type="submit" class="btn btn-default" style="position:absolute;
-    bottom:94%;left:6%;" name="touploads" value="Uploads">
-</form>
-<!--  the downloads form which is used to switch pages to downloads -->
-<form id="downloads" method="POST" action="/downloads">
-
-    <input type="submit" class="btn btn-default" style="position:absolute;
-    bottom:94%;left:12%;" name="todownloads" value="Downloads">
-</form>
-
-<!-- the home form which is used to go back to the home screen -->
-<form id="home" method="POST" action="/home">
-
-    <input type="submit" class="btn btn-default" style="position:absolute;
-    bottom:94%;left:1%;" name="tohome" value="Home">
-</form>
 
 <!--  some separators to format our table -->
 
-<br>
-<br>
-<br>
-<br>
-<br>
-
 <!-- a currently hardcoded table of possible values in the lynk system -->
-<h1 style="position:absolute;
-    bottom:85%;left:33%"> List of Current Lynks </h1>
+<h1 id="header" align="center ">Lynx</h1>
+<br>
+<div id="tableContainer">
+    <div id="tableCont" class="container">
+        <table class="table" id="lynktable">
+            <thead>
+            <tr>
+                <th>Lynk Name</th>
 
-<div class="container">
-    <table class="table table-hover" id="lynktable">
-        <thead>
-        <tr>
-            <th>Name</th>
-            <th>Status</th>
-            <th>Owner</th>
-        </tr>
-        </thead>
-        <tbody>
-        {{.Entries}}
-        </tbody>
-    </table>
+            </tr>
+            </thead>
+            <tbody>
+            {{.Entries}}
+            </tbody>
+            <tfoot>
+            <tr>
+                <td >
+                    <form id="create" method="POST" action="/createlynx" >
+                        <button type="button" class="transparent" data-toggle="tooltip" data-placement="bottom"
+                                title="Create a Lynk"
+                                id="createlynk" value="Create Lynk">
+                            <img src="images/folder-plus.png">
+                        </button>
+                        <div id="dialog">
+                            Directory Name
+                            <input type="text" name="Name" required>
+                            <br>
+                            <input type="submit" class="btn btn-success " name="createnewlynk" value="Create">
+                        </div>
+                    </form>
+                </td>
+                <td>
+                    <form id="join" method="POST" action="/joinlynx">
+                        <button type="button" class="transparent" data-toggle="tooltip" data-placement="bottom"
+                                title="Join a Lynk"
+                                id="joinlynk" value="Join Lynk">
+                            <img src=images/folder-down.png>
+                        </button>
+                        <div id="joindialog">
+                            Meta.info Path
+                            <input type="text" name="MetaPath" required>
+                            <br>
+                            <input type="submit" class="btn btn-info " name="joincurrentlynk" value="Join">
+                        </div>
+                    </form>
+                </td>
+            </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    <div id="tableFiles" class="container">
+        <table class="table table-hover" id="filetable">
+            <thead>
+            <tr>
+                <th>Files</th>
+                <th>Size (bytes)</th>
+
+            </tr>
+            </thead>
+            <tbody>
+            {{.Files}}
+            </tbody>
+        </table>
+    </div>
 </div>
+

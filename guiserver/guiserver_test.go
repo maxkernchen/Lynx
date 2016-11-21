@@ -224,7 +224,7 @@ func testOp() error {
 // Initializes our testing env and sets up varous flags
 func init() {
 	delayPtr := flag.Int("delay", 0, "If delay > 0 - we will start Lynx after the delay specified")
-	startUpPtr := flag.Int("create", 0, "How Lynx is started. 0:Simple Start, 1:Create, 2:Join")
+	startUpPtr := flag.Int("startUp", 0, "How Lynx is started. 0:Simple Start, 1:Create, 2:Join")
 	opPtr := flag.Int("op", 0, "Lynx's operation. -1:Remove, 0:Simple Run, 1:Add, 2:Receive Test")
 	opDelayPtr := flag.Int("opDelay", 4, "How long Lynx waits to perform op - in hours.")
 
