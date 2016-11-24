@@ -144,7 +144,7 @@ func JoinHandler(rw http.ResponseWriter, req *http.Request) {
 	metapath := form["MetaPath"]
 	err := client.JoinLynk(metapath[0])
 	if err != nil {
-		// Display meta.info error to user here
+		fmt.Println(err.Error())
 	}
 
 	IndexHandler(rw, req)
