@@ -588,7 +588,7 @@ func UpdateLynk(lynkName string) error {
 	for _, file := range lynk.Files {
 		err = getFile(file.Name, lynxutil.HomePath+lynkName+"/meta.info")
 		// If we fail to get the file the first time, we attempt again.
-		if err.Error() == "Did not receive file" {
+		if err != nil {
 			for i := 0; i < lynxutil.ReconnAttempts; i++ {
 				err = getFile(file.Name, lynxutil.HomePath+lynkName+"/meta.info")
 			}
