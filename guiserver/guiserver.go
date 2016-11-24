@@ -307,7 +307,7 @@ func FileHandler(rw http.ResponseWriter, req *http.Request) {
 		fmt.Println(err)
 	}
 
-	indexInt, err := strconv.Atoi(index[0])
+	indexInt, _ := strconv.Atoi(index[0])
 	fileEntry := FilePopulate(indexInt)
 	tableEntries := TablePopulate(lynxutil.HomePath + "/lynks.txt")
 	tableTemplate := template.HTML(tableEntries)
@@ -328,6 +328,7 @@ func RemoveFileHandler(rw http.ResponseWriter, req *http.Request) {
 		lynk := client.GetLynkNameFromIndex(client.GetFileTableIndex())
 		//client.DeleteLynk(client.GetLynkNameFromIndex(client.GetFileTableIndex()))
 		client.CreateMeta(lynk)
+		server.PushMeta(lynxutil.HomePath + lynk + "/meta.info")
 		//tracker.CreateSwarm(lynk)
 		//TablePopulate(lynxutil.HomePath + "/lynks.txt")
 	}

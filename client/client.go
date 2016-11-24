@@ -33,9 +33,8 @@ const endOfEntry = ":#!"
 // The array index of our metainfo values
 const metaValueIndex = 1
 
-
 //holds the variable for the table lynk index
-var fileTableIndex int = -1;
+var fileTableIndex int = -1
 
 // DeleteFile - Function that deletes an entry from a lynk's files array.
 // @param string nameToDelete - This is the name of the file we want to delete
@@ -60,28 +59,24 @@ func DeleteFile(nameToDelete, lynkName string) error {
 	fmt.Println(lynk.Files)
 	return err
 }
+
 // Deletes a file from a lynk
 // fileDelete - the index of the file in the array
 // lynkIndex - the lynk which the file corresponds to
 func DeleteFileIndex(fileDelete, lynkIndex int) {
 	lynk := lynks[lynkIndex]
 
-	err := os.Remove(lynk.Files[fileDelete].Path);
+	err := os.Remove(lynk.Files[fileDelete].Path)
 	fmt.Println(err)
 	lynk.Files = append(lynk.Files[:fileDelete], lynk.Files[fileDelete+1:]...)
 
-
 	fmt.Println(lynks[lynkIndex].Files)
 	fmt.Println(lynk.Files)
-	lynks[lynkIndex].Files = lynk.Files;
+	lynks[lynkIndex].Files = lynk.Files
 	fmt.Println(lynks[lynkIndex].Files)
-	fmt.Println(lynxutil.HomePath+lynks[lynkIndex].Name+"/")
+	fmt.Println(lynxutil.HomePath + lynks[lynkIndex].Name + "/")
 	//err1 := updateMetainfo(lynxutil.HomePath+lynks[lynkIndex].Name+"/meta.info")
 	//fmt.Println(err1.Error())
-
-
-
-
 
 }
 
@@ -90,7 +85,7 @@ func DeleteFileIndex(fileDelete, lynkIndex int) {
 // @return error - An error can be produced when issues arise from trying to create
 // or remove the meta file - otherwise error will be nil.
 func UpdateMetainfo(metaPath string) error {
-	parseMetainfo(metaPath)
+	ParseMetainfo(metaPath)
 	lynkName := GetLynkName(metaPath)
 	lynk := lynxutil.GetLynk(lynks, lynkName)
 
@@ -128,7 +123,7 @@ func UpdateMetainfo(metaPath string) error {
 // @param string metaPath - The path to the metainfo file
 // @return error - An error can be produced when issues arise from trying to access
 // the meta file or from an invalid meta file type - otherwise error will be nil.
-func parseMetainfo(metaPath string) error {
+func ParseMetainfo(metaPath string) error {
 	lynk := lynxutil.GetLynk(lynks, GetLynkName(metaPath))
 	if lynk == nil {
 		return errors.New("Lynk Not Found")
@@ -189,7 +184,7 @@ func AddToMetainfo(addPath, metaPath string) error {
 		return err
 	}
 
-	parseMetainfo(metaPath)
+	ParseMetainfo(metaPath)
 	lynkName := GetLynkName(metaPath)
 	lynk := lynxutil.GetLynk(lynks, lynkName)
 
@@ -235,7 +230,7 @@ func HaveFile(filePath string) bool {
 	lynkName := lynkInfo[0]
 	fileName := lynkInfo[1]
 	metaPath := lynxutil.HomePath + lynkName + "/meta.info"
-	parseMetainfo(metaPath)
+	ParseMetainfo(metaPath)
 	lynk := lynxutil.GetLynk(lynks, lynkName)
 
 	i := 0
@@ -253,7 +248,7 @@ func HaveFile(filePath string) bool {
 // @param string metaPath - The meta.info path associated with the lynk we're interested in
 // @return string - A string representing the tracker's IP address.
 func GetTracker(metaPath string) string {
-	parseMetainfo(metaPath)
+	ParseMetainfo(metaPath)
 	lynkName := GetLynkName(metaPath)
 	lynk := lynxutil.GetLynk(lynks, lynkName)
 	return lynk.Tracker
@@ -267,7 +262,7 @@ func GetTracker(metaPath string) string {
 // desired file - otherwise error will be nil.
 func getFile(fileName, metaPath string) error {
 	// Will parseMetainfo file and then ask tracker for list of peers
-	parseMetainfo(metaPath)
+	ParseMetainfo(metaPath)
 	lynkName := GetLynkName(metaPath)
 	lynk := lynxutil.GetLynk(lynks, lynkName)
 	//fmt.Println("Asking For File From: " + metaPath)
@@ -346,6 +341,8 @@ func askTrackerForPeers(lynkName string) error {
 	lynk := lynxutil.GetLynk(lynks, lynkName)
 	// Connects to tracker
 	conn, err := net.Dial("tcp", lynk.Tracker)
+
+	// If we cannot connect to tracker - asks our peers for an updated IP
 	if err != nil {
 		i := 0
 		for i < len(lynk.Peers) && err != nil {
@@ -421,7 +418,7 @@ func CreateMeta(name string) error {
 	addLynk(name, currentUser.Name)
 	filepath.Walk(lynxutil.HomePath+name, visitFiles)
 
-	parseMetainfo(lynxutil.HomePath + name + "/meta.info")
+	ParseMetainfo(lynxutil.HomePath + name + "/meta.info")
 
 	return nil // Everything was fine if we reached this point
 }
@@ -513,7 +510,7 @@ func DeleteLynk(nameToDelete string, deleteLocal bool) {
 	for i < len(lynks) {
 		if nameToDelete == lynks[i].Name {
 			// Removes this peer from swarm.info file
-			fmt.Println("deleted lynk");	
+			fmt.Println("deleted lynk")
 			lynks = append(lynks[:i], lynks[i+1:]...)
 		}
 		i++
@@ -640,7 +637,7 @@ func init() {
 func genLynks() {
 	i := 0
 	for i < len(lynks) {
-		parseMetainfo(lynxutil.HomePath + lynks[i].Name + "/meta.info")
+		ParseMetainfo(lynxutil.HomePath + lynks[i].Name + "/meta.info")
 		i++
 	}
 }
@@ -698,14 +695,14 @@ func StopDownload(lynkName string) {
 	lynk.DLing = false
 }
 
-func GetFileTableIndex() int{
-	return fileTableIndex;
+func GetFileTableIndex() int {
+	return fileTableIndex
 }
 
-func SetFileTableIndex(index int){
-	fileTableIndex = index;
+func SetFileTableIndex(index int) {
+	fileTableIndex = index
 }
 
-func GetLynkNameFromIndex(index int) string{
-	return lynks[index].Name;
+func GetLynkNameFromIndex(index int) string {
+	return lynks[index].Name
 }

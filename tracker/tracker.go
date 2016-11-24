@@ -17,6 +17,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net"
+	"net/textproto"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -174,6 +175,7 @@ func handleRequest(conn net.Conn) error {
 
 	if strings.Contains(request, "Meta_Push:") { // We are receiving a meta.info file
 		handlePush(request, conn)
+		notifyPeers(request)
 	} else if strings.Contains(request, "Disconnect:") {
 		// tmpArr[0] - Disconnect | tmpArr[1] - <IP> | tmpArr[2] - <LynkName>
 		tmpArr := strings.Split(request, ":")
@@ -247,7 +249,8 @@ func handlePush(request string, conn net.Conn) error {
 	bufIn, err := ioutil.ReadAll(conn)
 
 	// Decrypt
-	key := []byte("abcdefghijklmnopqrstuvwxyz123456")
+	//key := []byte("abcdefghijklmnopqrstuvwxyz123456")
+	key := []byte(lynxutil.PrivateKey)
 	var plainFile []byte
 	if plainFile, err = mycrypt.Decrypt(key, bufIn); err != nil {
 		log.Fatal(err)
@@ -261,6 +264,57 @@ func handlePush(request string, conn net.Conn) error {
 
 	fmt.Println(len(bufIn), "Bytes Received")
 	newMetainfo.Write(bufOut)
+
+	return nil // No errors if we reached this point
+}
+
+// Helper function for handleRequest - handles the case where we update peers after receiving a new
+// meta.info file
+// @param string request - The request sent to tracker
+// @return error - An error can be produced when trying to send a file or if there is incorrect
+// syntax in the request - otherwise error will be nil.
+func notifyPeers(request string) error {
+	// So tmpArr[0] - Meta_Push | tmpArr[1] - <LynkName>
+	tmpArr := strings.Split(request, ":")
+	metaPath := lynxutil.HomePath + tmpArr[1] + "/" + tmpArr[1] + "_Tracker/" + "meta.info"
+	swarmPath := lynxutil.HomePath + tmpArr[1] + "/" + tmpArr[1] + "_Tracker/" + "swarm.info"
+
+	// Opens the swarm file for the specific Lynk and notifies all of the listed peers
+	swarmFile, _ := os.Open(swarmPath)
+	r := bufio.NewReader(swarmFile)
+	tp := textproto.NewReader(r)
+	line, e := tp.ReadLine()
+	for e == nil {
+		peerArray := strings.Split(line, ":::")
+		// [0] is IP / [1 ]is Port
+		pConn, _ := net.Dial("tcp", peerArray[0]+":"+peerArray[1])
+		fmt.Fprintf(pConn, "Meta_Push:"+tmpArr[1]+"/\n")
+
+		fBytes, err := ioutil.ReadFile(metaPath)
+
+		// Begin Compression
+		var b bytes.Buffer
+		gz := gzip.NewWriter(&b)
+		gz.Write(fBytes)
+		gz.Close()
+		// End Compression
+
+		// Begin Encryption
+		var cipherFile []byte
+		publicKey := lynxutil.Peer{IP: pConn.LocalAddr().String()}.Key + lynxutil.PrivateKey
+		key := []byte(publicKey)
+		if cipherFile, err = mycrypt.Encrypt(key, b.Bytes()); err != nil {
+			return err
+		}
+		// End Encryption
+
+		_, err = pConn.Write(cipherFile)
+		if err != nil {
+			return err
+		}
+
+		line, e = tp.ReadLine()
+	}
 
 	return nil // No errors if we reached this point
 }
