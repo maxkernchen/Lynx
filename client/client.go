@@ -569,8 +569,6 @@ func JoinLynk(metaPath string) error {
 			lynkName = split[metaValueIndex]
 		} else if split[0] == "owner" {
 			owner = split[metaValueIndex]
-		} else {
-			return errors.New("Invalid Meta")
 		}
 
 	}

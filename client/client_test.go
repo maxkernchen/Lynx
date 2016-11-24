@@ -76,7 +76,7 @@ func TestFileCopy(t *testing.T) {
 func TestAddToMetainfo(t *testing.T) {
 	fmt.Println("\n----------------TestAddToMetainfo----------------")
 
-	parseMetainfo(mPath)
+	ParseMetainfo(mPath)
 	hasTest := false
 	tLynk := lynxutil.GetLynk(lynks, "Tests")
 
@@ -100,7 +100,7 @@ func TestAddToMetainfo(t *testing.T) {
 		successful++
 	}
 
-	parseMetainfo(mPath)
+	ParseMetainfo(mPath)
 
 	// check that test.txt is in the File struct list
 	i = 0
@@ -128,12 +128,12 @@ func TestAddToMetainfo(t *testing.T) {
 	}
 }
 
-// Unit tests for parseMetainfo function
+// Unit tests for ParseMetainfo function
 // @param *testing.T t - The wrapper for the test
 func TestParseMetainfo(t *testing.T) {
 	fmt.Println("\n----------------TestParseMetainfo----------------")
 
-	result := parseMetainfo("fake")
+	result := ParseMetainfo("fake")
 
 	if result == nil {
 		t.Error("Test failed, expected failure due non-existent file. Got ", result)
@@ -142,7 +142,7 @@ func TestParseMetainfo(t *testing.T) {
 		successful++
 	}
 
-	result = parseMetainfo("test.txt")
+	result = ParseMetainfo("test.txt")
 
 	if result == nil {
 		t.Error("Test failed, expected failure due incorrect file. Got ", result)
@@ -151,7 +151,7 @@ func TestParseMetainfo(t *testing.T) {
 		successful++
 	}
 
-	result = parseMetainfo(mPath)
+	result = ParseMetainfo(mPath)
 
 	if result != nil {
 		t.Error("Test failed, expected no errors. Got ", result)
@@ -166,7 +166,7 @@ func TestParseMetainfo(t *testing.T) {
 func TestUpdateMetainfo(t *testing.T) {
 	fmt.Println("\n----------------TestUpdateMetainfo----------------")
 
-	parseMetainfo(mPath)
+	ParseMetainfo(mPath)
 
 	result := UpdateMetainfo(mPath)
 
@@ -185,7 +185,7 @@ func TestDeleteFile(t *testing.T) {
 	fmt.Println("\n----------------TestDeleteFiley----------------")
 	failed := false
 
-	parseMetainfo(mPath)
+	ParseMetainfo(mPath)
 	lynkName := GetLynkName(mPath)
 	DeleteFile("test.txt", lynkName)
 
