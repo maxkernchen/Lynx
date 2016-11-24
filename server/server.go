@@ -110,9 +110,10 @@ func handlePush(request string, conn net.Conn) error {
 		return errors.New("Invalid Request Syntax")
 	}
 
-	if client.IsDownloading(tmpArr[1]) {
+	// Don't need here
+	/*if client.IsDownloading(tmpArr[1]) {
 		client.StopDownload(tmpArr[1])
-	}
+	}*/
 
 	metaPath := lynxutil.HomePath + tmpArr[1] + "/meta.info"
 
