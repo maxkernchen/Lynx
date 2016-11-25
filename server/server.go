@@ -17,8 +17,12 @@ import (
 	"log"
 	"net"
 	"os"
+	"path/filepath"
 	"strings"
 )
+
+// Holds the currentLynk being worked on in an update
+var currentLynk *lynxutil.Lynk
 
 // Listen - Calls lynxutil to create a welcomeSocket that listens for TCP connections - once
 // someone connects a goroutine is spawned to handle the request
@@ -114,12 +118,12 @@ func handlePush(request string, conn net.Conn) error {
 	/*if client.IsDownloading(tmpArr[1]) {
 		client.StopDownload(tmpArr[1])
 	}*/
-
-	metaPath := lynxutil.HomePath + tmpArr[1] + "/meta.info"
+	lynkName := strings.TrimSpace(tmpArr[1])
+	metaPath := lynxutil.HomePath + lynkName + "/meta.info"
 
 	// Primes our directory for the new files in meta.info
-	os.RemoveAll(lynxutil.HomePath + tmpArr[1] + "/")
-	os.MkdirAll(lynxutil.HomePath+tmpArr[1]+"/", 0777)
+	//os.RemoveAll(lynxutil.HomePath + lynkName + "/")
+	//os.MkdirAll(lynxutil.HomePath+lynkName+"/", 0777)
 	/*err := os.Remove(metaPath)
 	if err != nil {
 		fmt.Println(err)
@@ -129,7 +133,7 @@ func handlePush(request string, conn net.Conn) error {
 	// Creates the new meta.info
 	newMetainfo, err := os.Create(metaPath)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("PUSH ERROR: " + err.Error())
 		return err
 	}
 
@@ -148,7 +152,8 @@ func handlePush(request string, conn net.Conn) error {
 	r.Read(bufOut)
 	r.Close()
 
-	fmt.Println(len(bufIn), "Bytes Received")
+	fmt.Println(len(bufIn), "Bytes Received IN META")
+	//fmt.Println(bufOut)
 	newMetainfo.Write(bufOut)
 
 	// Remove All Files In Directory
@@ -157,7 +162,13 @@ func handlePush(request string, conn net.Conn) error {
 	// OR
 	// parseMetainfo then UpdateLynk
 	client.ParseMetainfo(metaPath)
-	client.UpdateLynk(tmpArr[0])
+
+	// Sets currentLynk so it can be used in rmFiles
+	currentLynk = lynxutil.GetLynk(client.GetLynks(), lynkName)
+	// Removes files that are no longer in meta.info
+	filepath.Walk(lynxutil.HomePath+lynkName, rmFiles)
+
+	client.UpdateLynk(lynkName)
 	return nil // No errors if we reached this point
 }
 
@@ -172,6 +183,7 @@ func sendFile(fileName string, conn net.Conn) error {
 
 	// Can use read when implementing chunking
 	fBytes, err := ioutil.ReadFile(lynxutil.HomePath + fileName)
+	//fmt.Println("File Contents: ", string(fBytes))
 
 	// Begin Compression
 	var b bytes.Buffer
@@ -216,7 +228,7 @@ func PushMeta(metaPath string) error {
 	lynkName := client.GetLynkName(metaPath)
 	fmt.Fprintf(conn, "Meta_Push:"+lynkName+"\n") // Lets tracker know we are pushing
 
-	err = sendFile(metaPath, conn)
+	err = sendFile(lynkName+"/meta.info", conn)
 
 	if err != nil {
 		fmt.Println(err)
@@ -224,4 +236,27 @@ func PushMeta(metaPath string) error {
 	}
 
 	return conn.Close()
+}
+
+// Function which removes a file from a directory if it's not in the Lynk's files array
+// @param path string - the path where the root directory is located
+// @param file os.FileInfo - each file within the root or inner directories
+// @param err error - any error we way encoutner along the way
+// @return error - An error can produced if we encounter an invalid file.
+func rmFiles(path string, file os.FileInfo, err error) error {
+
+	inMeta := false
+	for _, f := range currentLynk.Files {
+		if f.Name == file.Name() {
+			inMeta = true
+		}
+	}
+
+	// Don't add directories, trackers, or a meta.info file to the new meta.info
+	if !file.IsDir() && !strings.Contains(path, "_Tracker") && file.Name() != "meta.info" && !inMeta {
+		fmt.Println("Removing ", file.Name())
+		os.Remove(path)
+	}
+
+	return nil
 }

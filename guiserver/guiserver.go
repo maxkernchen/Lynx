@@ -105,7 +105,7 @@ func IndexHandler(rw http.ResponseWriter, req *http.Request) {
 	}
 	//t,_ = t.ParseFiles("index.html")
 	tableEntries := TablePopulate(lynxutil.HomePath + "/lynks.txt")
-	fmt.Println(client.GetFileTableIndex())
+	//fmt.Println(client.GetFileTableIndex())
 
 	if client.GetFileTableIndex() > -1 {
 		fileEntry := FilePopulate(client.GetFileTableIndex())
@@ -160,7 +160,7 @@ func RemoveHandler(rw http.ResponseWriter, req *http.Request) {
 	name := form["index"]
 	if name != nil {
 		index, _ := strconv.Atoi(name[0])
-		fmt.Println("in here" + name[0])
+		//fmt.Println("in here" + name[0])
 		client.DeleteLynk(client.GetLynkNameFromIndex(index), false)
 		TablePopulate(lynxutil.HomePath + "/lynks.txt")
 	}
@@ -174,7 +174,7 @@ func RemoveHandler(rw http.ResponseWriter, req *http.Request) {
 func SettingsHandler(rw http.ResponseWriter, req *http.Request) {
 	req.ParseForm()
 	form = req.Form
-	fmt.Println(form) //returns an array of strings
+	//fmt.Println(form) //returns an array of strings
 	IndexHandler(rw, req)
 }
 
@@ -272,7 +272,7 @@ func FilePopulate(index int) string {
 		lynks := client.GetLynks()
 		fileEntries := ""
 		tempLynk := lynks[index]
-		fmt.Println(tempLynk.Files)
+		//fmt.Println(tempLynk.Files)
 		fmt.Println("file pop")
 		fileNames := tempLynk.Files
 		client.SetFileTableIndex(index)
@@ -288,7 +288,7 @@ func FilePopulate(index int) string {
 			fileEntries += "</tr>\n"
 			i++
 		}
-		fmt.Println(fileEntries)
+		//fmt.Println(fileEntries)
 
 		return fileEntries
 	}
@@ -323,7 +323,7 @@ func RemoveFileHandler(rw http.ResponseWriter, req *http.Request) {
 	name := form["index"]
 	if name != nil {
 		index, _ := strconv.Atoi(name[0])
-		fmt.Println(index)
+		//fmt.Println(index)
 		client.DeleteFileIndex(index, client.GetFileTableIndex())
 		lynk := client.GetLynkNameFromIndex(client.GetFileTableIndex())
 		//client.DeleteLynk(client.GetLynkNameFromIndex(client.GetFileTableIndex()))

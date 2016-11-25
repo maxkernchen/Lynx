@@ -583,7 +583,10 @@ func JoinLynk(metaPath string) error {
 // @param lynkName string - the name of the Lynk we want to update
 func UpdateLynk(lynkName string) error {
 	// We actually get the files we need over the network.
+	fmt.Println(lynkName)
+	fmt.Println(lynks)
 	lynk := lynxutil.GetLynk(lynks, lynkName)
+	fmt.Println("Lynk: ", lynk)
 	var err error // Creates nil error
 	for _, file := range lynk.Files {
 		err = getFile(file.Name, lynxutil.HomePath+lynkName+"/meta.info")

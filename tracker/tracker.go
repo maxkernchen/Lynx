@@ -288,9 +288,10 @@ func notifyPeers(request string) error {
 		peerArray := strings.Split(line, ":::")
 		// [0] is IP / [1 ]is Port
 		pConn, _ := net.Dial("tcp", peerArray[0]+":"+peerArray[1])
-		fmt.Fprintf(pConn, "Meta_Push:"+tmpArr[1]+"/\n")
+		fmt.Fprintf(pConn, "Meta_Push:"+tmpArr[1]+"\n")
 
 		fBytes, err := ioutil.ReadFile(metaPath)
+		//fmt.Println("fBytes: ", string(fBytes))
 
 		// Begin Compression
 		var b bytes.Buffer
@@ -313,6 +314,7 @@ func notifyPeers(request string) error {
 			return err
 		}
 
+		pConn.Close()
 		line, e = tp.ReadLine()
 	}
 
