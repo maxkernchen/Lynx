@@ -16,8 +16,11 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
+
+	"github.com/jasonlvhit/gocron"
 )
 
 // Holds our uploads html page
@@ -28,6 +31,12 @@ var downloads []byte
 
 // current form data that was submitted
 var form url.Values
+
+// Holds the currentLynk being checked for changes
+var currentLynk lynxutil.Lynk
+
+// Tells us whether or not our lynk's files have changed
+var changed = true
 
 // UserInput - A struct that we combine with our Go template to produce desired HTML
 type UserInput struct {
@@ -73,6 +82,12 @@ func launch() {
 	http.HandleFunc("/home", HomeHandler)
 	http.HandleFunc("/files", FileHandler)
 	http.HandleFunc("/removefile", RemoveFileHandler)
+
+	// Do jobs with params
+	//gocron.Every(30).Second().Do(checkLynks)
+	//<-gocron.Start()
+
+	go cronWrapper()
 
 	go server.Listen()
 
@@ -342,4 +357,52 @@ func RemoveFileHandler(rw http.ResponseWriter, req *http.Request) {
 func init() {
 	uploads, _ = ioutil.ReadFile("uploads.html")
 	downloads, _ = ioutil.ReadFile("downloads.html")
+}
+
+// Function which checks the files in a directory to see if any have been added / changed
+// @param path string - the path where the root directory is located
+// @param file os.FileInfo - each file within the root or inner directories
+// @param err error - any error we way encoutner along the way
+// @return error - An error can produced if we encounter an invalid file.
+func checkFiles(path string, file os.FileInfo, err error) error {
+
+	inMeta := false
+	for _, f := range currentLynk.Files {
+		// Checks that the file is in the meta.info and that it matches the size listed in the meta
+		if f.Name == file.Name() && f.Length == int(file.Size()) {
+			inMeta = true
+		}
+	}
+
+	// Don't add directories, trackers, or a meta.info file to the new meta.info
+	if !file.IsDir() && !strings.Contains(path, "_Tracker") && file.Name() != "meta.info" && !inMeta {
+		fmt.Println("Changed ", file.Name())
+		changed = true
+	}
+
+	return nil
+}
+
+// Helper function that we use to check to see if our Lynk has changed
+func checkLynks() {
+	// Loops through every Lynk to check to see if their files have changed
+	for _, lynk := range client.GetLynks() {
+		fmt.Println("Checking..." + lynk.Name)
+		changed = false
+		// Sets currentLynk so it can be used in checkFiles
+		currentLynk = lynk
+		// Sets changed to true if any files have been changed
+		filepath.Walk(lynxutil.HomePath+lynk.Name, checkFiles)
+		if changed {
+			client.CreateMeta(lynk.Name)
+			server.PushMeta(lynxutil.HomePath + lynk.Name + "/meta.info")
+		}
+	}
+}
+
+// Helper function that wraps around our cron call so we can call it in a goroutine
+func cronWrapper() {
+	s := gocron.NewScheduler()
+	s.Every(10).Seconds().Do(checkLynks)
+	<-s.Start()
 }
