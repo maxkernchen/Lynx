@@ -72,14 +72,14 @@ func launch() {
 	http.Handle("/images/", http.StripPrefix("/images/",
 		http.FileServer(http.Dir("images/"))))
 
-	http.HandleFunc("/", IndexHandler)
+	http.HandleFunc("/home", IndexHandler)
 	http.HandleFunc("/joinlynx", JoinHandler)
 	http.HandleFunc("/createlynx", CreateHandler)
 	http.HandleFunc("/removelynx", RemoveHandler)
 	http.HandleFunc("/settings", SettingsHandler)
 	http.HandleFunc("/uploads", UploadHandler)
 	http.HandleFunc("/downloads", DownloadHandler)
-	http.HandleFunc("/home", HomeHandler)
+	http.HandleFunc("/", SplashHandler)
 	http.HandleFunc("/files", FileHandler)
 	http.HandleFunc("/removefile", RemoveFileHandler)
 
@@ -213,8 +213,16 @@ func DownloadHandler(rw http.ResponseWriter, req *http.Request) {
 // @param http.ResponseWriter rw - This is what we use to write our html back to
 // the web page.
 // @param *http.Request req - This is the http request sent to the server.
-func HomeHandler(rw http.ResponseWriter, req *http.Request) {
-	IndexHandler(rw, req)
+func SplashHandler(rw http.ResponseWriter, req *http.Request) {
+	t := template.New("cool template")
+	t, err := t.ParseFiles("splash.html")
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	t.ExecuteTemplate(rw, "splash.html","");
+
+
 }
 
 // TablePopulate - Function which will replace an element in the table in order to popluate it
@@ -298,8 +306,10 @@ func FilePopulate(index int) string {
 			fileEntries += "<td>" + fileNames[i].Name + "</td>\n"
 			fileEntries += "<td>" + strconv.Itoa(fileNames[i].Length) + "</td>\n"
 			fileEntries += "<td><form id=\"remove\" method=\"POST\" action=\"removefile\"> \n" +
-				"<button type=\"submit\" class=\"transparent\" data-toggle=\"tooltip\" data-placement=\"bottom\" \n" +
-				"title=\"Delete this file\" input type=\"hidden\" name=\"index\" value=\"" + strconv.Itoa(i) + "\" ><img src=\"images/file-ex.png\"></button></form>"
+				"<button type=\"submit\" class=\"transparent\" data-toggle=\"tooltip\"" +
+				" data-placement=\"bottom\" \n" +
+				"title=\"Delete this file\" input type=\"hidden\" name=\"index\" value=\"" +
+				strconv.Itoa(i) + "\" ><img src=\"images/file-ex-red.png\"></button></form>"
 			fileEntries += "</tr>\n"
 			i++
 		}

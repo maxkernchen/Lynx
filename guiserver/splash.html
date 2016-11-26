@@ -1,0 +1,132 @@
+<!doctype html>
+
+<!-- Home page of Lynk file sharing web gui
+
+@author Max Kernchen
+@author Michael Bruce
+
+@version: 3/30/2016
+
+-->
+<html lang="en">
+<head>
+
+    <!-- various js and css depences mainly bootstrap and jquery ui -->
+    <meta charset="utf-8">
+    <title>LYNX File Sharing</title>
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="js/jquery-ui.css">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/jquery-1.12.2.min.js"></script>
+    <script src="js/jquery-ui.js"></script>
+
+    <script>
+
+     $(function () {
+  $('[data-toggle="tooltip"]').tooltip()
+})
+        $(document).ready(function(){
+  var dlg =  $("#createdialog").dialog({
+   autoOpen: false,
+     modal: true, title: 'Create A New Lynk', draggable: true, width: 230
+  });
+    //appends data from dialog to a form of id create
+    dlg.parent().appendTo($("#create"));
+    //opens dialog on click of id button createlynk
+  $("#createlynk").click(function(){
+   $("#createdialog").dialog('open');
+  });
+ });
+
+ // script for creating a dialog which pops up when the join button is pressed
+ $(document).ready(function(){
+  var dlg =  $("#joindialog").dialog({
+   autoOpen: false,
+     modal: true, title: 'Join A Current Lynk', draggable: true, width: 230
+  });
+   // appends data with the dialog to a form of id join
+    dlg.parent().appendTo($("#join"));
+    //opens the dialog when the joinlynk button is pressed
+  $("#joinlynk").click(function(){
+   $("#joindialog").dialog('open');
+  });
+ });
+
+
+        </script>
+
+
+    <style>
+
+
+
+
+
+.transparent{ border: none; background-color: transparent;outline: none;}
+.icon {background: url('file-ex.png') no-repeat top left;}
+.icon-accessibility{ background-position: 0 0; width: 32px; height: 32px; }
+.headerwrapper {text-align: center; margin-top:150px;}
+#header   {color: #65CCA9;display: inline-block;
+}
+#header2   {color: #79CDCD;
+}
+#buttonwrapper {clear:both; margin-top:150px; font-size: 30px; text-align: center;
+}
+#createlynk  {float:left; position:absolute; right:500px }
+#joinlynk{float:right; position:absolute; left:500px  }
+#homebtn{text-align:center; }
+
+
+
+</style>
+<head/>
+
+
+<body>
+<div class="headerwrapper">
+<div id="header"> <h1>Welcome to Lynx!</h1> </div>
+<div id="header2"><h2>Lynx lets you seamlessly transfer files <br/> directly from computer to computer. <br/> You can share photos,
+    videos, and docs all without storage limits. <br/> Click below to begin creating your own private cloud.</h2></div></div>
+</body>
+
+<br>
+<br>
+<br>
+
+<form id="create" method="POST" action="/createlynx" >
+    <button type="button" class="transparent" data-toggle="tooltip" data-placement="bottom"
+            title="Create a Lynk"
+            id="createlynk" value="Create Lynk">
+        <img src="images/folder-plus.png">
+    </button>
+    <div id="createdialog">
+        Directory Name
+        <input type="text" name="Name" required>
+        <br>
+        <input type="submit" class="btn btn-success " name="createnewlynk" value="Create">
+    </div>
+</form>
+<form id="join" method="POST" action="/joinlynx">
+    <button type="button" class="transparent" data-toggle="tooltip" data-placement="bottom"
+            title="Join a Lynk"
+            id="joinlynk" value="Join Lynk">
+        <img src=images/folder-down.png>
+    </button>
+    <div id="joindialog">
+        Meta.info Path
+        <input type="text" name="MetaPath" required>
+        <br>
+        <input type="submit" class="btn btn-info " name="joincurrentlynk" value="Join">
+    </div>
+</form>
+<div class="headerwrapper">
+<form id="home" method="POST" action="/home">
+    <button type="submit" class="transparent" data-toggle="tooltip" data-placement="bottom"
+            title="View Current Lynks"
+            id="homebtn" value="Join Lynk">
+        <img src=images/home.png>
+    </button>
+</form>
+</div>
+
+</html>
