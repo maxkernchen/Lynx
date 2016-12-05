@@ -27,10 +27,10 @@ var hPath = cU.HomeDir + "/Lynx/"
 var mPath = hPath + "SysTests/meta.info"
 
 // Path to the image file
-var imgPath = cU.HomeDir + "funny.jpg"
+var imgPath = cU.HomeDir + "/funny.jpg"
 
 // Path to the joining meta.info file
-var joinPath = cU.HomeDir + "meta.info"
+var joinPath = cU.HomeDir + "/meta.info"
 
 // Count of the # of successful tests.
 var successful = 0
