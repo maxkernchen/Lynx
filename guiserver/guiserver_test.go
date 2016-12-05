@@ -132,7 +132,7 @@ func testCreate() error {
 // @returns nil if successful, error if unsuccessful
 func testJoin() error {
 	fmt.Println("\n----------------TestJoin----------------")
-	err := client.JoinLynk(mPath)
+	err := client.JoinLynk(joinPath)
 	if err != nil {
 		fmt.Println("Test failed, expected no errors. Got " + err.Error())
 	} else {
