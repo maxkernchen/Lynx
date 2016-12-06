@@ -19,6 +19,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 // Holds the currentLynk being worked on in an update
@@ -241,6 +242,7 @@ func PushMeta(metaPath string) error {
 		return err
 	}
 
+	time.Sleep(time.Duration(2) * time.Second)
 	return conn.Close()
 }
 
