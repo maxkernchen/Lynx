@@ -176,8 +176,7 @@ func handlePush(request string, conn net.Conn) error {
 	filepath.Walk(lynxutil.HomePath+lynkName, rmFiles)
 
 	client.UpdateLynk(lynkName)
-	//return nil // No errors if we reached this point
-	return conn.Close()
+	return nil // No errors if we reached this point
 }
 
 // Sends a file across the network to a peer.
@@ -244,8 +243,8 @@ func PushMeta(metaPath string) error {
 		return err
 	}
 
-	//return conn.Close()
-	return nil
+	time.Sleep(time.Duration(2) * time.Second)
+	return conn.Close()
 }
 
 // Function which removes a file from a directory if it's not in the Lynk's files array
