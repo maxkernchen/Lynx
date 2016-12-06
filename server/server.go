@@ -138,7 +138,7 @@ func handlePush(request string, conn net.Conn) error {
 		return err
 	}
 
-	time.Sleep(time.Duration(2) * time.Second)
+	time.Sleep(time.Duration(1) * time.Second)
 	bufIn, err := ioutil.ReadAll(conn)
 
 	if err != nil {
@@ -233,7 +233,6 @@ func PushMeta(metaPath string) error {
 		return err
 	}
 
-	time.Sleep(time.Duration(2) * time.Second)
 	lynkName := client.GetLynkName(metaPath)
 	fmt.Fprintf(conn, "Meta_Push:"+lynkName+"\n") // Lets tracker know we are pushing
 
@@ -244,7 +243,7 @@ func PushMeta(metaPath string) error {
 		return err
 	}
 
-	time.Sleep(time.Duration(2) * time.Second)
+	time.Sleep(time.Duration(1) * time.Second)
 	return conn.Close()
 }
 
