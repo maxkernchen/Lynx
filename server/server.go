@@ -138,6 +138,7 @@ func handlePush(request string, conn net.Conn) error {
 		return err
 	}
 
+	time.Sleep(time.Duration(2) * time.Second)
 	bufIn, err := ioutil.ReadAll(conn)
 
 	if err != nil {
