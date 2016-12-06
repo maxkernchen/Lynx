@@ -139,6 +139,10 @@ func handlePush(request string, conn net.Conn) error {
 
 	bufIn, err := ioutil.ReadAll(conn)
 
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	// Decrypt
 	key := []byte(lynxutil.PrivateKey)
 	var plainFile []byte

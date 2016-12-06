@@ -347,6 +347,7 @@ func askForFile(lynkName, fileName string, conn net.Conn) bool {
 
 		bufIn, err := ioutil.ReadAll(conn)
 		if err != nil {
+			fmt.Println("Did Not Receive File!")
 			return gotFile
 		}
 
