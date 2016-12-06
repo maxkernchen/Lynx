@@ -143,6 +143,8 @@ func handlePush(request string, conn net.Conn) error {
 		log.Fatal("Server:", err)
 	}
 
+	fmt.Println(request, "SERVER BUFIN:", len(bufIn))
+
 	// Decrypt
 	key := []byte(lynxutil.PrivateKey)
 	var plainFile []byte
