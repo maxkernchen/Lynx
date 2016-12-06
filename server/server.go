@@ -141,9 +141,14 @@ func handlePush(request string, conn net.Conn) error {
 	time.Sleep(time.Duration(1) * time.Second)
 	bufIn, err := ioutil.ReadAll(conn)
 
-	if err != nil {
-		log.Fatal("Server:", err)
+	for len(bufIn) == 0 && err != nil {
+		fmt.Println("RECHECKED")
+		bufIn, err = ioutil.ReadAll(conn)
 	}
+
+	/*if err != nil {
+		log.Fatal("Server:", err)
+	}*/
 
 	fmt.Println(request, "SERVER BUFIN:", len(bufIn))
 
