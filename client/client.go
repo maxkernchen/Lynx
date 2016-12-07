@@ -14,7 +14,6 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net"
 	"net/textproto"
 	"os"
@@ -339,12 +338,6 @@ func askForFile(lynkName, fileName string, conn net.Conn) bool {
 
 	// Has file and no errors
 	if reply != "NO" && err == nil {
-		file, err := os.Create(lynxutil.HomePath + lynkName + "/" + fileName)
-		if err != nil {
-			return gotFile
-		}
-		defer file.Close()
-
 		bufIn, err := ioutil.ReadAll(conn)
 		if err != nil {
 			fmt.Println("Did Not Receive File!")
@@ -356,7 +349,8 @@ func askForFile(lynkName, fileName string, conn net.Conn) bool {
 		key := []byte(lynxutil.PrivateKey)
 		var plainFile []byte
 		if plainFile, err = mycrypt.Decrypt(key, bufIn); err != nil {
-			log.Fatal(err)
+			//log.Fatal(err)
+			return gotFile
 		}
 
 		// Decompress
@@ -364,6 +358,12 @@ func askForFile(lynkName, fileName string, conn net.Conn) bool {
 		bufOut, _ := ioutil.ReadAll(r)
 		r.Read(bufOut)
 		r.Close()
+
+		file, err := os.Create(lynxutil.HomePath + lynkName + "/" + fileName)
+		if err != nil {
+			return gotFile
+		}
+		defer file.Close()
 
 		fmt.Println(len(bufIn), "Bytes Received")
 		file.Write(bufOut)
