@@ -248,7 +248,7 @@ func PushMeta(metaPath string) error {
 		return err
 	}
 
-	time.Sleep(time.Duration(1) * time.Second)
+	//time.Sleep(time.Duration(1) * time.Second)
 	return conn.Close()
 }
 

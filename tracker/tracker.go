@@ -295,7 +295,7 @@ func notifyPeers(request string) error {
 		fmt.Fprintf(pConn, "Meta_Push:"+tmpArr[1]+"\n")
 
 		fBytes, err := ioutil.ReadFile(metaPath)
-		//fmt.Println("fBytes: ", string(fBytes))
+		fmt.Println("fBytes: ", string(fBytes))
 
 		// Begin Compression
 		var b bytes.Buffer
@@ -313,10 +313,13 @@ func notifyPeers(request string) error {
 		}
 		// End Encryption
 
-		_, err = pConn.Write(cipherFile)
+		n, err := pConn.Write(cipherFile)
 		if err != nil {
+			fmt.Println("CONNECTION ERROR:", err)
 			return err
 		}
+
+		fmt.Println("TRACKER SENT", n, "BYTES TO PEER")
 
 		pConn.Close()
 		line, e = tp.ReadLine()
