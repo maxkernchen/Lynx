@@ -22,6 +22,7 @@ import (
 	"os/user"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 // An array of tLynks this tracker presides over
@@ -319,6 +320,7 @@ func notifyPeers(request string) error {
 			return err
 		}
 
+		time.Sleep(time.Duration(1) * time.Second)
 		fmt.Println("TRACKER SENT", n, "BYTES TO PEER")
 
 		pConn.Close()

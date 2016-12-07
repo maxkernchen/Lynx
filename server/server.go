@@ -19,7 +19,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 )
 
 // Holds the currentLynk being worked on in an update
@@ -138,17 +137,12 @@ func handlePush(request string, conn net.Conn) error {
 		return err
 	}
 
-	time.Sleep(time.Duration(1) * time.Second)
+	//time.Sleep(time.Duration(1) * time.Second)
 	bufIn, err := ioutil.ReadAll(conn)
 
-	for len(bufIn) == 0 && err == nil {
-		fmt.Println("RECHECKED")
-		bufIn, err = ioutil.ReadAll(conn)
-	}
-
-	/*if err != nil {
+	if err != nil {
 		log.Fatal("Server:", err)
-	}*/
+	}
 
 	fmt.Println(request, "SERVER BUFIN:", len(bufIn))
 
