@@ -141,7 +141,7 @@ func handlePush(request string, conn net.Conn) error {
 	time.Sleep(time.Duration(1) * time.Second)
 	bufIn, err := ioutil.ReadAll(conn)
 
-	for len(bufIn) == 0 && err != nil {
+	for len(bufIn) == 0 && err == nil {
 		fmt.Println("RECHECKED")
 		bufIn, err = ioutil.ReadAll(conn)
 	}
