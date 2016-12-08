@@ -288,6 +288,7 @@ func getFile(fileName, metaPath string) error {
 // problems creating or writing to the file, or from not being able to get there
 // desired file - otherwise error will be nil.
 func getFile(fileName, metaPath string) error {
+
 	// Will parseMetainfo file and then ask tracker for list of peers
 	ParseMetainfo(metaPath)
 	lynkName := GetLynkName(metaPath)
@@ -356,7 +357,7 @@ func askForFile(lynkName, fileName string, conn net.Conn) bool {
 		}
 		defer file.Close()
 
-		fmt.Println(len(bufIn), "Bytes Received")
+		//fmt.Println(len(bufIn), "Bytes Received")
 		file.Write(bufOut)
 		gotFile = true
 	}
@@ -372,26 +373,20 @@ func askForFile(lynkName, fileName string, conn net.Conn) bool {
 // @param net.Conn conn - The connection to the peer
 // @return bool - True or false is returned based on whether or not we successfully received a file
 func askForFile(lynkName, fileName string, conn net.Conn) bool {
-	fmt.Fprintf(conn, "Do_You_Have_FileName:"+lynkName+"/"+fileName+"\n")
 
-	fmt.Println("Downloading " + fileName + " From: " + conn.LocalAddr().String())
+	fmt.Fprintf(conn, "Do_You_Have_FileName:"+lynkName+"/"+fileName+"\n")
 
 	reply, err := bufio.NewReader(conn).ReadString('\n') // Waits for a String ending in newline
 	reply = strings.TrimSpace(reply)
 	gotFile := false
 
+	time.Sleep(time.Duration(10) * time.Second) // Waits X amount of time and then continues
+
 	// Has file and no errors
 	if reply != "NO" && err == nil {
-		file, err := os.Create(lynxutil.HomePath + lynkName + "/" + fileName)
-		if err != nil {
-			return gotFile
-		}
-		defer file.Close()
-
-		time.Sleep(time.Duration(20) * time.Second) // Waits X amount of time and then continues
-
 		bufIn, err := ioutil.ReadAll(conn)
-		if err != nil {
+
+		if err != nil || reply == "YES" {
 			lynk := lynxutil.GetLynk(lynks, lynkName)
 			var file lynxutil.File
 			for _, f := range lynk.Files {
@@ -399,7 +394,8 @@ func askForFile(lynkName, fileName string, conn net.Conn) bool {
 					file = f
 				}
 			}
-			fmt.Println("Disconnected From", conn.LocalAddr().String(), "On Chunk", (len(bufIn) + file.Length / file.ChunkLength))
+			fmt.Println("Disconnected From", conn.LocalAddr().String(), "On Chunk", int(
+									(len(bufIn) + file.Length / file.ChunkLength)))
 			return gotFile
 		}
 
@@ -407,7 +403,8 @@ func askForFile(lynkName, fileName string, conn net.Conn) bool {
 		key := []byte(lynxutil.PrivateKey)
 		var plainFile []byte
 		if plainFile, err = mycrypt.Decrypt(key, bufIn); err != nil {
-			log.Fatal(err)
+			//log.Fatal(err)
+			return gotFile
 		}
 
 		// Decompress
@@ -415,6 +412,12 @@ func askForFile(lynkName, fileName string, conn net.Conn) bool {
 		bufOut, _ := ioutil.ReadAll(r)
 		r.Read(bufOut)
 		r.Close()
+
+		file, err := os.Create(lynxutil.HomePath + lynkName + "/" + fileName)
+		if err != nil {
+			return gotFile
+		}
+		defer file.Close()
 
 		fmt.Println(len(bufIn), "Bytes Received")
 		file.Write(bufOut)
