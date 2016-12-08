@@ -27,6 +27,9 @@ const GUIPort = "5000"
 // SockErr - Represents A Welcome Socket Error
 const SockErr = -1
 
+// ChunkLength - Represents Default Chunk Length
+const ChunkLength = 32
+
 // ReconnAttempts - Represents The Maximum Numbers Of Reconnection Attempts Lynx Will Make
 const ReconnAttempts = 3
 

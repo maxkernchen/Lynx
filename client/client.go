@@ -325,6 +325,8 @@ func getFile(fileName, metaPath string) error {
 func askForFile(lynkName, fileName string, conn net.Conn) bool {
 	fmt.Fprintf(conn, "Do_You_Have_FileName:"+lynkName+"/"+fileName+"\n")
 
+	fmt.Println("Downloading: " + fileName)
+
 	reply, err := bufio.NewReader(conn).ReadString('\n') // Waits for a String ending in newline
 	reply = strings.TrimSpace(reply)
 	gotFile := false
@@ -373,8 +375,9 @@ func askForFile(lynkName, fileName string, conn net.Conn) bool {
 // @param net.Conn conn - The connection to the peer
 // @return bool - True or false is returned based on whether or not we successfully received a file
 func askForFile(lynkName, fileName string, conn net.Conn) bool {
-
 	fmt.Fprintf(conn, "Do_You_Have_FileName:"+lynkName+"/"+fileName+"\n")
+
+	fmt.Println("Downloading: " + fileName + "From " + conn.LocalAddr().String())
 
 	reply, err := bufio.NewReader(conn).ReadString('\n') // Waits for a String ending in newline
 	reply = strings.TrimSpace(reply)
@@ -395,7 +398,7 @@ func askForFile(lynkName, fileName string, conn net.Conn) bool {
 				}
 			}
 			fmt.Println("Disconnected From", conn.LocalAddr().String(), "On Chunk", int(
-									(len(bufIn) + file.Length / file.ChunkLength)))
+									(len(bufIn) + file.Length / lynxutil.ChunkLength))
 			return gotFile
 		}
 
