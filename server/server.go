@@ -14,6 +14,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net"
 	"os"
 	"path/filepath"
@@ -129,8 +130,19 @@ func handlePush(request string, conn net.Conn) error {
 		return err
 	}*/
 
+	// Creates the new meta.info
+	newMetainfo, err := os.Create(metaPath)
+	if err != nil {
+		fmt.Println("PUSH ERROR: " + err.Error())
+		return err
+	}
+
 	//time.Sleep(time.Duration(1) * time.Second)
 	bufIn, err := ioutil.ReadAll(conn)
+
+	if err != nil {
+		log.Fatal("Server:", err)
+	}
 
 	fmt.Println(request, "SERVER BUFIN:", len(bufIn))
 
@@ -138,7 +150,7 @@ func handlePush(request string, conn net.Conn) error {
 	key := []byte(lynxutil.PrivateKey)
 	var plainFile []byte
 	if plainFile, err = mycrypt.Decrypt(key, bufIn); err != nil {
-		return err
+		log.Fatal(err)
 	}
 
 	// Decompress
@@ -146,13 +158,6 @@ func handlePush(request string, conn net.Conn) error {
 	bufOut, _ := ioutil.ReadAll(r)
 	r.Read(bufOut)
 	r.Close()
-
-	// Creates the new meta.info
-	newMetainfo, err := os.Create(metaPath)
-	if err != nil {
-		fmt.Println("PUSH ERROR: " + err.Error())
-		return err
-	}
 
 	fmt.Println(len(bufIn), "Bytes Received IN META")
 	//fmt.Println(bufOut)
