@@ -8,7 +8,7 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
-	"fmt"
+	"errors"
 	"io"
 )
 
@@ -55,9 +55,8 @@ func Decrypt(key, ciphertext []byte) (plaintext []byte, err error) {
 	}
 
 	if len(ciphertext) < aes.BlockSize {
-		fmt.Println(len(ciphertext), " > ", aes.BlockSize)
-		//err = errors.New("ciphertext too short")
-		//return
+		err = errors.New("ciphertext too short")
+		return
 	}
 
 	iv := ciphertext[:aes.BlockSize]

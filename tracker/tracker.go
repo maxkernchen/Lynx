@@ -15,7 +15,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"net"
 	"net/textproto"
 	"os"
@@ -235,7 +234,26 @@ func handlePush(request string, conn net.Conn) error {
 	// So tmpArr[0] - Meta_Push | tmpArr[1] - <LynkName>
 	tmpArr := strings.Split(request, ":")
 	metaPath := lynxutil.HomePath + tmpArr[1] + "/" + tmpArr[1] + "_Tracker/" + "meta.info"
-	err := os.Remove(metaPath)
+
+	bufIn, err := ioutil.ReadAll(conn)
+
+	// Decrypt
+	//key := []byte("abcdefghijklmnopqrstuvwxyz123456")
+	key := []byte(lynxutil.PrivateKey)
+	var plainFile []byte
+	if plainFile, err = mycrypt.Decrypt(key, bufIn); err != nil {
+		return err
+	}
+
+	// Decompress
+	r, _ := gzip.NewReader(bytes.NewBuffer(plainFile))
+	bufOut, _ := ioutil.ReadAll(r)
+	r.Read(bufOut)
+	r.Close()
+
+	fmt.Println(len(bufIn), "Bytes Received")
+
+	err = os.Remove(metaPath)
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -246,28 +264,6 @@ func handlePush(request string, conn net.Conn) error {
 		fmt.Println(err)
 		return err
 	}
-
-	bufIn, err := ioutil.ReadAll(conn)
-
-	if err != nil {
-		log.Fatal("Tracker:", err)
-	}
-
-	// Decrypt
-	//key := []byte("abcdefghijklmnopqrstuvwxyz123456")
-	key := []byte(lynxutil.PrivateKey)
-	var plainFile []byte
-	if plainFile, err = mycrypt.Decrypt(key, bufIn); err != nil {
-		log.Fatal(err)
-	}
-
-	// Decompress
-	r, _ := gzip.NewReader(bytes.NewBuffer(plainFile))
-	bufOut, _ := ioutil.ReadAll(r)
-	r.Read(bufOut)
-	r.Close()
-
-	fmt.Println(len(bufIn), "Bytes Received")
 	newMetainfo.Write(bufOut)
 
 	return nil // No errors if we reached this point
