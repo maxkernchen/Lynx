@@ -350,7 +350,6 @@ func askForFile(lynkName, fileName string, conn net.Conn) bool {
 		var plainFile []byte
 		if plainFile, err = mycrypt.Decrypt(key, bufIn); err != nil {
 			//log.Fatal(err)
-			fmt.Println("WHAT?")
 			return gotFile
 		}
 
