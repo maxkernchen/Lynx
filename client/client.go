@@ -55,7 +55,6 @@ func DeleteFile(nameToDelete, lynkName string) error {
 		i++
 	}
 
-	fmt.Println(lynk.Files)
 	return err
 }
 
@@ -64,19 +63,12 @@ func DeleteFile(nameToDelete, lynkName string) error {
 // lynkIndex - the lynk which the file corresponds to
 func DeleteFileIndex(fileDelete, lynkIndex int) {
 	lynk := lynks[lynkIndex]
-
-	err := os.Remove(lynk.Files[fileDelete].Path)
-	fmt.Println(err)
+	os.Remove(lynk.Files[fileDelete].Path)
 	lynk.Files = append(lynk.Files[:fileDelete], lynk.Files[fileDelete+1:]...)
 
-	fmt.Println(lynks[lynkIndex].Files)
-	fmt.Println(lynk.Files)
+	//fmt.Println(lynks[lynkIndex].Files)
+	//fmt.Println(lynk.Files)
 	lynks[lynkIndex].Files = lynk.Files
-	fmt.Println(lynks[lynkIndex].Files)
-	fmt.Println(lynxutil.HomePath + lynks[lynkIndex].Name + "/")
-	//err1 := updateMetainfo(lynxutil.HomePath+lynks[lynkIndex].Name+"/meta.info")
-	//fmt.Println(err1.Error())
-
 }
 
 // UpdateMetainfo - Deletes the current meta.info and replaces it with a new version that
@@ -345,7 +337,6 @@ func askForFile(lynkName, fileName string, conn net.Conn) bool {
 		}
 
 		// Decrypt
-		//key := []byte("abcdefghijklmnopqrstuvwxyz123456")
 		key := []byte(lynxutil.PrivateKey)
 		var plainFile []byte
 		if plainFile, err = mycrypt.Decrypt(key, bufIn); err != nil {
@@ -413,7 +404,6 @@ func askForFile(lynkName, fileName string, conn net.Conn) bool {
 		}
 
 		// Decrypt
-		//key := []byte("abcdefghijklmnopqrstuvwxyz123456")
 		key := []byte(lynxutil.PrivateKey)
 		var plainFile []byte
 		if plainFile, err = mycrypt.Decrypt(key, bufIn); err != nil {
@@ -500,7 +490,6 @@ func contains(s []lynxutil.Peer, e lynxutil.Peer) bool {
 func CreateMeta(name string) error {
 	tDir, err := os.Stat(lynxutil.HomePath + name) // Checks to see if the directory exists
 	if err != nil || !tDir.IsDir() {
-		fmt.Println("ERROR!")
 		return errors.New("Directory " + name + "does not exist in the Lynx directory.")
 	}
 
@@ -568,7 +557,6 @@ func addLynk(name, owner string) error {
 	ParseLynks(lynxutil.HomePath + "lynks.txt")
 	genLynks()
 
-	// fmt.Println(lynks)
 	return lynkFile.Close()
 }
 
@@ -610,7 +598,7 @@ func DeleteLynk(nameToDelete string, deleteLocal bool) {
 	for i < len(lynks) {
 		if nameToDelete == lynks[i].Name {
 			// Removes this peer from swarm.info file
-			fmt.Println("deleted lynk")
+			//fmt.Println("deleted lynk")
 			lynks = append(lynks[:i], lynks[i+1:]...)
 		}
 		i++
@@ -683,10 +671,7 @@ func JoinLynk(metaPath string) error {
 // @param lynkName string - the name of the Lynk we want to update
 func UpdateLynk(lynkName string) error {
 	// We actually get the files we need over the network.
-	fmt.Println(lynkName)
-	fmt.Println(lynks)
 	lynk := lynxutil.GetLynk(lynks, lynkName)
-	fmt.Println("Lynk: ", lynk)
 	var err error // Creates nil error
 	for _, file := range lynk.Files {
 		err = getFile(file.Name, lynxutil.HomePath+lynkName+"/meta.info")
@@ -728,9 +713,6 @@ func createJoin(name, oldMetaPath string) error {
 func init() {
 	ParseLynks(lynxutil.HomePath + "lynks.txt")
 	genLynks()
-	//fmt.Println(lynks)
-	//lynk := lynxutil.GetLynk(lynks, "Tests")
-	//fmt.Println(lynk.Files)
 }
 
 // Helper function that generates all the data for our lynks array by parsing each corresponding
@@ -770,7 +752,6 @@ func PopulateFilesAndSize() {
 		j := 0
 		if len(lynks[i].FileNames) == 0 && len(lynks[i].FileSize) == 0 {
 			for j < len(files) {
-
 				lynks[i].FileNames = append(lynks[i].FileNames, files[j].Name)
 				lynks[i].FileSize = append(lynks[i].FileSize, files[j].Length)
 				j++
@@ -786,7 +767,6 @@ func PopulateFilesAndSize() {
 // @returns - Returns whether or not the client associated the specified lynk is downloading
 func IsDownloading(lynkName string) bool {
 	lynk := lynxutil.GetLynk(lynks, lynkName)
-
 	return lynk.DLing
 }
 

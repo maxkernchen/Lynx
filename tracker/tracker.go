@@ -238,7 +238,6 @@ func handlePush(request string, conn net.Conn) error {
 	bufIn, err := ioutil.ReadAll(conn)
 
 	// Decrypt
-	//key := []byte("abcdefghijklmnopqrstuvwxyz123456")
 	key := []byte(lynxutil.PrivateKey)
 	var plainFile []byte
 	if plainFile, err = mycrypt.Decrypt(key, bufIn); err != nil {

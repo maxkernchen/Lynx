@@ -40,8 +40,7 @@ func handleFileRequest(conn net.Conn) error {
 		return err
 	}
 
-	// Will handle tracker request too
-	// *Will handle receiving Meta as well
+	// Will handle tracker request & receiving of Meta
 	tmpArr := strings.Split(request, ":")
 	if len(tmpArr) != 2 {
 		conn.Close()
@@ -54,10 +53,10 @@ func handleFileRequest(conn net.Conn) error {
 		fileReq := tmpArr[1] // Gets the name of requested file
 		fileReq = strings.TrimSpace(fileReq)
 
-		fmt.Println("Asked for " + fileReq)
+		//fmt.Println("Asked for " + fileReq)
 
 		haveFile := client.HaveFile(fileReq)
-		fmt.Println(haveFile)
+		//fmt.Println(haveFile)
 
 		// Depending on if we have the file - we write back to our client accordingly
 		if haveFile {
@@ -71,7 +70,7 @@ func handleFileRequest(conn net.Conn) error {
 		}
 	}
 
-	fmt.Println("No Errors")
+	//fmt.Println("No Errors")
 	return conn.Close()
 }
 
@@ -113,26 +112,12 @@ func handlePush(request string, conn net.Conn) error {
 		return errors.New("Invalid Request Syntax")
 	}
 
-	// Don't need here
-	/*if client.IsDownloading(tmpArr[1]) {
-		client.StopDownload(tmpArr[1])
-	}*/
 	lynkName := strings.TrimSpace(tmpArr[1])
 	metaPath := lynxutil.HomePath + lynkName + "/meta.info"
 
-	// Primes our directory for the new files in meta.info
-	//os.RemoveAll(lynxutil.HomePath + lynkName + "/")
-	//os.MkdirAll(lynxutil.HomePath+lynkName+"/", 0777)
-	/*err := os.Remove(metaPath)
-	if err != nil {
-		fmt.Println(err)
-		return err
-	}*/
-
-	//time.Sleep(time.Duration(1) * time.Second)
 	bufIn, err := ioutil.ReadAll(conn)
 
-	fmt.Println(request, "SERVER BUFIN:", len(bufIn))
+	//fmt.Println(request, "SERVER BUFIN:", len(bufIn))
 
 	// Decrypt
 	key := []byte(lynxutil.PrivateKey)
@@ -154,15 +139,9 @@ func handlePush(request string, conn net.Conn) error {
 		return err
 	}
 
-	fmt.Println(len(bufIn), "Bytes Received IN META")
+	//fmt.Println(len(bufIn), "Bytes Received IN META")
 	//fmt.Println(bufOut)
 	newMetainfo.Write(bufOut)
-
-	// Remove All Files In Directory
-
-	// Call Join Lynk With Meta That Was Just Created
-	// OR
-	// parseMetainfo then UpdateLynk
 	client.ParseMetainfo(metaPath)
 
 	// Sets currentLynk so it can be used in rmFiles
@@ -196,8 +175,6 @@ func sendFile(fileName string, conn net.Conn) error {
 
 	// Begin Encryption
 	var cipherFile []byte
-	// The key length can be 32, 24, 16  bytes (OR in bits: 128, 192 or 256)
-	//key := []byte("abcdefghijklmnopqrstuvwxyz123456")
 	publicKey := lynxutil.Peer{IP: conn.LocalAddr().String()}.Key + lynxutil.PrivateKey
 	key := []byte(publicKey)
 	if cipherFile, err = mycrypt.Encrypt(key, b.Bytes()); err != nil {
@@ -205,17 +182,17 @@ func sendFile(fileName string, conn net.Conn) error {
 	}
 	// End Encryption
 
-	n, err := conn.Write(cipherFile)
+	_, err = conn.Write(cipherFile)
 	if err != nil {
 		return err
 	}
 
-	fmt.Println(n, "Bytes were sent")
+	//fmt.Println(n, "Bytes were sent")
 
 	return nil // No Errors Occured If We Reached Here
 }
 
-// Sends the meta.info file to the tracker. Gets the tracker IP from the client.
+// PushMeta - Sends the meta.info file to the tracker. Gets the tracker IP from the client.
 // @param string metaPath - The meta.info path associated with the lynk we're interested in
 // @return error - An error can be produced when trying to connect to the tracker
 // over the network - otherwise error will be nil.
@@ -237,7 +214,6 @@ func PushMeta(metaPath string) error {
 		return err
 	}
 
-	//time.Sleep(time.Duration(1) * time.Second)
 	return conn.Close()
 }
 
@@ -257,7 +233,7 @@ func rmFiles(path string, file os.FileInfo, err error) error {
 
 	// Don't add directories, trackers, or a meta.info file to the new meta.info
 	if !file.IsDir() && !strings.Contains(path, "_Tracker") && file.Name() != "meta.info" && !inMeta {
-		fmt.Println("Removing ", file.Name())
+		//fmt.Println("Removing ", file.Name())
 		os.Remove(path)
 	}
 
