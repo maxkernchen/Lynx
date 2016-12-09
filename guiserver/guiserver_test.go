@@ -229,10 +229,10 @@ func init() {
 	opDelayPtr := flag.Int("opDelay", 4, "How long Lynx waits to perform op - in hours.")
 
 	flag.Parse()
-	fmt.Println("delay:", *delayPtr)
-	fmt.Println("startUp:", *startUpPtr)
-	fmt.Println("op:", *opPtr)
-	fmt.Println("opDelay:", *opDelayPtr)
+	//fmt.Println("delay:", *delayPtr)
+	//fmt.Println("startUp:", *startUpPtr)
+	//fmt.Println("op:", *opPtr)
+	//fmt.Println("opDelay:", *opDelayPtr)
 	delay = *delayPtr
 	startUp = *startUpPtr
 	op = *opPtr
