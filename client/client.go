@@ -328,7 +328,7 @@ func getFile(fileName, metaPath string) error {
 func askForFile(lynkName, fileName string, conn net.Conn) bool {
 	fmt.Fprintf(conn, "Do_You_Have_FileName:"+lynkName+"/"+fileName+"\n")
 
-	fmt.Println("Downloading: " + fileName)
+	fmt.Println("Downloading: " + fileName + " From " + conn.LocalAddr().String())
 
 	reply, err := bufio.NewReader(conn).ReadString('\n') // Waits for a String ending in newline
 	reply = strings.TrimSpace(reply)
