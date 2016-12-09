@@ -299,7 +299,7 @@ func getFile(fileName, metaPath string) error {
 
 	i := 1 // Skip Tracker - Which Will Be My Laptop For Presentation - So We Don't Come To Me First
 	gotFile := false
-	for i > 0 && !gotFile {
+	for i >= 0 && !gotFile {
 		conn, err := net.Dial("tcp", lynk.Peers[i].IP+":"+lynk.Peers[i].Port)
 		// We don't want to return on err because we might be able to connect to next peer.
 		if (i == 1 && err == nil) {
@@ -379,7 +379,7 @@ func askForFile(lynkName, fileName string, conn net.Conn) bool {
 func askForFilePres(lynkName, fileName string, conn net.Conn) bool {
 	fmt.Fprintf(conn, "Do_You_Have_FileName:"+lynkName+"/"+fileName+"\n")
 
-	fmt.Println("Downloading: " + fileName + "From " + conn.LocalAddr().String())
+	fmt.Println("Downloading: " + fileName + " From " + conn.LocalAddr().String())
 
 	reply, err := bufio.NewReader(conn).ReadString('\n') // Waits for a String ending in newline
 	reply = strings.TrimSpace(reply)
