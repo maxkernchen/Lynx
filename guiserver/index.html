@@ -48,64 +48,206 @@
    $("#joindialog").dialog('open');
   });
  });
-  // creates dialog for remove form
-  $(document).ready(function(){
-  var dlg =  $("#removedialog").dialog({
-   autoOpen: false,
-     modal: true, title: 'Remove A Lynk', draggable: true, width: 230
-  });
-  // appends new data from within the dialog to the remove form
-    dlg.parent().appendTo($("#remove"));
-    // opens the dialog when removelynk is pressed
-  $("#removelynk").click(function(){
-   $("#removedialog").dialog('open');
-  });
- });
-  // opens the settings dialog which appears after any row is pressed in the table
-  $(document).ready(function(){
-  var dlg =  $("").dialog({
-   autoOpen: false,
-     modal: true, title: 'Files', draggable: true, width: 'auto'
-  });
-  //append its info to the settings form
-    dlg.parent().appendTo($("#row0form"));
-  // if a setting row is clicked open up the setting dialog
-  $("#row0").click(function(){
-    $(this).addClass('highlight').siblings().removeClass("highlight");
 
-    document.row0form.submit();
+
+{{.JSCode}}
+// script for creating a dialog which pops up when the join button is pressed
+ $(document).ready(function(){
+  var dlg =  $("#remover0").dialog({
+   autoOpen: false,
+     modal: true, title: 'Are you sure', draggable: true, width: 230
+  });
+   // appends data with the dialog to a form of id join
+    dlg.parent().appendTo($("#remove0"));
+    //opens the dialog when the joinlynk button is pressed
+  $("#fileremove0").click(function(){
+   $("#remover0").dialog('open');
+  });
+  $("#close0").click(function(){
+   $("#remover0").dialog('close');
   });
  });
 
-  // opens the settings dialog which appears after any row is pressed in the table
-  $(document).ready(function(){
-  var dlg =  $("").dialog({
+ // script for creating a dialog which pops up when the join button is pressed
+ $(document).ready(function(){
+  var dlg =  $("#remover1").dialog({
    autoOpen: false,
-     modal: true, title: 'Files', draggable: true, width: 'auto'
+     modal: true, title: 'Are you sure', draggable: true, width: 230
   });
-  //append its info to the settings form
-    dlg.parent().appendTo($("#row1form"));
-  // if a setting row is clicked open up the setting dialog
-  $("#row1").click(function(){
-    $(this).addClass('highlight').siblings().removeClass("highlight");
-
-    document.row1form.submit();
+   // appends data with the dialog to a form of id join
+    dlg.parent().appendTo($("#remove1"));
+    //opens the dialog when the joinlynk button is pressed
+  $("#fileremove1").click(function(){
+   $("#remover1").dialog('open');
+  });
+  $("#close1").click(function(){
+   $("#remover1").dialog('close');
   });
  });
 
+ // script for creating a dialog which pops up when the join button is pressed
+ $(document).ready(function(){
+  var dlg =  $("#remover2").dialog({
+   autoOpen: false,
+     modal: true, title: 'Are you sure', draggable: true, width: 230
+  });
+   // appends data with the dialog to a form of id join
+    dlg.parent().appendTo($("#remove2"));
+    //opens the dialog when the joinlynk button is pressed
+  $("#fileremove2").click(function(){
+   $("#remover2").dialog('open');
+  });
+  $("#close2").click(function(){
+   $("#remover2").dialog('close');
+  });
+ });
 
+// script for creating a dialog which pops up when the join button is pressed
+ $(document).ready(function(){
+  var dlg =  $("#remover3").dialog({
+   autoOpen: false,
+     modal: true, title: 'Are you sure', draggable: true, width: 230
+  });
+   // appends data with the dialog to a form of id join
+    dlg.parent().appendTo($("#remove3"));
+    //opens the dialog when the joinlynk button is pressed
+  $("#fileremove3").click(function(){
+   $("#remover3").dialog('open');
+  });
+  $("#close3").click(function(){
+   $("#remover3").dialog('close');
+  });
+ });
 
+ // script for creating a dialog which pops up when the join button is pressed
+ $(document).ready(function(){
+  var dlg =  $("#remover4").dialog({
+   autoOpen: false,
+     modal: true, title: 'Are you sure', draggable: true, width: 230
+  });
+   // appends data with the dialog to a form of id join
+    dlg.parent().appendTo($("#remove4"));
+    //opens the dialog when the joinlynk button is pressed
+  $("#fileremove4").click(function(){
+   $("#remover4").dialog('open');
+  });
+  $("#close4").click(function(){
+   $("#remover4").dialog('close');
+  });
+ });
+
+// script for creating a dialog which pops up when the join button is pressed
+ $(document).ready(function(){
+  var dlg =  $("#remover5").dialog({
+   autoOpen: false,
+     modal: true, title: 'Are you sure', draggable: true, width: 230
+  });
+   // appends data with the dialog to a form of id join
+    dlg.parent().appendTo($("#remove5"));
+    //opens the dialog when the joinlynk button is pressed
+  $("#fileremove5").click(function(){
+   $("#remover5").dialog('open');
+  });
+  $("#close5").click(function(){
+   $("#remover5").dialog('close');
+  });
+ });
+
+// script for creating a dialog which pops up when the join button is pressed
+ $(document).ready(function(){
+  var dlg =  $("#remover6").dialog({
+   autoOpen: false,
+     modal: true, title: 'Are you sure', draggable: true, width: 230
+  });
+   // appends data with the dialog to a form of id join
+    dlg.parent().appendTo($("#remove6"));
+    //opens the dialog when the joinlynk button is pressed
+  $("#fileremove6").click(function(){
+   $("#remover6").dialog('open');
+  });
+  $("#close6").click(function(){
+   $("#remover6").dialog('close');
+  });
+ });
+
+// script for creating a dialog which pops up when the join button is pressed
+ $(document).ready(function(){
+  var dlg =  $("#remover7").dialog({
+   autoOpen: false,
+     modal: true, title: 'Are you sure', draggable: true, width: 230
+  });
+   // appends data with the dialog to a form of id join
+    dlg.parent().appendTo($("#remove7"));
+    //opens the dialog when the joinlynk button is pressed
+  $("#fileremove7").click(function(){
+   $("#remover7").dialog('open');
+  });
+  $("#close7").click(function(){
+   $("#remover7").dialog('close');
+  });
+ });
+
+ // script for creating a dialog which pops up when the join button is pressed
+ $(document).ready(function(){
+  var dlg =  $("#remover8").dialog({
+   autoOpen: false,
+     modal: true, title: 'Are you sure', draggable: true, width: 230
+  });
+   // appends data with the dialog to a form of id join
+    dlg.parent().appendTo($("#remove8"));
+    //opens the dialog when the joinlynk button is pressed
+  $("#fileremove8").click(function(){
+   $("#remover8").dialog('open');
+  });
+  $("#close8").click(function(){
+   $("#remover8").dialog('close');
+  });
+ });
+
+ // script for creating a dialog which pops up when the join button is pressed
+ $(document).ready(function(){
+  var dlg =  $("#remover9").dialog({
+   autoOpen: false,
+     modal: true, title: 'Are you sure', draggable: true, width: 230
+  });
+   // appends data with the dialog to a form of id join
+    dlg.parent().appendTo($("#remove9"));
+    //opens the dialog when the joinlynk button is pressed
+  $("#fileremove9").click(function(){
+   $("#remover9").dialog('open');
+  });
+  $("#close9").click(function(){
+   $("#remover9").dialog('close');
+  });
+ });
+
+ // script for creating a dialog which pops up when the join button is pressed
+ $(document).ready(function(){
+  var dlg =  $("#removelynkdia0").dialog({
+   autoOpen: false,
+     modal: true, title: 'Are you sure', draggable: true, width: 230
+  });
+   // appends data with the dialog to a form of id join
+    dlg.parent().appendTo($("#removelynk0"));
+    //opens the dialog when the joinlynk button is pressed
+  $("#removelynkbtn0").click(function(){
+   $("#removelynkdia0").dialog('open');
+  });
+  $("#closelynkdia0").click(function(){
+   $("#removelynkdia0").dialog('close');
+  });
+ });
 </script>
 </head>
 
 <style>
-    #tableCont {float:left; width:500px; position:relative}
-    #tableFiles{width:800px}
+    .wrapper{width: 1200px;}
+    #tableCont {float:left; width:500px;}
+    #tableFiles{margin-left:650px; width:800px;}
     .highlight { background: CornflowerBlue ; }
     .transparent{ border: none; background-color: transparent;outline: none;}
     .icon {background: url('file-ex.png') no-repeat top left;}
     .icon-accessibility{ background-position: 0 0; width: 32px; height: 32px; }
-
 
 </style>
 
@@ -124,10 +266,10 @@
 <!--  some separators to format our table -->
 
 <!-- a currently hardcoded table of possible values in the lynk system -->
-<h1 id="header" align="center ">Lynx</h1>
+<h1 id="header" align="center" style="color:PALETURQUOISE"><u>Lynx</u></h1>
 <br>
-<div id="tableContainer">
-    <div id="tableCont" class="container">
+<div id="tableContainer" class="wrapper">
+    <div id="tableCont">
         <table class="table" id="lynktable">
             <thead>
             <tr>
@@ -175,7 +317,8 @@
         </table>
     </div>
 
-    <div id="tableFiles" class="container">
+    <div id="tableFiles">
+        {{.FileHeader}}
         <table class="table table-hover" id="filetable">
             <thead>
             <tr>
@@ -186,6 +329,7 @@
             </thead>
             <tbody>
             {{.Files}}
+
             </tbody>
         </table>
     </div>
