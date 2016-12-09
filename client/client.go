@@ -21,6 +21,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // An array of the lynks found from parsing the lynks.txt file
@@ -288,7 +289,6 @@ func getFile(fileName, metaPath string) error {
 // problems creating or writing to the file, or from not being able to get there
 // desired file - otherwise error will be nil.
 func getFile(fileName, metaPath string) error {
-
 	// Will parseMetainfo file and then ask tracker for list of peers
 	ParseMetainfo(metaPath)
 	lynkName := GetLynkName(metaPath)
@@ -299,14 +299,17 @@ func getFile(fileName, metaPath string) error {
 
 	i := 1 // Skip Tracker - Which Will Be My Laptop For Presentation - So We Don't Come To Me First
 	gotFile := false
-	for i < len(lynk.Peers) && !gotFile {
+	for i > 0 && !gotFile {
 		conn, err := net.Dial("tcp", lynk.Peers[i].IP+":"+lynk.Peers[i].Port)
 		// We don't want to return on err because we might be able to connect to next peer.
-		if err == nil {
+		if (i == 1 && err == nil) {
+			gotFile = askForFilePres(lynkName, fileName, conn)
+		}
+		if i == 0 && err == nil {
 			gotFile = askForFile(lynkName, fileName, conn)
 		}
 		//fmt.Println(i)
-		i++
+		i--
 	}
 
 	if gotFile {
@@ -367,14 +370,13 @@ func askForFile(lynkName, fileName string, conn net.Conn) bool {
 	return gotFile
 }
 
-/*
 // SPECIAL VERSION FOR PRESENTATION ONLY!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // The function responsible for actually asking for a file from a peer
 // @param string lynkName - The name of the lynk we're asking about
 // @param string fileName - The name of the file to find in the peers
 // @param net.Conn conn - The connection to the peer
 // @return bool - True or false is returned based on whether or not we successfully received a file
-func askForFile(lynkName, fileName string, conn net.Conn) bool {
+func askForFilePres(lynkName, fileName string, conn net.Conn) bool {
 	fmt.Fprintf(conn, "Do_You_Have_FileName:"+lynkName+"/"+fileName+"\n")
 
 	fmt.Println("Downloading: " + fileName + "From " + conn.LocalAddr().String())
@@ -383,11 +385,11 @@ func askForFile(lynkName, fileName string, conn net.Conn) bool {
 	reply = strings.TrimSpace(reply)
 	gotFile := false
 
-	time.Sleep(time.Duration(10) * time.Second) // Waits X amount of time and then continues
-
 	// Has file and no errors
 	if reply != "NO" && err == nil {
 		bufIn, err := ioutil.ReadAll(conn)
+
+		time.Sleep(time.Duration(10) * time.Second) // Waits X amount of time and then continues
 
 		if err != nil || reply == "YES" {
 			lynk := lynxutil.GetLynk(lynks, lynkName)
@@ -398,7 +400,7 @@ func askForFile(lynkName, fileName string, conn net.Conn) bool {
 				}
 			}
 			fmt.Println("Disconnected From", conn.LocalAddr().String(), "On Chunk", int(
-									(len(bufIn) + file.Length / lynxutil.ChunkLength))
+				(len(bufIn) + file.Length/lynxutil.ChunkLength)))
 			return gotFile
 		}
 
@@ -429,7 +431,6 @@ func askForFile(lynkName, fileName string, conn net.Conn) bool {
 
 	return gotFile
 }
-*/
 
 // Asks the tracker for a list of peers and then places them into a lynk's peers array
 // @param string lynkName - The name of the lynk we're interested in
