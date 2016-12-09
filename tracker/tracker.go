@@ -287,7 +287,12 @@ func notifyPeers(request string) error {
 	for e == nil {
 		peerArray := strings.Split(line, ":::")
 		// [0] is IP / [1 ]is Port
-		pConn, _ := net.Dial("tcp", peerArray[0]+":"+peerArray[1])
+		pConn, err := net.Dial("tcp", peerArray[0]+":"+peerArray[1])
+		if err != nil {
+			line, e = tp.ReadLine()
+			continue
+		}
+
 		fmt.Fprintf(pConn, "Meta_Push:"+tmpArr[1]+"\n")
 
 		fBytes, err := ioutil.ReadFile(metaPath)
