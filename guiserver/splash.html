@@ -1,11 +1,11 @@
 <!doctype html>
 
-<!-- Home page of Lynk file sharing web gui
+<!-- The Splash screen which is displayed when Lynx first starts
 
 @author Max Kernchen
 @author Michael Bruce
 
-@version: 3/30/2016
+@version: 12/11/2016
 
 -->
 <html lang="en">
@@ -52,16 +52,9 @@
   });
  });
 
-
-        </script>
-
+</script>
 
     <style>
-
-
-
-
-
 .transparent{ border: none; background-color: transparent;outline: none;}
 .icon {background: url('file-ex.png') no-repeat top left;}
 .icon-accessibility{ background-position: 0 0; width: 32px; height: 32px; }
@@ -75,9 +68,6 @@
 #createlynk  {float:left; position:absolute; right:500px }
 #joinlynk{float:right; position:absolute; left:500px  }
 #homebtn{text-align:center; }
-
-
-
 </style>
 <head/>
 
@@ -86,13 +76,13 @@
 <div class="headerwrapper">
 <div id="header"> <h1>Welcome to Lynx!</h1> </div>
 <div id="header2"><h2>Lynx lets you seamlessly transfer files <br/> directly from computer to computer. <br/> You can share photos,
-    videos, and docs all without storage limits. <br/> Click below to begin creating your own private cloud.</h2></div></div>
+    videos, and documents all without storage limits. <br/> Click below to begin creating your own private cloud.</h2></div></div>
 </body>
 
 <br>
 <br>
 <br>
-
+<!-- the create icon which will allow the user to create a lynk from the splash screen -->
 <form id="create" method="POST" action="/createlynx" >
     <button type="button" class="transparent" data-toggle="tooltip" data-placement="bottom"
             title="Create a Lynk"
@@ -106,6 +96,8 @@
         <input type="submit" class="btn btn-success " name="createnewlynk" value="Create">
     </div>
 </form>
+
+<!-- the join button which will allow the user to join a lynk from the splash screen -->
 <form id="join" method="POST" action="/joinlynx">
     <button type="button" class="transparent" data-toggle="tooltip" data-placement="bottom"
             title="Join a Lynk"
@@ -119,6 +111,7 @@
         <input type="submit" class="btn btn-info " name="joincurrentlynk" value="Join">
     </div>
 </form>
+<!-- a button for going the current list of lynks -->
 <div class="headerwrapper">
 <form id="home" method="POST" action="/home">
     <button type="submit" class="transparent" data-toggle="tooltip" data-placement="bottom"
