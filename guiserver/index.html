@@ -1,11 +1,12 @@
 <!doctype html>
 
-<!-- Home page of Lynk file sharing web gui
+<!-- Home page of Lynk file sharing web gui updated to include two tables on for Lynks and one for the Lynk's files
+
 
 @author Max Kernchen
 @author Michael Bruce
 
-@version: 3/30/2016
+@version: 12/11/2016
 
 -->
 <html lang="en">
@@ -51,15 +52,13 @@
 
 
 {{.JSCode}}
-// script for creating a dialog which pops up when the join button is pressed
+// script for creating a dialog which pops up when the first file delete icon is pressed
  $(document).ready(function(){
   var dlg =  $("#remover0").dialog({
    autoOpen: false,
      modal: true, title: 'Are you sure', draggable: true, width: 230
   });
-   // appends data with the dialog to a form of id join
     dlg.parent().appendTo($("#remove0"));
-    //opens the dialog when the joinlynk button is pressed
   $("#fileremove0").click(function(){
    $("#remover0").dialog('open');
   });
@@ -68,15 +67,13 @@
   });
  });
 
- // script for creating a dialog which pops up when the join button is pressed
+ // script for creating a dialog which pops up when the second file delete icon is pressed
  $(document).ready(function(){
   var dlg =  $("#remover1").dialog({
    autoOpen: false,
      modal: true, title: 'Are you sure', draggable: true, width: 230
   });
-   // appends data with the dialog to a form of id join
     dlg.parent().appendTo($("#remove1"));
-    //opens the dialog when the joinlynk button is pressed
   $("#fileremove1").click(function(){
    $("#remover1").dialog('open');
   });
@@ -85,15 +82,13 @@
   });
  });
 
- // script for creating a dialog which pops up when the join button is pressed
+ // script for creating a dialog which pops up when third file delete icon is pressed
  $(document).ready(function(){
   var dlg =  $("#remover2").dialog({
    autoOpen: false,
      modal: true, title: 'Are you sure', draggable: true, width: 230
   });
-   // appends data with the dialog to a form of id join
     dlg.parent().appendTo($("#remove2"));
-    //opens the dialog when the joinlynk button is pressed
   $("#fileremove2").click(function(){
    $("#remover2").dialog('open');
   });
@@ -102,15 +97,13 @@
   });
  });
 
-// script for creating a dialog which pops up when the join button is pressed
+// script for creating a dialog which pops up when forth delete icon is pressed
  $(document).ready(function(){
   var dlg =  $("#remover3").dialog({
    autoOpen: false,
      modal: true, title: 'Are you sure', draggable: true, width: 230
   });
-   // appends data with the dialog to a form of id join
     dlg.parent().appendTo($("#remove3"));
-    //opens the dialog when the joinlynk button is pressed
   $("#fileremove3").click(function(){
    $("#remover3").dialog('open');
   });
@@ -119,15 +112,13 @@
   });
  });
 
- // script for creating a dialog which pops up when the join button is pressed
+ // script for creating a dialog which pops up when the fifth delete icon is pressed
  $(document).ready(function(){
   var dlg =  $("#remover4").dialog({
    autoOpen: false,
      modal: true, title: 'Are you sure', draggable: true, width: 230
   });
-   // appends data with the dialog to a form of id join
     dlg.parent().appendTo($("#remove4"));
-    //opens the dialog when the joinlynk button is pressed
   $("#fileremove4").click(function(){
    $("#remover4").dialog('open');
   });
@@ -136,15 +127,13 @@
   });
  });
 
-// script for creating a dialog which pops up when the join button is pressed
+// script for creating a dialog which pops up when sixth delete icon is pressed
  $(document).ready(function(){
   var dlg =  $("#remover5").dialog({
    autoOpen: false,
      modal: true, title: 'Are you sure', draggable: true, width: 230
   });
-   // appends data with the dialog to a form of id join
     dlg.parent().appendTo($("#remove5"));
-    //opens the dialog when the joinlynk button is pressed
   $("#fileremove5").click(function(){
    $("#remover5").dialog('open');
   });
@@ -153,15 +142,13 @@
   });
  });
 
-// script for creating a dialog which pops up when the join button is pressed
+// script for creating a dialog which pops up when seventh delete icon is pressed
  $(document).ready(function(){
   var dlg =  $("#remover6").dialog({
    autoOpen: false,
      modal: true, title: 'Are you sure', draggable: true, width: 230
   });
-   // appends data with the dialog to a form of id join
     dlg.parent().appendTo($("#remove6"));
-    //opens the dialog when the joinlynk button is pressed
   $("#fileremove6").click(function(){
    $("#remover6").dialog('open');
   });
@@ -170,15 +157,13 @@
   });
  });
 
-// script for creating a dialog which pops up when the join button is pressed
+// script for creating a dialog which pops up when eight delete icon is pressed
  $(document).ready(function(){
   var dlg =  $("#remover7").dialog({
    autoOpen: false,
      modal: true, title: 'Are you sure', draggable: true, width: 230
   });
-   // appends data with the dialog to a form of id join
     dlg.parent().appendTo($("#remove7"));
-    //opens the dialog when the joinlynk button is pressed
   $("#fileremove7").click(function(){
    $("#remover7").dialog('open');
   });
@@ -187,15 +172,13 @@
   });
  });
 
- // script for creating a dialog which pops up when the join button is pressed
+ // script for creating a dialog which pops up when the ninth delete icon is pressed
  $(document).ready(function(){
   var dlg =  $("#remover8").dialog({
    autoOpen: false,
      modal: true, title: 'Are you sure', draggable: true, width: 230
   });
-   // appends data with the dialog to a form of id join
     dlg.parent().appendTo($("#remove8"));
-    //opens the dialog when the joinlynk button is pressed
   $("#fileremove8").click(function(){
    $("#remover8").dialog('open');
   });
@@ -204,15 +187,13 @@
   });
  });
 
- // script for creating a dialog which pops up when the join button is pressed
+ // script for creating a dialog which pops up when the tenth delete icon is pressed
  $(document).ready(function(){
   var dlg =  $("#remover9").dialog({
    autoOpen: false,
      modal: true, title: 'Are you sure', draggable: true, width: 230
   });
-   // appends data with the dialog to a form of id join
     dlg.parent().appendTo($("#remove9"));
-    //opens the dialog when the joinlynk button is pressed
   $("#fileremove9").click(function(){
    $("#remover9").dialog('open');
   });
@@ -221,22 +202,7 @@
   });
  });
 
- // script for creating a dialog which pops up when the join button is pressed
- $(document).ready(function(){
-  var dlg =  $("#removelynkdia0").dialog({
-   autoOpen: false,
-     modal: true, title: 'Are you sure', draggable: true, width: 230
-  });
-   // appends data with the dialog to a form of id join
-    dlg.parent().appendTo($("#removelynk0"));
-    //opens the dialog when the joinlynk button is pressed
-  $("#removelynkbtn0").click(function(){
-   $("#removelynkdia0").dialog('open');
-  });
-  $("#closelynkdia0").click(function(){
-   $("#removelynkdia0").dialog('close');
-  });
- });
+
 </script>
 </head>
 
@@ -251,30 +217,15 @@
 
 </style>
 
-<!-- form for creating a lynk connection -->
-
-
-<!-- form for joining a lynx connectiong -->
-
-<!-- form for removing a lynx connection -->
-
-<!-- the settings dialog form which appears after any row click on the home screen -->
-
-<!-- the uploads form which is used to switch pages to uploads -->
-
-
-<!--  some separators to format our table -->
-
-<!-- a currently hardcoded table of possible values in the lynk system -->
 <h1 id="header" align="center" style="color:PALETURQUOISE"><u>Lynx</u></h1>
 <br>
+<!-- our table of Lynks which is generated by the GUI Server -->
 <div id="tableContainer" class="wrapper">
     <div id="tableCont">
         <table class="table" id="lynktable">
             <thead>
             <tr>
                 <th>Lynk Name</th>
-
             </tr>
             </thead>
             <tbody>
@@ -283,6 +234,7 @@
             <tfoot>
             <tr>
                 <td >
+                    <!-- the create button and its form data which is submitted upon pressing it -->
                     <form id="create" method="POST" action="/createlynx" >
                         <button type="button" class="transparent" data-toggle="tooltip" data-placement="bottom"
                                 title="Create a Lynk"
@@ -298,6 +250,7 @@
                     </form>
                 </td>
                 <td>
+                    <!-- the join button and its form data which submitted when the dialog button is pressed -->
                     <form id="join" method="POST" action="/joinlynx">
                         <button type="button" class="transparent" data-toggle="tooltip" data-placement="bottom"
                                 title="Join a Lynk"
@@ -316,7 +269,7 @@
             </tfoot>
         </table>
     </div>
-
+    <!-- the table of files which displays the files for each lynk -->
     <div id="tableFiles">
         {{.FileHeader}}
         <table class="table table-hover" id="filetable">
