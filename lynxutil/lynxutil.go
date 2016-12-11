@@ -147,7 +147,7 @@ func GetLynk(l []Lynk, lynkName string) *Lynk {
 // @param func(net.Conn) error handler - This is the function we use to handle the requests we get
 // @param func(net.Conn) error handler - This is the port we will listen on.
 func Listen(handler func(net.Conn) error, port string) {
-	fmt.Println("Listening on Port: " + port)
+	//fmt.Println("Listening on Port: " + port)
 
 	welcomeSocket, wErr := net.Listen("tcp", ":"+port)
 	if wErr != nil {

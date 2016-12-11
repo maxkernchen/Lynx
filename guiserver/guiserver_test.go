@@ -79,7 +79,7 @@ func TestMain(t *testing.T) {
 		t.Error("Operation Failed: ", err)
 	}
 
-	fmt.Println("\nSuccess on ", successful, "/", total, " tests.")
+	//fmt.Println("\nSuccess on ", successful, "/", total, " tests.")
 }
 
 // Helper function that verifies there has been a change in the files for the system tests lynk.
@@ -105,7 +105,7 @@ func testStartUp() error {
 	} else if startUp == 2 {
 		err = testJoin()
 	} else {
-		fmt.Println("\n----------------SimpleStart----------------")
+		//fmt.Println("\n----------------SimpleStart----------------")
 		successful++
 	}
 
@@ -115,13 +115,13 @@ func testStartUp() error {
 // Helper function that tests the create functionality of Lynx
 // @returns nil if successful, error if unsuccessful
 func testCreate() error {
-	fmt.Println("----------------TestCreate----------------")
+	//fmt.Println("----------------TestCreate----------------")
 	err := client.CreateMeta("SysTests")
 	tracker.CreateSwarm("SysTests")
 	if err != nil {
 		fmt.Println("Test failed, expected no errors. Got " + err.Error())
 	} else {
-		fmt.Println("Successfully Created Lynk")
+		//fmt.Println("Successfully Created Lynk")
 		successful++
 	}
 
@@ -131,12 +131,12 @@ func testCreate() error {
 // Helper function that tests the create functionality of Lynx
 // @returns nil if successful, error if unsuccessful
 func testJoin() error {
-	fmt.Println("\n----------------TestJoin----------------")
+	//fmt.Println("\n----------------TestJoin----------------")
 	err := client.JoinLynk(joinPath)
 	if err != nil {
 		fmt.Println("Test failed, expected no errors. Got " + err.Error())
 	} else {
-		fmt.Println("Successfully Joined Another Lynk")
+		//fmt.Println("Successfully Joined Another Lynk")
 		successful++
 	}
 
@@ -149,13 +149,13 @@ func testReceive() bool {
 	// Sleeps For An Extra 30 Minutes
 	time.Sleep(30 * time.Minute)
 
-	fmt.Println("\n----------------TestReceive----------------")
+	//fmt.Println("\n----------------TestReceive----------------")
 	result := checkChanges()
 
 	if !result {
 		fmt.Println("Test failed, expected to see a change in the Lynk")
 	} else {
-		fmt.Println("Successfully Added A File To The Lynk")
+		//fmt.Println("Successfully Added A File To The Lynk")
 		successful++
 	}
 
@@ -165,14 +165,14 @@ func testReceive() bool {
 // Helper function that checks a file was successfully added to a Lynk
 // @returns nil if successful, error if unsuccessful
 func testAdd() error {
-	fmt.Println("\n----------------TestAddFile----------------")
+	//fmt.Println("\n----------------TestAddFile----------------")
 	err := client.AddToMetainfo(imgPath, mPath)
 	err = client.UpdateMetainfo(mPath)
 
 	if err != nil {
 		fmt.Println("Test failed, expected no errors. Got " + err.Error())
 	} else {
-		fmt.Println("Successfully Added A File To The Lynk")
+		//fmt.Println("Successfully Added A File To The Lynk")
 		successful++
 	}
 
@@ -182,13 +182,13 @@ func testAdd() error {
 // Helper function that checks a file was successfully removed from a Lynk
 // @returns nil if successful, error if unsuccessful
 func testRemove() error {
-	fmt.Println("\n----------------TestRemoveFile----------------")
+	//fmt.Println("\n----------------TestRemoveFile----------------")
 	err := client.DeleteFile("funny.jpg", "SysTests")
 
 	if err != nil {
 		fmt.Println("Test failed, expected no errors. Got " + err.Error())
 	} else {
-		fmt.Println("Successfully Removed A File From The Lynk")
+		//fmt.Println("Successfully Removed A File From The Lynk")
 		successful++
 	}
 
@@ -213,7 +213,7 @@ func testOp() error {
 			err = errors.New("Lynk Did Not Change")
 		}
 	} else {
-		fmt.Println("\n----------------SimpleRun----------------")
+		//fmt.Println("\n----------------SimpleRun----------------")
 		successful++
 		time.Sleep(12 * time.Hour) // Simple run lasts 12 hours by default
 	}

@@ -250,7 +250,7 @@ func handlePush(request string, conn net.Conn) error {
 	r.Read(bufOut)
 	r.Close()
 
-	fmt.Println(len(bufIn), "Bytes Received")
+	//fmt.Println(len(bufIn), "Bytes Received")
 
 	err = os.Remove(metaPath)
 	if err != nil {
@@ -296,7 +296,7 @@ func notifyPeers(request string) error {
 		fmt.Fprintf(pConn, "Meta_Push:"+tmpArr[1]+"\n")
 
 		fBytes, err := ioutil.ReadFile(metaPath)
-		fmt.Println("fBytes: ", string(fBytes))
+		//fmt.Println("fBytes: ", string(fBytes))
 
 		// Begin Compression
 		var b bytes.Buffer
@@ -314,14 +314,14 @@ func notifyPeers(request string) error {
 		}
 		// End Encryption
 
-		n, err := pConn.Write(cipherFile)
+		_, err = pConn.Write(cipherFile)
 		if err != nil {
 			fmt.Println("CONNECTION ERROR:", err)
 			return err
 		}
 
 		time.Sleep(time.Duration(1) * time.Second)
-		fmt.Println("TRACKER SENT", n, "BYTES TO PEER")
+		//fmt.Println("TRACKER SENT", n, "BYTES TO PEER")
 
 		pConn.Close()
 		line, e = tp.ReadLine()
@@ -336,19 +336,19 @@ func notifyPeers(request string) error {
 // @return error - An error can be produced when trying open a file or write over
 // the network - otherwise error will be nil.
 func sendFile(fileName string, conn net.Conn) error {
-	fmt.Println(fileName)
+	//fmt.Println(fileName)
 
 	fileToSend, err := os.Open(fileName)
 	if err != nil {
 		return err
 	}
 
-	n, err := io.Copy(conn, fileToSend)
+	_, err = io.Copy(conn, fileToSend)
 	if err != nil {
 		return err
 	}
 
-	fmt.Println(n, "bytes were sent")
+	//fmt.Println(n, "bytes were sent")
 
 	return fileToSend.Close()
 }
@@ -384,7 +384,7 @@ func visitTrackers(path string, file os.FileInfo, err error) error {
 
 	// Checks that there is directory beneath another directory and has _tracker
 	if file.IsDir() && len(split) == 2 && strings.Contains(split[1], "_Tracker") {
-		fmt.Println(file.Name())
+		//fmt.Println(file.Name())
 		lynkName := strings.TrimSuffix(file.Name(), "_Tracker")
 		tLynks = append(tLynks, lynxutil.Lynk{Name: lynkName})
 		// Need to populate Peers here.
@@ -417,12 +417,12 @@ func BroadcastNewIP(swarmPath string) {
 
 	i := 0
 	for i < len(lynk.Peers) {
-		fmt.Println(i)
+		//fmt.Println(i)
 		conn, err := net.Dial("tcp", lynk.Peers[i].IP+":"+lynk.Peers[i].Port)
 		if err == nil {
 			sendFile(lynxutil.HomePath+lynk.Name+"/meta.info", conn)
 		}
-		fmt.Println(lynk.Peers[i].IP)
+		//fmt.Println(lynk.Peers[i].IP)
 		i++
 	}
 }

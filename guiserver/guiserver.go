@@ -1,7 +1,7 @@
 // The web server responsible for rendering our GUI.
 // @author: Michael Bruce
 // @author: Max Kernchen
-//@verison: 2/17/2016
+//@verison: 12/11/2016
 package main
 
 import (
@@ -48,14 +48,14 @@ type UserInput struct {
 type HTMLFiles struct {
 	fs http.FileSystem
 }
-// MyTempalte - struct which is used to fill our html template entries for javascript and html code
-type MyTemplate struct {
-	Entries template.HTML
-	Files template.HTML
-	FileHeader template.HTML
-	JSCode template.JS
-}
 
+// MyTemplate - struct which is used to fill our html template entries for javascript and html code
+type MyTemplate struct {
+	Entries    template.HTML
+	Files      template.HTML
+	FileHeader template.HTML
+	JSCode     template.JS
+}
 
 // Main simply calls our launch method which inits our web server
 func main() {
@@ -79,7 +79,7 @@ func launch() {
 
 	http.Handle("/images/", http.StripPrefix("/images/",
 		http.FileServer(http.Dir("images/"))))
-
+	// each handle function will be called when the web page is directed to it
 	http.HandleFunc("/home", IndexHandler)
 	http.HandleFunc("/joinlynx", JoinHandler)
 	http.HandleFunc("/createlynx", CreateHandler)
@@ -127,22 +127,28 @@ func IndexHandler(rw http.ResponseWriter, req *http.Request) {
 		fmt.Println(err)
 	}
 	//t,_ = t.ParseFiles("index.html")
+	// get the table of lynks
 	tableEntries := TablePopulate(lynxutil.HomePath + "/lynks.txt")
 	//fmt.Println(client.GetFileTableIndex())
+	// generate the js code for the lynks table
 	jsCode := JSLynkGenerate()
 	myTemp := new(MyTemplate)
+	// intialize our custom template with the lynks and the jscode for it
 	myTemp.Entries = template.HTML(tableEntries)
 	myTemp.JSCode = template.JS(jsCode)
-
+	// if a lynk was previously selected, reload the page with the last selected lynk
 	if client.GetFileTableIndex() > -1 {
+		// get our files table for a lynk
 		fileEntry := FilePopulate(client.GetFileTableIndex())
 		myTemp.Files = template.HTML(fileEntry)
+		// get the header above the file table
 		fileHeader := FileHeader(client.GetFileTableIndex())
 		myTemp.FileHeader = template.HTML(fileHeader)
 		t.ExecuteTemplate(rw, "index.html", myTemp)
 
+		// else load the page without any selected lynk
 	} else {
-		t.ExecuteTemplate(rw, "index.html",myTemp)
+		t.ExecuteTemplate(rw, "index.html", myTemp)
 
 	}
 
@@ -192,6 +198,7 @@ func RemoveHandler(rw http.ResponseWriter, req *http.Request) {
 		//fmt.Println("in here" + name[0])
 
 		client.DeleteLynk(client.GetLynkNameFromIndex(index), false)
+		// make sure we dont try and load a just deleted lynk
 		client.SetFileTableIndex(-1)
 		TablePopulate(lynxutil.HomePath + "/lynks.txt")
 	}
@@ -225,7 +232,7 @@ func DownloadHandler(rw http.ResponseWriter, req *http.Request) {
 	rw.Write(downloads)
 }
 
-// HomeHandler - Function that handles requests on the index page: "/home".
+// SplashHandler - Function which loads our splash screen that is displayed on lynx startup
 // @param http.ResponseWriter rw - This is what we use to write our html back to
 // the web page.
 // @param *http.Request req - This is the http request sent to the server.
@@ -236,8 +243,7 @@ func SplashHandler(rw http.ResponseWriter, req *http.Request) {
 		fmt.Println(err)
 	}
 
-	t.ExecuteTemplate(rw, "splash.html","");
-
+	t.ExecuteTemplate(rw, "splash.html", "")
 
 }
 
@@ -259,17 +265,24 @@ func TablePopulate(pathToTable string) string {
 		rowStringNum := strconv.Itoa(i)
 		line := strings.TrimSpace(scanner.Text()) // Trim helps with errors in \n
 		split := strings.Split(line, ":::")
+		// the id of our table row
 		tableEntries += "<tr id= row" + rowStringNum + " > \n"
+		// change the color of the Lynk name when it is selected
 		if i == client.GetFileTableIndex() {
 			tableEntries += "<td><b style= \"color:blue;\">" + split[0] + "</b></td>\n"
 		} else {
 			tableEntries += "<td>" + split[0] + "</td>\n"
 		}
+		// the html code which allows a table row click to show the files and also has the Delete
+		// icon for deleting each lynk
 		tableEntries += "<td><form id=\"remove\" method=\"POST\" action=\"/removelynx\"><button " +
-			"type=\"submit\" class=\"transparent\" data-toggle=\"tooltip\" data-placement = \"bottom\" title = \"Delete this Lynk\" id=\"removelynk\"\n " +
-			"input type=\"hidden\" name=\"index\" value=\"" + rowStringNum + "\"><img src=\"images/file-ex-red.png\"></button></form></td>\n"
-		tableEntries += "<form name=\"row" + rowStringNum + "form\" id=\"row" + rowStringNum + "formid\" " +
-			"method=\"POST\" action=\"/files\"><input type=\"hidden\" name=\"index\" value=\"" + rowStringNum + "\"></form>"
+			"type=\"submit\" class=\"transparent\" data-toggle=\"tooltip\" data-placement = \"bottom\"" +
+			"title = \"Delete this Lynk\" id=\"removelynk\"\n " +
+			"input type=\"hidden\" name=\"index\" value=\"" + rowStringNum + "\"><img src=\"" +
+			"images/file-ex-red.png\"></button></form></td>\n"
+		tableEntries += "<form name=\"row" + rowStringNum + "form\"" +
+			"id=\"row" + rowStringNum + "formid\" method=\"POST\" action=\"/files\"><input " +
+			"type=\"hidden\" name=\"index\" value=\"" + rowStringNum + "\"></form>"
 		tableEntries += "</tr>\n"
 		i++
 	}
@@ -312,27 +325,31 @@ func FilePopulate(index int) string {
 		fileEntries := ""
 		tempLynk := lynks[index]
 		//fmt.Println(tempLynk.Files)
-		fmt.Println("file pop")
+		//fmt.Println("file pop")
 		fileNames := tempLynk.Files
 		client.SetFileTableIndex(index)
 		i := 0
 
 		for i < len(fileNames) {
+			// the file name and size on one row and the its delete icon on the last one
 			fileEntries += "<tr> \n"
 			fileEntries += "<td>" + fileNames[i].Name + "</td>\n"
 			fileEntries += "<td>" + strconv.Itoa(fileNames[i].Length) + "</td>\n"
 			/*fileEntries += "<td><form id=\"remove\" method=\"POST\" action=\"removefile\"> \n" +
-				"<button type=\"submit\" class=\"transparent\" data-toggle=\"tooltip\"" +
-				" data-placement=\"bottom\" \n" +
-				"title=\"Delete this file\" input type=\"hidden\" name=\"index\" value=\"" +
-				strconv.Itoa(i) + "\" ><img src=\"images/file-ex-red.png\"></button></form>"*/
-			fileEntries += "<td> <form id=\"remove"+strconv.Itoa(i)+"\" method=\"POST\" action=\"/removefile\"><button " +
-				"type=\"button\" id=\"fileremove"+strconv.Itoa(i)+"\" class=\"transparent\" data-toggle=\"tooltip\"" +
+			"<button type=\"submit\" class=\"transparent\" data-toggle=\"tooltip\"" +
+			" data-placement=\"bottom\" \n" +
+			"title=\"Delete this file\" input type=\"hidden\" name=\"index\" value=\"" +
+			strconv.Itoa(i) + "\" ><img src=\"images/file-ex-red.png\"></button></form>"*/
+
+			// the delete icon for a file and the dialog which appears when it is pressed
+			fileEntries += "<td> <form id=\"remove" + strconv.Itoa(i) + "\" method=\"POST\" " +
+				"action=\"/removefile\"><button type=\"button\" id=\"fileremove" + strconv.Itoa(i) + "\" " +
+				"class=\"transparent\" data-toggle=\"tooltip\"" +
 				"data-placement=\"bottom\" title=\"Delete this file\" ><img " +
-				"src=\"images/file-ex-red.png\"></button><div id=\"remover"+strconv.Itoa(i)+"\">Are you " +
-				"sure you want to delete"+ fileNames[i].Name + " ?" + "<input type=\"hidden\"" +
-				"name=\"index\" value=\""+ strconv.Itoa(i)+"\"> <br><br><button type=\"button\" " +
-				"id=\"close"+strconv.Itoa(i)+"\" name=\"Cancel\"" +
+				"src=\"images/file-ex-red.png\"></button><div id=\"remover" + strconv.Itoa(i) + "\">Are you " +
+				"sure you want to delete " + fileNames[i].Name + " ? <input type=\"hidden\"" +
+				"name=\"index\" value=\"" + strconv.Itoa(i) + "\"> <br><br><button type=\"button\" " +
+				"id=\"close" + strconv.Itoa(i) + "\" name=\"Cancel\"" +
 				" class=\"btn btn-info\">Cancel</button><button type=\"submit\" class=\"btn btn-danger\"" +
 				">Delete</button></div></form></td>"
 			fileEntries += "</tr>\n"
@@ -346,6 +363,11 @@ func FilePopulate(index int) string {
 
 }
 
+// FileHandler - handlers function which is called each time a lynk is pressed
+// and the files are displayed
+// on the right table
+// @param: rw will respond to to the html
+// @param: req the form data from the html page
 func FileHandler(rw http.ResponseWriter, req *http.Request) {
 	req.ParseForm()
 	form = req.Form
@@ -358,11 +380,15 @@ func FileHandler(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	indexInt, _ := strconv.Atoi(index[0])
+	// get the files for that lynk in our list of lynks
 	fileEntry := FilePopulate(indexInt)
 	tableEntries := TablePopulate(lynxutil.HomePath + "/lynks.txt")
+	// create the header for the file table
 	fileHeader := FileHeader(client.GetFileTableIndex())
+	// generate our javascript code
 	jsCode := JSLynkGenerate()
 	myTemp := new(MyTemplate)
+	// set our custom html template
 	myTemp.JSCode = template.JS(jsCode)
 	myTemp.Entries = template.HTML(tableEntries)
 	myTemp.FileHeader = template.HTML(fileHeader)
@@ -371,6 +397,10 @@ func FileHandler(rw http.ResponseWriter, req *http.Request) {
 	t.ExecuteTemplate(rw, "index.html", myTemp)
 }
 
+// RemoveFileHandler - function which handles the removal of a file from a specific lynk,
+// will actually delete the file locally
+// @param: rw - a response to our html if needed
+// @param: req - the form data from our html
 func RemoveFileHandler(rw http.ResponseWriter, req *http.Request) {
 
 	req.ParseForm()
@@ -379,15 +409,17 @@ func RemoveFileHandler(rw http.ResponseWriter, req *http.Request) {
 	if name != nil {
 		index, _ := strconv.Atoi(name[0])
 		//fmt.Println(index)
+		// call delete file from the index we provided. while also passing in which lynk we are in
 		client.DeleteFileIndex(index, client.GetFileTableIndex())
 		lynk := client.GetLynkNameFromIndex(client.GetFileTableIndex())
 		//client.DeleteLynk(client.GetLynkNameFromIndex(client.GetFileTableIndex()))
+		// create a new meta.info file and push it to reflect the changes
 		client.CreateMeta(lynk)
 		server.PushMeta(lynxutil.HomePath + lynk + "/meta.info")
 		//tracker.CreateSwarm(lynk)
 		//TablePopulate(lynxutil.HomePath + "/lynks.txt")
 	}
-
+	// back to home page
 	IndexHandler(rw, req)
 
 }
@@ -416,7 +448,7 @@ func checkFiles(path string, file os.FileInfo, err error) error {
 
 	// Don't add directories, trackers, or a meta.info file to the new meta.info
 	if !file.IsDir() && !strings.Contains(path, "_Tracker") && file.Name() != "meta.info" && !inMeta {
-		fmt.Println("Changed ", file.Name())
+		//fmt.Println("Changed ", file.Name())
 		changed = true
 	}
 
@@ -427,7 +459,7 @@ func checkFiles(path string, file os.FileInfo, err error) error {
 func checkLynks() {
 	// Loops through every Lynk to check to see if their files have changed
 	for _, lynk := range client.GetLynks() {
-		fmt.Println("Checking..." + lynk.Name)
+		//fmt.Println("Checking..." + lynk.Name)
 		changed = false
 		// Sets currentLynk so it can be used in checkFiles
 		currentLynk = lynk
@@ -440,31 +472,31 @@ func checkLynks() {
 	}
 }
 
-//Function which generate java script code for our table of lynks.
+// JSLynkGenerate - function which generate java script code for our table of lynks.
 // This code allows us to click on a table row and see the files on the left hand side file table
 // @returns: the string of the JS code
-func JSLynkGenerate()string{
+func JSLynkGenerate() string {
 	JSCode := ""
 	length := client.GetLynksLen()
-	i :=0
+	i := 0
 
-	for i < length{
+	for i < length {
 		index := strconv.Itoa(i)
 		JSCode += "$(document).ready(function(){\n"
 		JSCode += "var dlg =  $(\"\").dialog({autoOpen: false});\n"
-		JSCode += "dlg.parent().appendTo($(\"#row"+index+"form\"));\n"
-		JSCode += "$(\"#row"+index+"\").click(function(){\n"
+		JSCode += "dlg.parent().appendTo($(\"#row" + index + "form\"));\n"
+		JSCode += "$(\"#row" + index + "\").click(function(){\n"
 		JSCode += "$(this).addClass('highlight').siblings().removeClass(\"highlight\");\n"
-		JSCode += "document.row"+index+"form.submit();});});\n"
+		JSCode += "document.row" + index + "form.submit();});});\n"
 		i++
 	}
 
-
-
 	return JSCode
 }
-// Helper function which creates an html string for the header above the file table that
+
+// FileHeader - Helper function which creates an html string for the header above the file table that
 // displays the lynk name and owner
+// @param: the lynk index which we need header information for
 //@returns: the string which we will use for our html
 func FileHeader(index int) string {
 	var htmlString string
@@ -475,7 +507,6 @@ func FileHeader(index int) string {
 	lynkOwner := tempLynk.Owner
 
 	htmlString = "<h3>Lynk:" + lynkName + " | Owner:" + lynkOwner + "</h3>"
-
 
 	return htmlString
 

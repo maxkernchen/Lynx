@@ -379,6 +379,7 @@ func askForFile(lynkName, fileName string, conn net.Conn) bool {
 func askForFilePres(lynkName, fileName string, conn net.Conn) bool {
 	fmt.Fprintf(conn, "Do_You_Have_FileName:"+lynkName+"/"+fileName+"\n")
 
+	// Can change to remote
 	fmt.Println("Downloading: " + fileName + " From " + conn.LocalAddr().String())
 
 	reply, err := bufio.NewReader(conn).ReadString('\n') // Waits for a String ending in newline
