@@ -399,7 +399,7 @@ func askForFilePres(lynkName, fileName string, conn net.Conn) bool {
 					file = f
 				}
 			}
-			fmt.Println("Disconnected From", conn.LocalAddr().String(), "On Chunk", int(
+			fmt.Println("Disconnected From", conn.RemoteAddr().String(), "On Chunk", int(
 				(len(bufIn) + file.Length/lynxutil.ChunkLength)))
 			return gotFile
 		}
