@@ -8,8 +8,8 @@ package client
 import (
 	"bufio"
 	"bytes"
-	"capstone/lynxutil"
-	"capstone/mycrypt"
+	"../lynxutil"
+	"../mycrypt"
 	"compress/gzip"
 	"errors"
 	"fmt"
@@ -553,7 +553,8 @@ func addLynk(name, owner string) error {
 	i := 0
 	for i < len(lynks) {
 		// Will have to validate directory names
-		if lynks[i].Name+lynks[i].Owner == name+owner {
+		fmt.Println()
+		if strings.TrimSpace(lynks[i].Name+lynks[i].Owner) == strings.TrimSpace(name+owner) {
 			return errors.New("Can't Add Duplicate Lynk")
 		}
 		i++

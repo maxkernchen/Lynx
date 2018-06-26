@@ -6,10 +6,10 @@ package main
 
 import (
 	"bufio"
-	"capstone/client"
-	"capstone/lynxutil"
-	"capstone/server"
-	"capstone/tracker"
+	"../client"
+	"../lynxutil"
+	"../server"
+	"../tracker"
 	"fmt"
 	"html/template"
 	"io/ioutil"
@@ -21,6 +21,7 @@ import (
 	"strings"
 
 	"github.com/jasonlvhit/gocron"
+	"github.com/skratchdot/open-golang/open"
 )
 
 // Holds our uploads html page
@@ -94,6 +95,8 @@ func launch() {
 	// Do jobs with params
 	//gocron.Every(30).Second().Do(checkLynks)
 	//<-gocron.Start()
+
+	open.Run("http://localhost:" + lynxutil.GUIPort)
 
 	go cronWrapper()
 
@@ -334,7 +337,7 @@ func FilePopulate(index int) string {
 			// the file name and size on one row and the its delete icon on the last one
 			fileEntries += "<tr> \n"
 			fileEntries += "<td>" + fileNames[i].Name + "</td>\n"
-			fileEntries += "<td>" + strconv.Itoa(fileNames[i].Length) + "</td>\n"
+			fileEntries += "<td>" + strconv.Itoa(fileNames[i].Length/1000) +" KB" + "</td>\n"
 			/*fileEntries += "<td><form id=\"remove\" method=\"POST\" action=\"removefile\"> \n" +
 			"<button type=\"submit\" class=\"transparent\" data-toggle=\"tooltip\"" +
 			" data-placement=\"bottom\" \n" +
@@ -434,21 +437,23 @@ func init() {
 // Function which checks the files in a directory to see if any have been added / changed
 // @param path string - the path where the root directory is located
 // @param file os.FileInfo - each file within the root or inner directories
-// @param err error - any error we way encoutner along the way
+// @param err error - any error we way encounter along the way
 // @return error - An error can produced if we encounter an invalid file.
 func checkFiles(path string, file os.FileInfo, err error) error {
 
 	inMeta := false
 	for _, f := range currentLynk.Files {
 		// Checks that the file is in the meta.info and that it matches the size listed in the meta
-		if f.Name == file.Name() && f.Length == int(file.Size()) {
+
+		if f.Name == file.Name() {
+			//fmt.Println("same file name: " + file.Name())
 			inMeta = true
 		}
 	}
 
 	// Don't add directories, trackers, or a meta.info file to the new meta.info
 	if !file.IsDir() && !strings.Contains(path, "_Tracker") && file.Name() != "meta.info" && !inMeta {
-		//fmt.Println("Changed ", file.Name())
+		fmt.Println("File: " + file.Name() + " has been added or changed")
 		changed = true
 	}
 

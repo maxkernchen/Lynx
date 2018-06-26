@@ -1,0 +1,32 @@
+<component name="libraryTable">
+  <library name="GOPATH &lt;capstone&gt;">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/../../cap" />
+      <root url="file://$PROJECT_DIR$/../../capstone11" />
+      <root url="file://$PROJECT_DIR$/../../github.com" />
+      <root url="file://$PROJECT_DIR$/../../golang.org" />
+      <root url="file://$PROJECT_DIR$/../../capstonemerge" />
+      <root url="file://$PROJECT_DIR$/../../capstone" />
+      <root url="file://$PROJECT_DIR$/../../capstone2" />
+      <root url="file://$PROJECT_DIR$/.." />
+      <root url="file://$PROJECT_DIR$/../../merge1" />
+      <root url="file://$PROJECT_DIR$/../../merge2" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/../../cap" />
+      <root url="file://$PROJECT_DIR$/../../capstone11" />
+      <root url="file://$PROJECT_DIR$/../../github.com" />
+      <root url="file://$PROJECT_DIR$/../../golang.org" />
+      <root url="file://$PROJECT_DIR$/../../capstonemerge" />
+      <root url="file://$PROJECT_DIR$/../../capstone" />
+      <root url="file://$PROJECT_DIR$/../../capstone2" />
+      <root url="file://$PROJECT_DIR$/.." />
+      <root url="file://$PROJECT_DIR$/../../merge1" />
+      <root url="file://$PROJECT_DIR$/../../merge2" />
+    </SOURCES>
+    <excluded>
+      <root url="file://$PROJECT_DIR$" />
+    </excluded>
+  </library>
+</component>

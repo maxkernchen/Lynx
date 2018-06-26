@@ -5,7 +5,7 @@
 package lynxutil
 
 import (
-	"capstone/mypgp"
+	"../mypgp"
 	"fmt"
 	"io"
 	"net"

@@ -7,17 +7,19 @@ package server
 import (
 	"bufio"
 	"bytes"
-	"capstone/client"
-	"capstone/lynxutil"
-	"capstone/mycrypt"
+	"../client"
+	"../lynxutil"
+	"../mycrypt"
 	"compress/gzip"
 	"errors"
 	"fmt"
 	"io/ioutil"
 	"net"
 	"os"
-	"path/filepath"
+	//"path/filepath"
 	"strings"
+	//"path/filepath"
+	//"path/filepath"
 )
 
 // Holds the currentLynk being worked on in an update
@@ -147,7 +149,7 @@ func handlePush(request string, conn net.Conn) error {
 	// Sets currentLynk so it can be used in rmFiles
 	currentLynk = lynxutil.GetLynk(client.GetLynks(), lynkName)
 	// Removes files that are no longer in meta.info
-	filepath.Walk(lynxutil.HomePath+lynkName, rmFiles)
+	//filepath.Walk(lynxutil.HomePath+lynkName, rmFiles)
 
 	client.UpdateLynk(lynkName)
 	return nil // No errors if we reached this point
@@ -189,7 +191,7 @@ func sendFile(fileName string, conn net.Conn) error {
 
 	//fmt.Println(n, "Bytes were sent")
 
-	return nil // No Errors Occured If We Reached Here
+	return nil // No Errors occurred If We Reached Here
 }
 
 // PushMeta - Sends the meta.info file to the tracker. Gets the tracker IP from the client.
@@ -220,7 +222,7 @@ func PushMeta(metaPath string) error {
 // Function which removes a file from a directory if it's not in the Lynk's files array
 // @param path string - the path where the root directory is located
 // @param file os.FileInfo - each file within the root or inner directories
-// @param err error - any error we way encoutner along the way
+// @param err error - any error we way encounter along the way
 // @return error - An error can produced if we encounter an invalid file.
 func rmFiles(path string, file os.FileInfo, err error) error {
 

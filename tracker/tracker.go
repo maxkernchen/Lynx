@@ -8,8 +8,8 @@ package tracker
 import (
 	"bufio"
 	"bytes"
-	"capstone/lynxutil"
-	"capstone/mycrypt"
+	"../lynxutil"
+	"../mycrypt"
 	"compress/gzip"
 	"errors"
 	"fmt"
