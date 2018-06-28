@@ -1,4 +1,9 @@
-#!/usr/bin/env bash
+#!/bin/bash
+
+go get github.com/jasonlvhit/gocron
+go get github.com/skratchdot/open-golang/open
+go get golang.org/x/crypto/openpgp
+echo Downloaded Required Packages
 
 cd client
 go install
@@ -45,4 +50,7 @@ go install
 echo Mypgp Installed
 cd ..
 
+cd guiserver
+echo Starting Lynx...
+go run guiserver.go
 exit

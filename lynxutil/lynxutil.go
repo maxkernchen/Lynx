@@ -1,7 +1,7 @@
 // Package lynxutil contains all the common functions / structs Lynx uses throughout it's classes.
 // @author: Michael Bruce
-// @author: Max Kernchen
-// @verison: 4/30/2016
+// @author: Max Kernchen - last modified 6/27/2018
+// @version: 6/27/2018
 package lynxutil
 
 import (
@@ -166,11 +166,20 @@ func Listen(handler func(net.Conn) error, port string) {
 	}
 
 }
+// Function which  creates the root Lynx directory if it is not already defined
+// not currently in use still need to do extra testing - MK
+func CheckAndCreateLynxDir(){
+	if _, err := os.Stat(HomePath); os.IsNotExist(err) {
+		os.Mkdir(HomePath, 0644)
+	}
+}
 
 // Function init runs as soon as this class is imported and allows us to setup our HomePath
 func init() {
 	currentusr, _ := user.Current()
 	HomePath = currentusr.HomeDir + "/Lynx/"
+	//check and create the Lynx directory if it is not there - not currently in use still need to do extra testing.
+	//CheckAndCreateLynxDir()
 	HomePath = strings.Replace(HomePath, "\\", "/", -1) // Replaces Windows "\" With Unix "/" in path
 	config := mypgp.Config{Expiry: 365 * 24 * time.Hour}
 	key, _ := mypgp.CreateKey(currentusr.Name, "openpgp:lynxkeys", currentusr.Name+"@lynx.com", &config)

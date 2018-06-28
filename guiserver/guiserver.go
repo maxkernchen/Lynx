@@ -1,7 +1,9 @@
 // The web server responsible for rendering our GUI.
-// @author: Michael Bruce
-// @author: Max Kernchen
-//@verison: 12/11/2016
+// @author: Michael Bruce  - last modified 12/11/2016
+// @author: Max Kernchen   - last modified 6/24/2018
+// @version: 6/24/2018
+
+
 package main
 
 import (
@@ -65,6 +67,8 @@ func main() {
 
 // Launches our web server
 func launch() {
+
+
 	// Checks to see if lynks.txt exists - if it doesn't it is created.
 	if _, err := os.Stat(lynxutil.HomePath + "/lynks.txt"); os.IsNotExist(err) {
 		os.Create(lynxutil.HomePath + "lynks.txt")
@@ -96,6 +100,7 @@ func launch() {
 	//gocron.Every(30).Second().Do(checkLynks)
 	//<-gocron.Start()
 
+	// MK - open UI automatically on start of Lynx
 	open.Run("http://localhost:" + lynxutil.GUIPort)
 
 	go cronWrapper()
@@ -443,7 +448,7 @@ func checkFiles(path string, file os.FileInfo, err error) error {
 
 	inMeta := false
 	for _, f := range currentLynk.Files {
-		// Checks that the file is in the meta.info and that it matches the size listed in the meta
+		// Checks that the file is in the meta.info
 
 		if f.Name == file.Name() {
 			//fmt.Println("same file name: " + file.Name())
