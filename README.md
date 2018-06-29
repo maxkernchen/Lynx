@@ -12,12 +12,12 @@ Lynx — the name of the application
 
 Lynk — the name of a directory which has been either created or joined
 
-Join a Lynk — By entering the location of the meta file the user joins the Lynk which was created on another machine. 
+Join a Lynk — By entering the location of the meta.info file the user joins the Lynk which was created on another machine. 
 Files are then synchronized between all peers which have joined the Lynk.
 
-Create a Lynk — By entering the exact name of the folder within the Links folder in the root of the user,
-this directory can be shared amongst other machines which are running Lynx and have a copy of the meta.info file 
-which is created when this process is completed. This file is within the same folder and must be shared to other
+Create a Lynk — By entering the exact name of the folder within the Lynx folder in the root of the user,
+this directory can be shared amongst other machines which are running Lynx and have a copy of the meta.info file.
+Which is created when this process is completed. This file is within the same folder and must be shared to other
 users to begin the 'Join a Lynk' process.
 
 To install Lynx the user needs to create a folder named 'Lynx' at the root of the users folder.
@@ -39,3 +39,4 @@ Afterwards run the run.sh bash script to start the application. These steps assu
 the correct environment variables as defined in the documentation at https://golang.org/doc/install
 
 Below is a video which shows a working example of Lynx which should contain most information needed to run and use Lynx.
+https://youtu.be/-qwlYSeYo-E
